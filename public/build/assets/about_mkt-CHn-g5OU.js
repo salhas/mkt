@@ -1,0 +1,1 @@
+var e=`/build/assets/about_mkt-Bx0pvx18.jpg`;export{e as t};

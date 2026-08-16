@@ -13,18 +13,28 @@ use App\Http\Controllers\OrganizationMemberController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SarOperationController;
 use App\Http\Controllers\SarParticipationController;
+use App\Http\Controllers\PublicPageController;
+use App\Http\Controllers\NewsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+/*
+|--------------------------------------------------------------------------
+| Public Multi-Page Routes (Yayasan MKT Indonesia)
+|--------------------------------------------------------------------------
+*/
+Route::get('/', [PublicPageController::class, 'home'])->name('home');
+Route::get('/profil', [PublicPageController::class, 'about'])->name('public.profile');
+Route::get('/tentang-kami', [PublicPageController::class, 'about'])->name('public.about');
+Route::get('/layanan', [PublicPageController::class, 'services'])->name('public.services');
+Route::get('/berita', [PublicPageController::class, 'news'])->name('public.news');
+Route::get('/berita/{slug}', [PublicPageController::class, 'newsDetail'])->name('public.news.show');
+Route::get('/mitra', [PublicPageController::class, 'partners'])->name('public.partners');
+Route::get('/pilar-kebencanaan', function() {
+    return redirect()->route('public.partners');
+})->name('public.pillars');
+Route::get('/kontak', [PublicPageController::class, 'contact'])->name('public.contact');
 
 // Public Volunteer Registration Route (with Email Notification)
 Route::post('/register-volunteer', [VolunteerController::class, 'publicRegister'])->name('volunteers.public-register');
@@ -33,6 +43,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/weather', [DashboardController::class, 'getWeather'])->name('dashboard.weather');
+
+    // News & Articles Management (Manajemen Berita & Artikel)
+    Route::get('/news-management', [NewsController::class, 'index'])->name('news.index');
+    Route::post('/news-management', [NewsController::class, 'store'])->name('news.store');
+    Route::patch('/news-management/{news}', [NewsController::class, 'update'])->name('news.update');
+    Route::delete('/news-management/{news}', [NewsController::class, 'destroy'])->name('news.destroy');
 
     // MKT Profile
     Route::get('/mkt-profile', [MktProfileController::class, 'index'])->name('mkt-profile.index');

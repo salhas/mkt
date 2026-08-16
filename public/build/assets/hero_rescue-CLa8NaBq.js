@@ -1,0 +1,1 @@
+var e=`/build/assets/hero_rescue-C1XQ2L38.jpg`;export{e as t};

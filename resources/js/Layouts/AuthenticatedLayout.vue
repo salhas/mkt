@@ -353,6 +353,23 @@ const toggleFinance = () => {
                         <span v-if="isSidebarOpen" class="text-sm">Pengurus & Anggota</span>
                     </Link>
 
+                    <!-- Berita & Publikasi Artikel MKT -->
+                    <Link
+                        v-if="['webmaster', 'administrator', 'staff'].includes($page.props.auth.user.role)"
+                        :href="route('news.index')"
+                        :class="[
+                            route().current('news.*')
+                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
+                                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                        ]"
+                    >
+                        <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                        </svg>
+                        <span v-if="isSidebarOpen" class="text-sm">Berita & Artikel</span>
+                    </Link>
+
                     <!-- Arsip Rapat -->
                     <Link
                         :href="route('meetings.index')"

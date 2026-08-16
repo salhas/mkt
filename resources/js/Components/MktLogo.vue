@@ -68,7 +68,7 @@ const logoUrl = computed(() => {
                 v-if="showSubtitle" 
                 class="block text-[8px] sm:text-[9px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase mt-0.5 truncate"
             >
-                Yayasan Mitra Kemanusiaan Terpadu
+                Mitra Kemanusiaan Terpadu
             </span>
         </div>
     </div>

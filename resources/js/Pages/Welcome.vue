@@ -420,7 +420,7 @@ const t = {
 
 const partners = [
     { name: 'BASARNAS', desc: 'Badan Nasional Pencarian & Pertolongan', category: 'SAR & Evakuasi', icon: '⚓' },
-    { name: 'BPBD RI', desc: 'Badan Penanggulangan Bencana Daerah', category: 'Komando Kebencanaan', icon: '🏛️' },
+    { name: 'BNPB / BPBD', desc: 'Badan Penanggulangan Bencana Daerah', category: 'Komando Kebencanaan', icon: '🏛️' },
     { name: 'PMI / Kemenkes', desc: 'Palang Merah Indonesia & Dinas Kesehatan', category: 'Donor Darah & Medis', icon: '🩸' },
     { name: 'Lembaga Filantropi', desc: 'Konsorsium Yayasan Amal Kemanusiaan', category: 'Penyalur Donasi', icon: '🤝' },
     { name: 'Rumah Sakit Rujukan', desc: 'Jaringan Medis Darurat Nasional', category: 'Kesehatan', icon: '🏥' },
