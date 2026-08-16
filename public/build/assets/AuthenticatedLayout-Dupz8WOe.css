@@ -1,0 +1,1 @@
+.scrollbar-thin::-webkit-scrollbar{width:4px}.scrollbar-thin::-webkit-scrollbar-track{background:0 0}.scrollbar-thin::-webkit-scrollbar-thumb{background:#9ca3af4d;border-radius:20px}.scrollbar-thin::-webkit-scrollbar-thumb:hover{background:#9ca3af80}.animate-spin-slow{animation:8s linear infinite spin}@keyframes spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}
