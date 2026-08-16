@@ -37,11 +37,10 @@ const getAsset = (path) => {
 
 const isDarkMode = ref(false);
 const currentLang = ref('id');
-const activeRole = ref('webmaster');
 
 const form = useForm({
-    email: 'webmaster@mkt.or.id',
-    password: 'password123',
+    email: '',
+    password: '',
     remember: false,
 });
 
@@ -69,119 +68,6 @@ const toggleLang = (lang) => {
     localStorage.setItem('app_lang', lang);
 };
 
-const roles = [
-    {
-        key: 'webmaster',
-        nameId: 'Webmaster',
-        nameEn: 'Webmaster',
-        email: 'webmaster@mkt.or.id',
-        badge: 'Super Admin',
-        badgeEn: 'Super Admin',
-        descId: 'Akses penuh seluruh modul sistem & konfigurasi platform',
-        descEn: 'Full system module & platform configuration access',
-        icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
-        color: 'from-purple-500 to-indigo-600',
-        bgSoft: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30'
-    },
-    {
-        key: 'administrator',
-        nameId: 'Admin MKT',
-        nameEn: 'Administrator',
-        email: 'administrator@mkt.or.id',
-        badge: 'Manajemen',
-        badgeEn: 'Management',
-        descId: 'Manajemen pengguna, operasional, & otorisasi penuh data keuangan',
-        descEn: 'User management, operations & full financial authorization',
-        icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-        color: 'from-rose-500 to-red-600',
-        bgSoft: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
-    },
-    {
-        key: 'finance',
-        nameId: 'Finance',
-        nameEn: 'Finance',
-        email: 'finance@mkt.or.id',
-        badge: 'Keuangan',
-        badgeEn: 'Accounting',
-        descId: 'Hak akses CRUD Keuangan, COA Kode Akun, Jurnal, Buku Besar, & Neraca',
-        descEn: 'Full Finance CRUD access, Chart of Accounts, Journal, & Balance Sheet',
-        icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-        color: 'from-emerald-500 to-teal-600',
-        bgSoft: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-    },
-    {
-        key: 'staff',
-        nameId: 'Staff',
-        nameEn: 'Staff',
-        email: 'staff@mkt.or.id',
-        badge: 'Operasional',
-        badgeEn: 'Operational',
-        descId: 'Operasional kegiatan & Read-Only (hanya lihat) data keuangan',
-        descEn: 'Operational activities & Read-Only access to financial data',
-        icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-        color: 'from-blue-500 to-sky-600',
-        bgSoft: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30'
-    },
-    {
-        key: 'mitra',
-        nameId: 'Mitra',
-        nameEn: 'Partner',
-        email: 'mitra@mkt.or.id',
-        badge: 'Basarnas / BPBD',
-        badgeEn: 'Agencies',
-        descId: 'Koordinasi Basarnas, BPBD, PMI, RS & rescue bersama',
-        descEn: 'Basarnas, BPBD, PMI, Hospital & rescue joint coordination',
-        icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
-        color: 'from-cyan-500 to-blue-600',
-        bgSoft: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/30'
-    },
-    {
-        key: 'relawan',
-        nameId: 'Relawan',
-        nameEn: 'Volunteer',
-        email: 'relawan@mkt.or.id',
-        badge: 'Tim Rescue',
-        badgeEn: 'Rescue Team',
-        descId: 'Aktivasi giat evakuasi darurat & pendonor darah aktif',
-        descEn: 'Emergency rescue activation & active blood donor',
-        icon: 'M13 10V3L4 14h7v7l9-11h-7z',
-        color: 'from-amber-500 to-orange-600',
-        bgSoft: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-    },
-    {
-        key: 'medis',
-        nameId: 'Medis',
-        nameEn: 'Medical',
-        email: 'medis@mkt.or.id',
-        badge: 'Dokter / Nakes',
-        badgeEn: 'Healthcare',
-        descId: 'Pertolongan medis darurat & penyediaan posko kesehatan',
-        descEn: 'Emergency medical aid & health post setup',
-        icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10',
-        color: 'from-emerald-500 to-teal-600',
-        bgSoft: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-    },
-    {
-        key: 'donatur',
-        nameId: 'Donatur',
-        nameEn: 'Donor',
-        email: 'donatur@mkt.or.id',
-        badge: 'Filantropis',
-        badgeEn: 'Philanthropist',
-        descId: 'Penyaluran donasi publik & pantau transparansi dana',
-        descEn: 'Public donation allocation & fund transparency tracking',
-        icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
-        color: 'from-pink-500 to-rose-600',
-        bgSoft: 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/30'
-    }
-];
-
-const selectQuickRole = (roleItem) => {
-    activeRole.value = roleItem.key;
-    form.email = roleItem.email;
-    form.password = 'password123';
-};
-
 const submit = () => {
     form.post(route('login'), {
         onFinish: () => form.reset('password'),
@@ -192,8 +78,7 @@ const translations = {
     id: {
         title: 'Login Sistem MKT',
         welcome: 'Selamat Datang Kembali',
-        subtitle: 'Silakan pilih role untuk Login Cepat atau masukkan kredensial akun Anda.',
-        quickLoginTitle: '⚡ Akses Login Cepat Sesuai Role Pengguna MKT:',
+        subtitle: 'Masukkan kredensial akun Anda untuk mengakses sistem panel.',
         emailLabel: 'Alamat Email',
         passwordLabel: 'Kata Sandi',
         forgotPassword: 'Lupa Sandi?',
@@ -208,8 +93,7 @@ const translations = {
     en: {
         title: 'MKT System Login',
         welcome: 'Welcome Back',
-        subtitle: 'Select a role for Quick Login or enter your account credentials below.',
-        quickLoginTitle: '⚡ Quick Role Login Access:',
+        subtitle: 'Enter your account credentials to access the panel system.',
         emailLabel: 'Email Address',
         passwordLabel: 'Password',
         forgotPassword: 'Forgot Password?',
@@ -231,11 +115,12 @@ const translations = {
         <!-- Split Layout -->
         <div class="flex-1 flex flex-col lg:flex-row w-full min-h-screen">
             
-            <!-- Left Panel: Visual Banner & Branding (Hidden on small screens) -->
-            <div class="hidden lg:flex lg:w-5/12 bg-slate-900 relative overflow-hidden flex-col justify-between p-12 text-white">
+            <!-- Left Panel: Visual Banner & Branding (Larger Width > Form Width) -->
+            <div class="hidden lg:flex lg:w-7/12 xl:w-3/5 bg-slate-900 relative overflow-hidden flex-col justify-between p-10 xl:p-14 text-white">
                 <!-- Background Image overlay -->
-                <div class="absolute inset-0 bg-cover bg-center opacity-40 scale-105 transition-transform duration-1000" :style="{ backgroundImage: 'url(' + loginBannerImg + ')' }"></div>
+                <div class="absolute inset-0 bg-cover bg-center opacity-45 scale-105 transition-transform duration-1000" :style="{ backgroundImage: 'url(' + loginBannerImg + ')' }"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-900/40"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-slate-950/20 to-slate-950/60"></div>
 
                 <!-- Top Brand Logo -->
                 <div class="relative z-10 flex items-center">
@@ -243,14 +128,14 @@ const translations = {
                 </div>
 
                 <!-- Center Banner Content -->
-                <div class="relative z-10 my-auto py-12 max-w-md">
-                    <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-orange-500/20 text-orange-300 border border-orange-500/30 mb-4 backdrop-blur-md">
+                <div class="relative z-10 my-auto py-12 max-w-xl">
+                    <span class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30 mb-5 backdrop-blur-md shadow-sm">
                         <span>🛡️ {{ translations[currentLang].foundationTag }}</span>
                     </span>
-                    <h2 class="text-3xl xl:text-4xl font-black text-white leading-tight">
+                    <h2 class="text-3xl xl:text-4xl 2xl:text-5xl font-black text-white leading-tight tracking-tight">
                         {{ translations[currentLang].bannerHeader }}
                     </h2>
-                    <p class="text-slate-300 text-sm mt-4 leading-relaxed font-normal">
+                    <p class="text-slate-200 text-sm sm:text-base mt-4 leading-relaxed font-normal max-w-lg">
                         {{ translations[currentLang].bannerSub }}
                     </p>
                 </div>
@@ -258,12 +143,12 @@ const translations = {
                 <!-- Bottom Footer Meta -->
                 <div class="relative z-10 text-xs text-slate-400 border-t border-slate-800/80 pt-6 flex justify-between items-center">
                     <span>&copy; 2026 Yayasan MKT Indonesia</span>
-                    <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">v2.5 Release</span>
+                    <span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/50 text-slate-300 font-semibold">v2.5 Operational Hub</span>
                 </div>
             </div>
 
-            <!-- Right Panel: Login Form & Quick Role Selection -->
-            <div class="flex-1 lg:w-7/12 flex flex-col justify-between p-6 sm:p-10 lg:p-12 relative bg-white dark:bg-slate-950 transition-colors">
+            <!-- Right Panel: Login Form (Compact & Focused Width) -->
+            <div class="flex-1 lg:w-5/12 xl:w-2/5 flex flex-col justify-between p-6 sm:p-10 lg:p-12 relative bg-white dark:bg-slate-950 transition-colors">
                 
                 <!-- Header Controls: Theme & Language Switchers -->
                 <div class="flex items-center justify-between lg:justify-end space-x-3 w-full mb-6">
@@ -313,7 +198,7 @@ const translations = {
                 </div>
 
                 <!-- Main Form Body Container -->
-                <div class="w-full max-w-2xl mx-auto my-auto space-y-6">
+                <div class="w-full max-w-md mx-auto my-auto space-y-6">
                     <!-- Heading -->
                     <div>
                         <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -324,71 +209,12 @@ const translations = {
                         </p>
                     </div>
 
-                    <!-- Quick Role Selector Cards (Fitur Login Cepat 8 Role) -->
-                    <div class="space-y-2">
-                        <label class="block text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
-                            {{ translations[currentLang].quickLoginTitle }}
-                        </label>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <button
-                                v-for="roleItem in roles"
-                                :key="roleItem.key"
-                                type="button"
-                                @click="selectQuickRole(roleItem)"
-                                class="p-2.5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between relative overflow-hidden group"
-                                :class="[
-                                    activeRole === roleItem.key 
-                                        ? 'bg-orange-50 dark:bg-orange-950/40 border-orange-500 text-slate-900 dark:text-white shadow-md ring-2 ring-orange-500/20' 
-                                        : 'bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-orange-300 hover:bg-orange-50/50 dark:hover:bg-slate-900'
-                                ]"
-                            >
-                                <div class="flex items-center justify-between w-full mb-1">
-                                    <div 
-                                        class="w-7 h-7 rounded-xl flex items-center justify-center text-white bg-gradient-to-tr"
-                                        :class="roleItem.color"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="roleItem.icon"></path>
-                                        </svg>
-                                    </div>
-                                    <span 
-                                        v-if="activeRole === roleItem.key" 
-                                        class="w-2 h-2 rounded-full bg-orange-500 animate-ping"
-                                    ></span>
-                                </div>
-                                <div>
-                                    <span class="font-bold text-xs block leading-tight">
-                                        {{ currentLang === 'id' ? roleItem.nameId : roleItem.nameEn }}
-                                    </span>
-                                    <span class="text-[10px] text-slate-400 font-medium block truncate mt-0.5">
-                                        {{ currentLang === 'id' ? roleItem.badge : roleItem.badgeEn }}
-                                    </span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- Status Notification Banner -->
                     <div v-if="status" class="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs rounded-xl font-semibold flex items-center space-x-2">
                         <svg class="w-4 h-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                         <span>{{ status }}</span>
-                    </div>
-
-                    <!-- Active Role Description Badge -->
-                    <div 
-                        v-if="activeRole"
-                        class="p-3 rounded-xl border flex items-center space-x-3 text-xs transition-all duration-200"
-                        :class="roles.find(r => r.key === activeRole)?.bgSoft"
-                    >
-                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <div>
-                            <span class="font-bold block">Role: {{ roles.find(r => r.key === activeRole)?.[currentLang === 'id' ? 'nameId' : 'nameEn'] }} ({{ form.email }})</span>
-                            <span class="text-[11px] opacity-90">{{ roles.find(r => r.key === activeRole)?.[currentLang === 'id' ? 'descId' : 'descEn'] }}</span>
-                        </div>
                     </div>
 
                     <!-- Authentication Form -->
@@ -441,7 +267,6 @@ const translations = {
                                     {{ translations[currentLang].rememberMe }}
                                 </span>
                             </label>
-                            <span class="text-[11px] text-slate-400">Default Pass: <code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-orange-600 dark:text-orange-400 font-mono">password123</code></span>
                         </div>
 
                         <!-- Submit Button -->

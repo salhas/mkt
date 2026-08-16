@@ -16,6 +16,11 @@ const isDarkMode = ref(false);
 onMounted(() => {
     // Check initial dark mode from documentElement class
     isDarkMode.value = document.documentElement.classList.contains('dark');
+    
+    // Auto-close sidebar on mobile devices (< 1024px) for clean viewport
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+        isSidebarOpen.value = false;
+    }
 });
 
 const toggleDarkMode = () => {
@@ -40,27 +45,66 @@ const toggleFinance = () => {
 
 <template>
     <div class="min-h-screen bg-gray-50 text-gray-800 dark:bg-gray-950 dark:text-gray-200 transition-colors duration-200">
+        
+        <!-- Mobile Sidebar Backdrop Overlay -->
+        <transition
+            enter-active-class="transition-opacity duration-300 ease-out"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200 ease-in"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isSidebarOpen"
+                @click="isSidebarOpen = false"
+                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-30 lg:hidden"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
         <!-- Sidebar Navigation -->
         <aside
             :class="[
                 isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0 lg:w-20',
-                'fixed top-0 bottom-0 left-0 z-40 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out flex flex-col print:hidden'
+                'fixed top-0 bottom-0 left-0 z-40 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out flex flex-col print:hidden shadow-2xl lg:shadow-none'
             ]"
         >
             <!-- Logo Section -->
-            <div class="h-16 flex items-center justify-between px-4 border-b border-gray-100 dark:border-gray-800 bg-brand-50/50 dark:bg-brand-950/20">
-                <Link :href="route('dashboard')" class="flex items-center overflow-hidden">
-                    <MktLogo :variant="isSidebarOpen ? 'full' : 'icon'" icon-size="w-9 h-9" text-size="text-lg" :show-subtitle="false" />
+            <div class="h-16 flex items-center justify-between px-3.5 border-b border-gray-100 dark:border-gray-800 bg-brand-50/40 dark:bg-brand-950/20">
+                <Link :href="route('dashboard')" class="flex items-center overflow-hidden min-w-0">
+                    <MktLogo 
+                        :variant="isSidebarOpen ? 'full' : 'icon'" 
+                        icon-size="w-9 h-9" 
+                        text-size="text-sm font-black" 
+                        :show-subtitle="isSidebarOpen" 
+                    />
                 </Link>
                 <!-- Collapse Button for Mobile / Desktop -->
                 <button
                     @click="toggleSidebar"
-                    class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none lg:hidden"
+                    class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none lg:hidden shrink-0"
+                    :title="isSidebarOpen ? 'Tutup Sidebar' : 'Buka Sidebar'"
                 >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
+            </div>
+
+            <!-- MKT Organization Status Strip in Sidebar -->
+            <div v-if="isSidebarOpen" class="px-4 py-2 bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border-b border-orange-500/10 dark:border-orange-500/15 transition-all">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-orange-700 dark:text-orange-300">
+                            Pusdalops MKT
+                        </span>
+                    </div>
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-orange-500/15 text-orange-600 dark:text-orange-400">
+                        SIAGA 24/7
+                    </span>
+                </div>
             </div>
 
             <!-- Menus Section -->
@@ -385,51 +429,53 @@ const toggleFinance = () => {
             ]"
         >
             <!-- Top Navbar -->
-            <header class="h-16 sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-6 transition-colors duration-200 print:hidden">
-                <div class="flex items-center space-x-4">
+            <header class="h-14 sm:h-16 sticky top-0 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-3.5 sm:px-6 transition-colors duration-200 print:hidden">
+                <div class="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
                     <!-- Toggle sidebar trigger -->
                     <button
                         @click="toggleSidebar"
-                        class="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none shrink-0"
+                        class="p-1.5 sm:p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none shrink-0"
+                        aria-label="Toggle Sidebar"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
                     <!-- Title/Header Slot -->
-                    <div class="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-200">
+                    <div class="font-bold text-xs sm:text-sm md:text-base text-gray-800 dark:text-gray-200 truncate min-w-0">
                         <slot name="header"></slot>
                     </div>
                 </div>
 
                 <!-- Right Toolbar Actions -->
-                <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
                     <!-- Dark Mode Toggle Button -->
                     <button
                         @click="toggleDarkMode"
-                        class="p-2 rounded-xl text-gray-400 hover:text-brand-500 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 focus:outline-none transition-all duration-150"
+                        class="p-1.5 sm:p-2 rounded-xl text-gray-400 hover:text-brand-500 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 focus:outline-none transition-all duration-150 shrink-0"
                         aria-label="Toggle Theme"
                     >
                         <!-- Sun Icon for Light Mode (shown in dark mode) -->
-                        <svg v-if="isDarkMode" class="w-5 h-5 text-amber-400 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg v-if="isDarkMode" class="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path>
                         </svg>
                         <!-- Moon Icon for Dark Mode (shown in light mode) -->
-                        <svg v-else class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg v-else class="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
                         </svg>
                     </button>
 
                     <!-- Profile Dropdown (Alternative top trigger) -->
-                    <div class="relative">
+                    <div class="relative shrink-0">
                         <button
                             @click="isProfileDropdownOpen = !isProfileDropdownOpen"
-                            class="flex items-center space-x-1 p-1 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition focus:outline-none"
+                            class="flex items-center space-x-1 p-0.5 sm:p-1 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition focus:outline-none"
+                            aria-label="Profile Menu"
                         >
-                            <div class="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-bold flex items-center justify-center">
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-bold text-xs sm:text-sm flex items-center justify-center">
                                 {{ $page.props.auth.user.name.charAt(0) }}
                             </div>
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
@@ -460,7 +506,7 @@ const toggleFinance = () => {
             </header>
 
             <!-- Main Content Area -->
-            <main class="flex-1 p-6 lg:p-8">
+            <main class="flex-1 p-3.5 sm:p-6 lg:p-8">
                 <!-- Notifications Alert -->
                 <transition name="fade">
                     <div

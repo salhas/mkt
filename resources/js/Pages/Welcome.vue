@@ -22,6 +22,61 @@ const activePillar = ref('during');
 const mobileMenuOpen = ref(false);
 const showCtaModal = ref(false);
 const ctaModalType = ref('relawan');
+const showShareModal = ref(false);
+const shareCopied = ref(false);
+const currentUrl = ref('');
+
+const shareData = {
+    title: 'Yayasan MKT Indonesia - Tanggap Kemanusiaan & Penanggulangan Bencana',
+    text: 'Mari dukung & bersinergi bersama Yayasan MKT Indonesia dalam tanggap bencana, relawan donor darah siaga 24/7, dan donasi kemanusiaan:',
+};
+
+const openShareModal = () => {
+    if (typeof window !== 'undefined') {
+        currentUrl.value = window.location.origin + window.location.pathname;
+    }
+    showShareModal.value = true;
+};
+
+const copyShareLink = async () => {
+    try {
+        const textToCopy = currentUrl.value || window.location.href;
+        await navigator.clipboard.writeText(textToCopy);
+        shareCopied.value = true;
+        setTimeout(() => {
+            shareCopied.value = false;
+        }, 2500);
+    } catch (err) {
+        shareCopied.value = true;
+        setTimeout(() => {
+            shareCopied.value = false;
+        }, 2500);
+    }
+};
+
+const shareToWhatsApp = () => {
+    const url = currentUrl.value || window.location.href;
+    const text = encodeURIComponent(`${shareData.text}\n${url}`);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+};
+
+const shareToTelegram = () => {
+    const url = encodeURIComponent(currentUrl.value || window.location.href);
+    const text = encodeURIComponent(shareData.text);
+    window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+};
+
+const shareToFacebook = () => {
+    const url = encodeURIComponent(currentUrl.value || window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+};
+
+const shareToTwitter = () => {
+    const url = encodeURIComponent(currentUrl.value || window.location.href);
+    const text = encodeURIComponent(shareData.text);
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+};
+
 const ctaForm = ref({
     name: '',
     email: '',
@@ -129,7 +184,7 @@ const t = {
         navServices: 'Layanan Utama',
         navPartners: 'Mitra',
         navContact: 'Kontak & Lokasi',
-        loginBtn: 'Login Admin & Role',
+        loginBtn: 'Login',
         dashboardBtn: 'Buka Dashboard',
         heroTag: '📢 Ekosistem Penanggulangan Bencana Terpadu',
         heroTitle1: 'Membangun Ketangguhan,',
@@ -236,10 +291,10 @@ const t = {
         ctaVolF3: 'Aktivasi Panggilan Rescue Lapangan',
         ctaVolBtn: 'Daftar Relawan & Donor Darah',
 
-        // Quick Role Login Banner
-        quickRoleBannerTitle: 'Fitur Login Cepat Sesuai Role Pengguna',
-        quickRoleBannerDesc: 'Masuk langsung ke panel sistem sesuai peran Anda: Webmaster, Mitra, Relawan, Donatur, atau Medis.',
-        quickRoleBtn: 'Buka Halaman Login Role',
+        // System Panel Login Banner
+        quickRoleBannerTitle: 'Akses Panel Operasional & Sistem MKT',
+        quickRoleBannerDesc: 'Masuk ke panel sistem untuk pengurus yayasan, mitra penanggulangan bencana, relawan SAR, dan donatur.',
+        quickRoleBtn: 'Masuk ke Panel Sistem',
 
         footerRights: 'Yayasan MKT Indonesia (Mitra Kemanusiaan Terpadu). Hak Cipta Dilindungi.',
         footerTagline: 'Sistem Informasi Penanggulangan Bencana & Manajemen Donasi Filantropi'
@@ -251,7 +306,7 @@ const t = {
         navServices: 'Main Services',
         navPartners: 'Partners',
         navContact: 'Contact & Location',
-        loginBtn: 'Login Admin & Roles',
+        loginBtn: 'Login',
         dashboardBtn: 'Open Dashboard',
         heroTag: '📢 Integrated Disaster Management Ecosystem',
         heroTitle1: 'Building Resilience,',
@@ -353,9 +408,10 @@ const t = {
         ctaVolF3: 'Field Rescue Emergency Activation',
         ctaVolBtn: 'Register as Volunteer & Donor',
 
-        quickRoleBannerTitle: 'Quick Role Login Feature',
-        quickRoleBannerDesc: 'Access system modules instantly based on your assigned role: Webmaster, Partner, Volunteer, Donor, or Medical.',
-        quickRoleBtn: 'Go to Role Login Page',
+        // System Panel Login Banner
+        quickRoleBannerTitle: 'Access MKT Operational Panel & System',
+        quickRoleBannerDesc: 'Sign in to access modules for foundation management, disaster response partners, SAR volunteers, and donors.',
+        quickRoleBtn: 'Sign In to System Panel',
 
         footerRights: 'Yayasan MKT Indonesia (Mitra Kemanusiaan Terpadu). All Rights Reserved.',
         footerTagline: 'Disaster Management & Philanthropic Donation Accounting System'
@@ -378,36 +434,42 @@ const partners = [
     <div class="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 font-sans selection:bg-orange-500 selection:text-white">
         
         <!-- Top Emergency Alert Ticker Bar -->
-        <div class="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 text-white text-[11px] font-semibold py-1.5 px-4">
+        <div class="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 text-white text-[10px] sm:text-[11px] font-semibold py-1 sm:py-1.5 px-3 sm:px-4">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <div class="flex items-center space-x-2 overflow-hidden">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-white/20 text-white animate-pulse flex-shrink-0">
-                        🔴 SIAGA 24/7
-                    </span>
-                    <span class="truncate">
-                        Posko Tanggap Bencana & Relawan Donor Darah | Hotline: <strong class="font-bold underline">+62 812-3456-7890</strong>
-                    </span>
+                <div class="flex items-center space-x-2 overflow-hidden w-full sm:w-auto justify-between sm:justify-start">
+                    <div class="flex items-center space-x-1.5 truncate">
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-extrabold bg-white/25 text-white animate-pulse flex-shrink-0">
+                            🔴 SIAGA 24/7
+                        </span>
+                        <span class="hidden sm:inline text-white/90 truncate">
+                            Posko Bencana & Donor Darah |
+                        </span>
+                        <a href="tel:+6281234567890" class="hover:underline flex items-center space-x-1 font-bold text-white shrink-0">
+                            <span class="text-[10px] sm:text-xs opacity-90">Hotline:</span>
+                            <span class="underline">+62 812-3456-7890</span>
+                        </a>
+                    </div>
                 </div>
-                <div class="hidden sm:flex items-center space-x-4 text-[10px] opacity-90 flex-shrink-0">
-                    <span>📍 Insignia Oasis B1-11 No 7</span>
+                <div class="hidden sm:flex items-center space-x-3 text-[10px] opacity-90 flex-shrink-0">
+                    <span>📍 Insignia Oasis B1-11 No. 7 Makassar</span>
                     <span>•</span>
-                    <span>Basarnas & BPBD Synergy</span>
+                    <span>MKT Peduli</span>
                 </div>
             </div>
         </div>
 
         <!-- Floating Glassmorphic Navbar -->
-        <header class="sticky top-2 z-50 px-3 sm:px-6 lg:px-8 transition-all duration-300">
-            <div class="max-w-7xl mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl shadow-orange-500/5 rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-2.5 sm:py-3 transition-all">
-                <div class="flex items-center justify-between">
+        <header class="sticky top-1 sm:top-2 z-50 px-2 sm:px-6 lg:px-8 transition-all duration-300">
+            <div class="max-w-7xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-lg shadow-orange-500/5 rounded-2xl sm:rounded-3xl px-3 sm:px-6 py-2 sm:py-3 transition-all">
+                <div class="flex items-center justify-between gap-2">
                     
                     <!-- Brand Logo -->
-                    <a href="#" class="flex items-center">
-                        <MktLogo variant="full" icon-size="w-10 h-10" text-size="text-lg sm:text-xl" :show-subtitle="true" />
+                    <a href="#" class="flex items-center min-w-0 shrink">
+                        <MktLogo variant="full" icon-size="w-8 h-8 sm:w-10 sm:h-10" text-size="text-sm sm:text-lg lg:text-xl" :show-subtitle="true" />
                     </a>
 
                     <!-- Nav Links (Desktop Pill Navigation) -->
-                    <nav class="hidden lg:flex items-center space-x-1 text-xs font-bold text-slate-600 dark:text-slate-300">
+                    <nav class="hidden lg:flex items-center space-x-1 text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0">
                         <a 
                             href="#about" 
                             class="px-3.5 py-2 rounded-xl hover:bg-orange-500/10 dark:hover:bg-orange-500/20 hover:text-orange-600 dark:hover:text-orange-400 transition-all flex items-center space-x-1.5"
@@ -446,7 +508,7 @@ const partners = [
                     </nav>
 
                     <!-- Control Actions Right Side -->
-                    <div class="flex items-center space-x-2.5">
+                    <div class="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
                         
                         <!-- Emergency Phone Quick Call Button (Desktop) -->
                         <a 
@@ -461,28 +523,29 @@ const partners = [
                         </a>
 
                         <!-- Language Switcher Pill Segment -->
-                        <div class="flex items-center bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs font-semibold">
+                        <div class="flex items-center bg-slate-100 dark:bg-slate-800/80 p-0.5 sm:p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-[10px] sm:text-xs font-semibold">
                             <button
                                 @click="toggleLang('id')"
-                                class="px-2.5 py-1 rounded-lg transition-all text-xs"
+                                class="px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg transition-all"
                                 :class="currentLang === 'id' ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-sm font-black' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
                             >
-                                🇮🇩 ID
+                                ID
                             </button>
                             <button
                                 @click="toggleLang('en')"
-                                class="px-2.5 py-1 rounded-lg transition-all text-xs"
+                                class="px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg transition-all"
                                 :class="currentLang === 'en' ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-sm font-black' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
                             >
-                                🇬🇧 EN
+                                EN
                             </button>
                         </div>
 
                         <!-- Theme Toggle Button -->
                         <button
                             @click="toggleDarkMode"
-                            class="p-2 rounded-xl text-slate-500 hover:text-orange-500 bg-slate-100 dark:bg-slate-800/80 hover:bg-orange-50 dark:hover:bg-orange-950/40 border border-slate-200/80 dark:border-slate-700/80 transition-all"
+                            class="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-orange-500 bg-slate-100 dark:bg-slate-800/80 hover:bg-orange-50 dark:hover:bg-orange-950/40 border border-slate-200/80 dark:border-slate-700/80 transition-all shrink-0"
                             :title="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+                            aria-label="Toggle Dark Mode"
                         >
                             <svg v-if="isDarkMode" class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path>
@@ -492,11 +555,23 @@ const partners = [
                             </svg>
                         </button>
 
-                        <!-- Role Login Button -->
+                        <!-- Share Link Button Trigger -->
+                        <button
+                            @click="openShareModal"
+                            class="p-2 sm:px-3 sm:py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 transition-all flex items-center space-x-1.5 text-xs font-bold shrink-0"
+                            title="Bagikan Portal MKT dengan Thumbnail"
+                        >
+                            <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                            </svg>
+                            <span class="hidden md:inline">Bagikan</span>
+                        </button>
+
+                        <!-- Role Login Button (Desktop) -->
                         <Link
                             v-if="!$page.props.auth.user"
                             :href="route('login')"
-                            class="hidden sm:inline-flex px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 rounded-xl shadow-lg shadow-orange-500/25 active:scale-95 transition-all items-center space-x-1.5"
+                            class="hidden sm:inline-flex px-3.5 sm:px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 rounded-xl shadow-md shadow-orange-500/25 active:scale-95 transition-all items-center space-x-1.5 shrink-0"
                         >
                             <span>⚡</span>
                             <span>{{ t[currentLang].loginBtn }}</span>
@@ -504,7 +579,7 @@ const partners = [
                         <Link
                             v-else
                             :href="route('dashboard')"
-                            class="hidden sm:inline-flex px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 rounded-xl shadow-lg shadow-orange-500/25 active:scale-95 transition-all items-center space-x-1.5"
+                            class="hidden sm:inline-flex px-3.5 sm:px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 rounded-xl shadow-md shadow-orange-500/25 active:scale-95 transition-all items-center space-x-1.5 shrink-0"
                         >
                             <span>📊</span>
                             <span>{{ t[currentLang].dashboardBtn }}</span>
@@ -513,7 +588,7 @@ const partners = [
                         <!-- Mobile Hamburger Button -->
                         <button
                             @click="mobileMenuOpen = !mobileMenuOpen"
-                            class="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-orange-500 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 transition-all"
+                            class="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-orange-500 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 transition-all shrink-0"
                             aria-label="Toggle Mobile Menu"
                         >
                             <svg v-if="!mobileMenuOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -529,68 +604,68 @@ const partners = [
                 <!-- Mobile Menu Drawer Dropdown -->
                 <div 
                     v-if="mobileMenuOpen" 
-                    class="lg:hidden mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800 space-y-2 animate-fadeIn"
+                    class="lg:hidden mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800 space-y-1.5 animate-fadeIn"
                 >
                     <a 
                         href="#about" 
                         @click="mobileMenuOpen = false"
-                        class="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-600"
+                        class="flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                     >
-                        <span>🏢</span>
+                        <span class="text-base">🏢</span>
                         <span>{{ t[currentLang].navAbout }}</span>
                     </a>
                     <a 
                         href="#pillars" 
                         @click="mobileMenuOpen = false"
-                        class="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-600"
+                        class="flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                     >
-                        <span>🛡️</span>
+                        <span class="text-base">🛡️</span>
                         <span>{{ t[currentLang].navPillars }}</span>
                     </a>
                     <a 
                         href="#services" 
                         @click="mobileMenuOpen = false"
-                        class="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-600"
+                        class="flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                     >
-                        <span>⚡</span>
+                        <span class="text-base">⚡</span>
                         <span>{{ t[currentLang].navServices }}</span>
                     </a>
                     <a 
                         href="#partners" 
                         @click="mobileMenuOpen = false"
-                        class="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-600"
+                        class="flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                     >
-                        <span>🤝</span>
+                        <span class="text-base">🤝</span>
                         <span>{{ t[currentLang].navPartners }}</span>
                     </a>
                     <a 
                         href="#contact" 
                         @click="mobileMenuOpen = false"
-                        class="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-600"
+                        class="flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                     >
-                        <span>📍</span>
+                        <span class="text-base">📍</span>
                         <span>{{ t[currentLang].navContact }}</span>
                     </a>
 
                     <div class="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-col gap-2">
                         <a 
                             href="tel:+6281234567890" 
-                            class="flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-xs border border-rose-500/20"
+                            class="flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-xs border border-rose-500/20 active:scale-98 transition-all"
                         >
-                            <span>📞 Hotline Emergency: +62 812-3456-7890</span>
+                            <span>📞 Hotline 24/7: +62 812-3456-7890</span>
                         </a>
 
                         <Link
                             v-if="!$page.props.auth.user"
                             :href="route('login')"
-                            class="flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md"
+                            class="flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md active:scale-98 transition-all"
                         >
                             <span>⚡ {{ t[currentLang].loginBtn }}</span>
                         </Link>
                         <Link
                             v-else
                             :href="route('dashboard')"
-                            class="flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md"
+                            class="flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md active:scale-98 transition-all"
                         >
                             <span>📊 {{ t[currentLang].dashboardBtn }}</span>
                         </Link>
@@ -600,7 +675,7 @@ const partners = [
         </header>
 
         <!-- Hero Section with Full Background Image & Adaptive Dual-Mode Aesthetics -->
-        <section class="relative overflow-hidden min-h-[640px] sm:min-h-[720px] flex items-center justify-center py-16 sm:py-20 lg:py-28 bg-amber-50/40 dark:bg-slate-950 transition-colors border-b border-orange-500/10 dark:border-slate-800/80">
+        <section class="relative overflow-hidden min-h-[560px] sm:min-h-[720px] flex items-center justify-center py-10 sm:py-20 lg:py-28 bg-amber-50/40 dark:bg-slate-950 transition-colors border-b border-orange-500/10 dark:border-slate-800/80">
             <!-- Full Background Image Layer -->
             <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <img 
@@ -620,19 +695,19 @@ const partners = [
                 <div class="hidden dark:block absolute inset-0 bg-orange-950/20 mix-blend-overlay"></div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            <div class="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 w-full relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
                     
                     <!-- Hero Main Content -->
-                    <div class="lg:col-span-7 space-y-6 sm:space-y-7">
+                    <div class="lg:col-span-7 space-y-5 sm:space-y-7">
                         <!-- Emergency Ecosystem Tag -->
-                        <div class="inline-flex items-center space-x-2 bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30 dark:border-orange-400/40 text-orange-800 dark:text-orange-300 px-4 py-1.5 rounded-full text-xs font-bold backdrop-blur-md shadow-sm">
+                        <div class="inline-flex items-center space-x-2 bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30 dark:border-orange-400/40 text-orange-800 dark:text-orange-300 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold backdrop-blur-md shadow-sm">
                             <span class="animate-pulse">🚨</span>
                             <span>{{ t[currentLang].heroTag }}</span>
                         </div>
                         
                         <!-- Headline -->
-                        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 dark:text-white tracking-tight leading-[1.12]">
+                        <h1 class="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-slate-950 dark:text-white tracking-tight leading-[1.2] sm:leading-[1.12]">
                             {{ t[currentLang].heroTitle1 }} <br class="hidden sm:inline" />
                             <span class="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 dark:from-orange-400 dark:via-amber-300 dark:to-orange-400 bg-clip-text text-transparent">
                                 {{ t[currentLang].heroTitle2 }}
@@ -640,15 +715,15 @@ const partners = [
                         </h1>
                         
                         <!-- Description -->
-                        <p class="text-base sm:text-lg text-slate-700 dark:text-slate-200 leading-relaxed max-w-2xl font-normal">
+                        <p class="text-sm sm:text-base lg:text-lg text-slate-700 dark:text-slate-200 leading-relaxed max-w-2xl font-normal">
                             {{ t[currentLang].heroDesc }}
                         </p>
 
                         <!-- Action Buttons -->
-                        <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-1 sm:pt-2">
                             <Link
                                 :href="route('login')"
-                                class="px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-2xl shadow-xl shadow-orange-500/25 active:scale-95 transition-all text-center flex items-center justify-center space-x-2.5"
+                                class="px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-2xl shadow-lg sm:shadow-xl shadow-orange-500/25 active:scale-95 transition-all text-center flex items-center justify-center space-x-2.5 text-sm sm:text-base"
                             >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -657,7 +732,7 @@ const partners = [
                             </Link>
                             <a
                                 href="#contact"
-                                class="px-8 py-4 bg-white/90 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 backdrop-blur-md border border-slate-300 dark:border-white/20 text-slate-800 dark:text-white hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-300 font-bold rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center space-x-2.5"
+                                class="px-6 sm:px-8 py-3.5 sm:py-4 bg-white/90 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 backdrop-blur-md border border-slate-300 dark:border-white/20 text-slate-800 dark:text-white hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-300 font-bold rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center space-x-2.5 text-sm sm:text-base"
                             >
                                 <svg class="w-5 h-5 text-orange-500 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
@@ -667,22 +742,22 @@ const partners = [
                         </div>
 
                         <!-- Stats Grid Counter -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-6 border-t border-slate-200 dark:border-white/15">
-                            <div class="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/80 dark:border-white/15 shadow-md shadow-slate-200/50 dark:shadow-none">
-                                <span class="text-2xl font-black text-orange-600 dark:text-orange-400 block">1,250+</span>
-                                <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold">{{ t[currentLang].statVolunteers }}</span>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 pt-4 sm:pt-6 border-t border-slate-200 dark:border-white/15">
+                            <div class="p-3 sm:p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/80 dark:border-white/15 shadow-md shadow-slate-200/50 dark:shadow-none">
+                                <span class="text-xl sm:text-2xl font-black text-orange-600 dark:text-orange-400 block">1,250+</span>
+                                <span class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-semibold">{{ t[currentLang].statVolunteers }}</span>
                             </div>
-                            <div class="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/80 dark:border-white/15 shadow-md shadow-slate-200/50 dark:shadow-none">
-                                <span class="text-2xl font-black text-rose-600 dark:text-rose-400 block">850+</span>
-                                <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold">{{ t[currentLang].statBloodDonors }}</span>
+                            <div class="p-3 sm:p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/80 dark:border-white/15 shadow-md shadow-slate-200/50 dark:shadow-none">
+                                <span class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 block">850+</span>
+                                <span class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-semibold">{{ t[currentLang].statBloodDonors }}</span>
                             </div>
-                            <div class="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/80 dark:border-white/15 shadow-md shadow-slate-200/50 dark:shadow-none">
-                                <span class="text-2xl font-black text-amber-600 dark:text-amber-400 block">42+</span>
-                                <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold">{{ t[currentLang].statOperations }}</span>
+                            <div class="p-3 sm:p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/80 dark:border-white/15 shadow-md shadow-slate-200/50 dark:shadow-none">
+                                <span class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 block">42+</span>
+                                <span class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-semibold">{{ t[currentLang].statOperations }}</span>
                             </div>
-                            <div class="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/80 dark:border-white/15 shadow-md shadow-slate-200/50 dark:shadow-none">
-                                <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400 block">Rp 1.5M+</span>
-                                <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold">{{ t[currentLang].statFund }}</span>
+                            <div class="p-3 sm:p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/80 dark:border-white/15 shadow-md shadow-slate-200/50 dark:shadow-none">
+                                <span class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 block">Rp 1.5M+</span>
+                                <span class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-semibold">{{ t[currentLang].statFund }}</span>
                             </div>
                         </div>
                     </div>
@@ -1675,18 +1750,167 @@ const partners = [
                     </button>
                 </form>
 
-                <!-- Quick Role Login Shortcut Footer inside Modal -->
+                <!-- Login Shortcut Footer inside Modal -->
                 <div class="pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
                     <span class="text-xs text-slate-500 dark:text-slate-400 block mb-2">Sudah memiliki akun terdaftar?</span>
                     <Link 
                         :href="route('login')" 
                         class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:text-orange-500 font-bold text-xs transition"
                     >
-                        <span>⚡ Masuk Langsung Halaman Role Login</span>
+                        <span>Masuk ke Panel Akun</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                         </svg>
                     </Link>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Share Action Button (Mobile & Desktop) -->
+        <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end space-y-2">
+            <button
+                @click="openShareModal"
+                class="group px-4 py-3 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs sm:text-sm rounded-full shadow-xl shadow-orange-500/30 flex items-center space-x-2 active:scale-95 transition-all duration-300 border border-white/20"
+                title="Bagikan Portal & Siaga Bencana MKT"
+            >
+                <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                    </svg>
+                </div>
+                <span class="font-extrabold tracking-wide">Bagikan Link</span>
+            </button>
+        </div>
+
+        <!-- Share Link Modal with Live Card Thumbnail Preview (Koreksi Tampilan Sharelink) -->
+        <div 
+            v-if="showShareModal" 
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm transition-all"
+            @click.self="showShareModal = false"
+        >
+            <div class="relative w-full max-w-md sm:max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden p-5 sm:p-6 space-y-4 sm:space-y-5 animate-scaleUp">
+                
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">Bagikan Portal MKT</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Pratinjau Sharelink & Thumbnail Media Sosial</p>
+                        </div>
+                    </div>
+                    <button 
+                        @click="showShareModal = false" 
+                        class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Live Open Graph Thumbnail Card Preview (Koreksi Tampilan Sharelink) -->
+                <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/60 overflow-hidden shadow-sm">
+                    <!-- Image Thumbnail Preview -->
+                    <div class="relative w-full h-44 sm:h-48 overflow-hidden bg-slate-900">
+                        <img 
+                            :src="heroRescueImg" 
+                            alt="MKT Thumbnail Preview" 
+                            class="w-full h-full object-cover object-center" 
+                        />
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
+                        <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded-lg bg-orange-600/90 text-white font-black text-[10px] uppercase tracking-wider backdrop-blur-md shadow-sm">
+                                🛡️ Yayasan MKT Indonesia
+                            </span>
+                        </div>
+                        <div class="absolute bottom-3 left-3 right-3 text-white">
+                            <span class="text-[10px] font-semibold text-orange-300 block uppercase tracking-wider">mkt.or.id &bull; Siaga 24/7</span>
+                            <h4 class="text-xs sm:text-sm font-extrabold line-clamp-1 leading-snug">Tanggap Kemanusiaan & Penanggulangan Bencana</h4>
+                        </div>
+                    </div>
+
+                    <!-- Metadata Snippet -->
+                    <div class="p-3 sm:p-3.5 space-y-1">
+                        <div class="flex items-center space-x-1.5 text-xs text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider">
+                            <span>🔗 Pratinjau Link Media Sosial (OG / Twitter / WhatsApp)</span>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 font-medium line-clamp-2">
+                            {{ shareData.text }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- One-Click Social Share Buttons -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Bagikan Langsung Ke:</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <!-- WhatsApp -->
+                        <button 
+                            @click="shareToWhatsApp" 
+                            class="p-2.5 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex flex-col items-center justify-center space-y-1 active:scale-95 transition-all group"
+                        >
+                            <span class="text-xl group-hover:scale-110 transition-transform">💬</span>
+                            <span class="text-[11px] font-bold">WhatsApp</span>
+                        </button>
+
+                        <!-- Telegram -->
+                        <button 
+                            @click="shareToTelegram" 
+                            class="p-2.5 rounded-2xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/20 flex flex-col items-center justify-center space-y-1 active:scale-95 transition-all group"
+                        >
+                            <span class="text-xl group-hover:scale-110 transition-transform">✈️</span>
+                            <span class="text-[11px] font-bold">Telegram</span>
+                        </button>
+
+                        <!-- Facebook -->
+                        <button 
+                            @click="shareToFacebook" 
+                            class="p-2.5 rounded-2xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex flex-col items-center justify-center space-y-1 active:scale-95 transition-all group"
+                        >
+                            <span class="text-xl group-hover:scale-110 transition-transform">📘</span>
+                            <span class="text-[11px] font-bold">Facebook</span>
+                        </button>
+
+                        <!-- Twitter / X -->
+                        <button 
+                            @click="shareToTwitter" 
+                            class="p-2.5 rounded-2xl bg-slate-500/10 hover:bg-slate-500/20 text-slate-700 dark:text-slate-300 border border-slate-500/20 flex flex-col items-center justify-center space-y-1 active:scale-95 transition-all group"
+                        >
+                            <span class="text-xl group-hover:scale-110 transition-transform">🐦</span>
+                            <span class="text-[11px] font-bold">Twitter / X</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Copy Link Bar -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Salin Link Website:</label>
+                    <div class="flex items-center space-x-2">
+                        <input 
+                            type="text" 
+                            readonly 
+                            :value="currentUrl || 'https://mkt.or.id'" 
+                            class="flex-1 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-mono text-slate-600 dark:text-slate-400 py-2.5 px-3 focus:outline-none select-all" 
+                        />
+                        <button 
+                            @click="copyShareLink" 
+                            class="px-4 py-2.5 rounded-xl font-bold text-xs text-white transition-all shadow-md flex items-center space-x-1.5 active:scale-95 shrink-0"
+                            :class="shareCopied ? 'bg-emerald-600' : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'"
+                        >
+                            <svg v-if="!shareCopied" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>{{ shareCopied ? 'Tersalin!' : 'Salin Link' }}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
