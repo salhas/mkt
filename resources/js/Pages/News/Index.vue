@@ -16,31 +16,81 @@ const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const editingNews = ref(null);
 
+// Create Form State
+const createFileInput = ref(null);
+const createPreviewUrl = ref(null);
+const createMode = ref('file'); // 'file' or 'url'
+
 const createForm = useForm({
     title: '',
     category: 'Evakuasi',
     author: '',
     image_url: '',
+    image_file: null,
     content: '',
     published_at: new Date().toISOString().split('T')[0],
 });
+
+// Edit Form State
+const editFileInput = ref(null);
+const editPreviewUrl = ref(null);
+const editMode = ref('file'); // 'file' or 'url'
 
 const editForm = useForm({
     title: '',
     category: 'Evakuasi',
     author: '',
     image_url: '',
+    image_file: null,
     content: '',
     published_at: '',
 });
 
+const triggerCreatePicker = () => {
+    createFileInput.value?.click();
+};
+
+const handleCreateImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        createForm.image_file = file;
+        createPreviewUrl.value = URL.createObjectURL(file);
+    }
+};
+
+const removeCreateImage = () => {
+    createForm.image_file = null;
+    createPreviewUrl.value = null;
+    if (createFileInput.value) createFileInput.value.value = '';
+};
+
 const submitCreate = () => {
     createForm.post(route('news.store'), {
+        forceFormData: true,
         onSuccess: () => {
             showCreateModal.value = false;
             createForm.reset();
+            createPreviewUrl.value = null;
         },
     });
+};
+
+const triggerEditPicker = () => {
+    editFileInput.value?.click();
+};
+
+const handleEditImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        editForm.image_file = file;
+        editPreviewUrl.value = URL.createObjectURL(file);
+    }
+};
+
+const removeEditImage = () => {
+    editForm.image_file = null;
+    editPreviewUrl.value = null;
+    if (editFileInput.value) editFileInput.value.value = '';
 };
 
 const openEditModal = (item) => {
@@ -49,17 +99,22 @@ const openEditModal = (item) => {
     editForm.category = item.category;
     editForm.author = item.author;
     editForm.image_url = item.image_url;
+    editForm.image_file = null;
     editForm.content = item.content;
     editForm.published_at = item.published_at || item.created_at?.split('T')[0];
+    editPreviewUrl.value = item.image_url || null;
+    editMode.value = item.image_url && item.image_url.startsWith('http') ? 'url' : 'file';
     showEditModal.value = true;
 };
 
 const submitEdit = () => {
     if (!editingNews.value) return;
-    editForm.patch(route('news.update', editingNews.value.id), {
+    editForm.post(route('news.update', editingNews.value.id), {
+        forceFormData: true,
         onSuccess: () => {
             showEditModal.value = false;
             editingNews.value = null;
+            editPreviewUrl.value = null;
         },
     });
 };
@@ -143,7 +198,7 @@ const filterNews = () => {
                             <tr v-for="item in news.data" :key="item.id" class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition">
                                 <td class="p-4">
                                     <div class="flex items-center space-x-3">
-                                        <div class="w-14 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 border border-gray-200 dark:border-gray-700">
+                                        <div class="w-16 h-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 border border-gray-200 dark:border-gray-700 shadow-xs">
                                             <img v-if="item.image_url" :src="item.image_url" :alt="item.title" class="w-full h-full object-cover" />
                                             <div v-else class="w-full h-full flex items-center justify-center text-gray-400 font-bold text-[10px]">MKT</div>
                                         </div>
@@ -195,44 +250,133 @@ const filterNews = () => {
 
             <!-- Modal Create News -->
             <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm" @click.self="showCreateModal = false">
-                <div class="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 max-w-xl w-full p-6 space-y-4 shadow-2xl animate-scaleUp">
+                <div class="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 max-w-xl w-full p-6 space-y-4 shadow-2xl animate-scaleUp max-h-[90vh] overflow-y-auto">
                     <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
                         <h3 class="text-base font-bold text-gray-900 dark:text-white">📰 Terbitkan Berita / Artikel Baru</h3>
                         <button @click="showCreateModal = false" class="text-gray-400 hover:text-gray-600">✕</button>
                     </div>
 
-                    <form @submit.prevent="submitCreate" class="space-y-3">
+                    <form @submit.prevent="submitCreate" class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Judul Artikel</label>
-                            <input v-model="createForm.title" type="text" required placeholder="Judul berita/liputan..." class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5" />
+                            <input v-model="createForm.title" type="text" required placeholder="Judul berita/liputan..." class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5 px-3 focus:border-brand-500 focus:ring-brand-500" />
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Kategori</label>
-                                <select v-model="createForm.category" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5">
+                                <select v-model="createForm.category" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5 px-3 focus:border-brand-500 focus:ring-brand-500">
                                     <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Penulis (Author)</label>
-                                <input v-model="createForm.author" type="text" placeholder="Humas MKT" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5" />
+                                <input v-model="createForm.author" type="text" placeholder="Humas MKT" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5 px-3 focus:border-brand-500 focus:ring-brand-500" />
+                            </div>
+                        </div>
+
+                        <!-- Image Selector: Device Gallery vs URL -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Gambar Cover (Thumbnail)</label>
+                                <div class="flex items-center space-x-1 text-[11px] font-bold">
+                                    <button
+                                        type="button"
+                                        @click="createMode = 'file'"
+                                        class="px-2 py-0.5 rounded-lg transition"
+                                        :class="createMode === 'file' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+                                    >
+                                        📁 Dari Galeri Perangkat
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="createMode = 'url'"
+                                        class="px-2 py-0.5 rounded-lg transition"
+                                        :class="createMode === 'url' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+                                    >
+                                        🔗 Link URL
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Mode File / Device Gallery Upload -->
+                            <div v-if="createMode === 'file'" class="space-y-2">
+                                <input
+                                    ref="createFileInput"
+                                    type="file"
+                                    accept="image/*"
+                                    class="hidden"
+                                    @change="handleCreateImageChange"
+                                />
+
+                                <!-- Dropzone / Click to choose -->
+                                <div 
+                                    v-if="!createPreviewUrl"
+                                    @click="triggerCreatePicker"
+                                    class="border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-orange-500 dark:hover:border-orange-500 bg-gray-50 dark:bg-gray-800/50 hover:bg-orange-50/20 rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-2 group"
+                                >
+                                    <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                        🖼️
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-800 dark:text-gray-200">
+                                            Klik untuk memilih foto dari galeri / penyimpanan perangkat
+                                        </p>
+                                        <p class="text-[11px] text-gray-400 mt-0.5">
+                                            Format: JPG, PNG, WEBP, GIF (Maksimal 5MB)
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Image Preview Card -->
+                                <div v-else class="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-900 group">
+                                    <img :src="createPreviewUrl" alt="Preview Cover" class="w-full h-44 object-cover" />
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-between p-3">
+                                        <span class="text-xs text-white font-medium truncate max-w-xs">
+                                            Foto Terpilih: {{ createForm.image_file?.name || 'Gambar Galeri' }}
+                                        </span>
+                                        <div class="flex items-center space-x-2">
+                                            <button
+                                                type="button"
+                                                @click="triggerCreatePicker"
+                                                class="px-2.5 py-1 bg-white/90 hover:bg-white text-gray-900 rounded-lg text-xs font-bold shadow-md transition"
+                                            >
+                                                Ganti Foto
+                                            </button>
+                                            <button
+                                                type="button"
+                                                @click="removeCreateImage"
+                                                class="p-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs transition"
+                                                title="Hapus Foto"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mode URL Input -->
+                            <div v-else>
+                                <input 
+                                    v-model="createForm.image_url" 
+                                    type="url" 
+                                    placeholder="https://images.unsplash.com/..." 
+                                    class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5 px-3 focus:border-brand-500 focus:ring-brand-500" 
+                                />
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">URL Gambar Cover (Thumbnail)</label>
-                            <input v-model="createForm.image_url" type="url" placeholder="https://..." class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5" />
-                        </div>
-
-                        <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Konten Lengkap Berita</label>
-                            <textarea v-model="createForm.content" required rows="6" placeholder="Tulis isi narasi artikel berita..." class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs p-3"></textarea>
+                            <textarea v-model="createForm.content" required rows="6" placeholder="Tulis isi narasi artikel berita..." class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs p-3 focus:border-brand-500 focus:ring-brand-500"></textarea>
                         </div>
 
                         <div class="pt-2 flex justify-end space-x-2">
                             <button type="button" @click="showCreateModal = false" class="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold text-xs">Batal</button>
-                            <button type="submit" :disabled="createForm.processing" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 shadow-md">Publikasikan</button>
+                            <button type="submit" :disabled="createForm.processing" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 shadow-md">
+                                {{ createForm.processing ? 'Mengunggah & Menerbitkan...' : 'Publikasikan Berita' }}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -240,44 +384,133 @@ const filterNews = () => {
 
             <!-- Modal Edit News -->
             <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm" @click.self="showEditModal = false">
-                <div class="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 max-w-xl w-full p-6 space-y-4 shadow-2xl animate-scaleUp">
+                <div class="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 max-w-xl w-full p-6 space-y-4 shadow-2xl animate-scaleUp max-h-[90vh] overflow-y-auto">
                     <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
                         <h3 class="text-base font-bold text-gray-900 dark:text-white">✏️ Edit Berita / Artikel</h3>
                         <button @click="showEditModal = false" class="text-gray-400 hover:text-gray-600">✕</button>
                     </div>
 
-                    <form @submit.prevent="submitEdit" class="space-y-3">
+                    <form @submit.prevent="submitEdit" class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Judul Artikel</label>
-                            <input v-model="editForm.title" type="text" required class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5" />
+                            <input v-model="editForm.title" type="text" required class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5 px-3 focus:border-brand-500 focus:ring-brand-500" />
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Kategori</label>
-                                <select v-model="editForm.category" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5">
+                                <select v-model="editForm.category" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5 px-3 focus:border-brand-500 focus:ring-brand-500">
                                     <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Penulis (Author)</label>
-                                <input v-model="editForm.author" type="text" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5" />
+                                <input v-model="editForm.author" type="text" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5 px-3 focus:border-brand-500 focus:ring-brand-500" />
+                            </div>
+                        </div>
+
+                        <!-- Image Selector: Device Gallery vs URL for Edit -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Gambar Cover (Thumbnail)</label>
+                                <div class="flex items-center space-x-1 text-[11px] font-bold">
+                                    <button
+                                        type="button"
+                                        @click="editMode = 'file'"
+                                        class="px-2 py-0.5 rounded-lg transition"
+                                        :class="editMode === 'file' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+                                    >
+                                        📁 Dari Galeri Perangkat
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="editMode = 'url'"
+                                        class="px-2 py-0.5 rounded-lg transition"
+                                        :class="editMode === 'url' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+                                    >
+                                        🔗 Link URL
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Mode File / Device Gallery Upload -->
+                            <div v-if="editMode === 'file'" class="space-y-2">
+                                <input
+                                    ref="editFileInput"
+                                    type="file"
+                                    accept="image/*"
+                                    class="hidden"
+                                    @change="handleEditImageChange"
+                                />
+
+                                <!-- Dropzone / Click to choose -->
+                                <div 
+                                    v-if="!editPreviewUrl"
+                                    @click="triggerEditPicker"
+                                    class="border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-orange-500 dark:hover:border-orange-500 bg-gray-50 dark:bg-gray-800/50 hover:bg-orange-50/20 rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-2 group"
+                                >
+                                    <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                        🖼️
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-800 dark:text-gray-200">
+                                            Klik untuk memilih foto dari galeri / penyimpanan perangkat
+                                        </p>
+                                        <p class="text-[11px] text-gray-400 mt-0.5">
+                                            Format: JPG, PNG, WEBP, GIF (Maksimal 5MB)
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Image Preview Card -->
+                                <div v-else class="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-900 group">
+                                    <img :src="editPreviewUrl" alt="Preview Cover" class="w-full h-44 object-cover" />
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-between p-3">
+                                        <span class="text-xs text-white font-medium truncate max-w-xs">
+                                            {{ editForm.image_file?.name || 'Foto Sampul Aktif' }}
+                                        </span>
+                                        <div class="flex items-center space-x-2">
+                                            <button
+                                                type="button"
+                                                @click="triggerEditPicker"
+                                                class="px-2.5 py-1 bg-white/90 hover:bg-white text-gray-900 rounded-lg text-xs font-bold shadow-md transition"
+                                            >
+                                                Ganti Foto
+                                            </button>
+                                            <button
+                                                type="button"
+                                                @click="removeEditImage"
+                                                class="p-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs transition"
+                                                title="Hapus Foto"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mode URL Input -->
+                            <div v-else>
+                                <input 
+                                    v-model="editForm.image_url" 
+                                    type="url" 
+                                    placeholder="https://images.unsplash.com/..." 
+                                    class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5 px-3 focus:border-brand-500 focus:ring-brand-500" 
+                                />
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">URL Gambar Cover (Thumbnail)</label>
-                            <input v-model="editForm.image_url" type="url" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5" />
-                        </div>
-
-                        <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Konten Lengkap Berita</label>
-                            <textarea v-model="editForm.content" required rows="6" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs p-3"></textarea>
+                            <textarea v-model="editForm.content" required rows="6" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs p-3 focus:border-brand-500 focus:ring-brand-500"></textarea>
                         </div>
 
                         <div class="pt-2 flex justify-end space-x-2">
                             <button type="button" @click="showEditModal = false" class="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold text-xs">Batal</button>
-                            <button type="submit" :disabled="editForm.processing" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 shadow-md">Simpan Perubahan</button>
+                            <button type="submit" :disabled="editForm.processing" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 shadow-md">
+                                {{ editForm.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
+                            </button>
                         </div>
                     </form>
                 </div>

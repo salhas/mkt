@@ -47,7 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // News & Articles Management (Manajemen Berita & Artikel)
     Route::get('/news-management', [NewsController::class, 'index'])->name('news.index');
     Route::post('/news-management', [NewsController::class, 'store'])->name('news.store');
-    Route::patch('/news-management/{news}', [NewsController::class, 'update'])->name('news.update');
+    Route::post('/news-management/{news}', [NewsController::class, 'update'])->name('news.update');
+    Route::patch('/news-management/{news}', [NewsController::class, 'update']);
     Route::delete('/news-management/{news}', [NewsController::class, 'destroy'])->name('news.destroy');
 
     // MKT Profile
