@@ -86,6 +86,8 @@ class NewsApiController extends Controller
             'category' => 'required|string|max:100',
             'author' => 'nullable|string|max:100',
             'image_url' => 'nullable|string',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image_base64' => 'nullable|string',
             'content' => 'required|string',
             'published_at' => 'nullable|string',
         ]);
@@ -97,6 +99,25 @@ class NewsApiController extends Controller
         if (empty($validated['published_at'])) {
             $validated['published_at'] = date('Y-m-d');
         }
+
+        if ($request->hasFile('image_file')) {
+            $path = $request->file('image_file')->store('news_images', 'public');
+            $validated['image_url'] = '/storage/' . $path;
+        } elseif ($request->filled('image_base64')) {
+            $base64Image = $request->input('image_base64');
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                $base64Data = substr($base64Image, strpos($base64Image, ',') + 1);
+                $ext = strtolower($type[1]);
+                $decoded = base64_decode($base64Data);
+                if ($decoded !== false) {
+                    $filename = 'news_' . time() . '_' . uniqid() . '.' . $ext;
+                    \Illuminate\Support\Facades\Storage::disk('public')->put('news_images/' . $filename, $decoded);
+                    $validated['image_url'] = '/storage/news_images/' . $filename;
+                }
+            }
+        }
+
+        unset($validated['image_file'], $validated['image_base64']);
 
         $news = News::create($validated);
 
@@ -133,9 +154,30 @@ class NewsApiController extends Controller
             'category' => 'required|string|max:100',
             'author' => 'nullable|string|max:100',
             'image_url' => 'nullable|string',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image_base64' => 'nullable|string',
             'content' => 'required|string',
             'published_at' => 'nullable|string',
         ]);
+
+        if ($request->hasFile('image_file')) {
+            $path = $request->file('image_file')->store('news_images', 'public');
+            $validated['image_url'] = '/storage/' . $path;
+        } elseif ($request->filled('image_base64')) {
+            $base64Image = $request->input('image_base64');
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                $base64Data = substr($base64Image, strpos($base64Image, ',') + 1);
+                $ext = strtolower($type[1]);
+                $decoded = base64_decode($base64Data);
+                if ($decoded !== false) {
+                    $filename = 'news_' . time() . '_' . uniqid() . '.' . $ext;
+                    \Illuminate\Support\Facades\Storage::disk('public')->put('news_images/' . $filename, $decoded);
+                    $validated['image_url'] = '/storage/news_images/' . $filename;
+                }
+            }
+        }
+
+        unset($validated['image_file'], $validated['image_base64']);
 
         $news->update($validated);
 

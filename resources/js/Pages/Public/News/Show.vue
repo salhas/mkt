@@ -99,6 +99,7 @@ const formatDate = (dateStr) => {
                         <img 
                             :src="article.image_url || heroRescueImg" 
                             :alt="article.title" 
+                            @error="(e) => e.target.src = heroRescueImg"
                             class="w-full max-h-[500px] object-cover object-center" 
                         />
                         <div class="p-3 bg-slate-900/90 text-slate-300 text-xs text-center border-t border-slate-800">

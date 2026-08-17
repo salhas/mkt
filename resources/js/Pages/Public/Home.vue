@@ -278,7 +278,7 @@ const formatDate = (dateStr) => {
                             class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
                         >
                             <Link :href="route('public.news.show', item.slug || item.id)" class="relative h-48 overflow-hidden bg-slate-800 block">
-                                <img :src="item.image_url || heroRescueImg" :alt="item.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                <img :src="item.image_url || heroRescueImg" :alt="item.title" @error="(e) => e.target.src = heroRescueImg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
                                 <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-black uppercase text-white bg-orange-600 shadow-sm">
                                     {{ item.category }}
