@@ -39,6 +39,7 @@ Authorization: Bearer <access_token>
 | **Peta Bencana** | `GET` | `/api/v1/disaster-events` | Data lokasi & koordinat bencana real-time | Publik |
 | **Peta Bencana** | `GET` | `/api/v1/disaster-events/{id}`| Detail insiden bencana & tim rescue | Publik |
 | **Peta Bencana** | `POST` | `/api/v1/disaster-events` | Melaporkan kejadian bencana dari lapangan | `Bearer Token` |
+| **Peringatan & Siaga**| `GET` | `/api/v1/alerts/live` | Feed notifikasi agregat darurat real-time (SAR, Bencana, Logistik, Donasi) | Publik |
 | **Operasi & Siaga SAR** | `GET` | `/api/v1/sar-operations` | List Operasi & Siaga SAR (Respon Musibah / Kesiapsiagaan) | Publik |
 | **Operasi & Siaga SAR** | `GET` | `/api/v1/sar-operations/{id}`| Detail giat Operasi SAR, Komandan, & Alat | Publik |
 | **Operasi & Siaga SAR** | `POST` | `/api/v1/sar-operations` | Tambah / Lapor Operasi SAR dari Lapangan | `Bearer Token` |

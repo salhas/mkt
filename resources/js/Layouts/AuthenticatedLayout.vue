@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import MktLogo from '@/Components/MktLogo.vue';
+import LiveAlertCenter from '@/Components/LiveAlertCenter.vue';
 
 const page = usePage();
 
@@ -466,6 +467,9 @@ const toggleFinance = () => {
 
                 <!-- Right Toolbar Actions -->
                 <div class="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
+                    <!-- Live Emergency Alerts & Notifications Center -->
+                    <LiveAlertCenter />
+
                     <!-- Dark Mode Toggle Button -->
                     <button
                         @click="toggleDarkMode"

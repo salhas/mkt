@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
 
 const props = defineProps({
     operations: Array,
@@ -13,12 +13,29 @@ const page = usePage();
 // Live Digital Clock State
 const currentTime = ref('');
 const currentDate = ref('');
+const isSyncing = ref(false);
+const lastSyncTime = ref('');
 let clockTimer = null;
+let liveSyncTimer = null;
 
 const updateClock = () => {
     const now = new Date();
     currentTime.value = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WITA';
     currentDate.value = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+};
+
+const triggerLiveSync = () => {
+    isSyncing.value = true;
+    router.reload({
+        only: ['operations', 'stats'],
+        preserveScroll: true,
+        preserveState: true,
+        onFinish: () => {
+            isSyncing.value = false;
+            const now = new Date();
+            lastSyncTime.value = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+    });
 };
 
 // Selected Active Operation / Siaga Item for Specific Per-Item Focus
@@ -51,6 +68,7 @@ const isLeafletLoaded = ref(false);
 onMounted(() => {
     updateClock();
     clockTimer = setInterval(updateClock, 1000);
+    liveSyncTimer = setInterval(triggerLiveSync, 20000);
 
     if (window.L) {
         isLeafletLoaded.value = true;
@@ -73,6 +91,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     if (clockTimer) clearInterval(clockTimer);
+    if (liveSyncTimer) clearInterval(liveSyncTimer);
     if (mapInstance.value) {
         mapInstance.value.remove();
     }
@@ -184,6 +203,10 @@ watch(selectedOpId, () => {
     renderSelectedItemMap();
 });
 
+watch(() => props.operations, () => {
+    renderSelectedItemMap();
+}, { deep: true });
+
 // Computed Specific Item Mobilization Breakdown
 const itemMobilizationStats = computed(() => {
     if (!selectedOp.value) return { active: 0, onWay: 0, prep: 0, demobilized: 0 };
@@ -246,7 +269,21 @@ const formatDate = (dateStr) => {
                 </div>
 
                 <!-- Clock & Screen Toggle Controls -->
-                <div class="flex items-center space-x-3 shrink-0">
+                <div class="flex items-center space-x-3 shrink-0 flex-wrap gap-y-2">
+                    <!-- Live Sync Status Button -->
+                    <button
+                        @click="triggerLiveSync"
+                        :disabled="isSyncing"
+                        class="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-white transition-all shadow-xs active:scale-95 flex items-center space-x-1.5"
+                        :title="lastSyncTime ? 'Terakhir disinkronkan: ' + lastSyncTime + ' WITA' : 'Sinkronisasi Live Data Pusdalops'"
+                    >
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <svg :class="['w-3.5 h-3.5', isSyncing ? 'animate-spin text-orange-500' : '']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span class="text-[11px] font-bold">{{ isSyncing ? 'Syncing...' : 'Live Radar' }}</span>
+                    </button>
+
                     <div class="bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl text-right">
                         <span class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 block tracking-widest">{{ currentTime }}</span>
                         <span class="text-[10px] text-slate-500 dark:text-slate-400 block">{{ currentDate }}</span>

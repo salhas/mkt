@@ -15,6 +15,7 @@ use App\Http\Controllers\SarOperationController;
 use App\Http\Controllers\SarParticipationController;
 use App\Http\Controllers\PublicPageController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\Api\AlertApiController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -40,9 +41,10 @@ Route::get('/kontak', [PublicPageController::class, 'contact'])->name('public.co
 Route::post('/register-volunteer', [VolunteerController::class, 'publicRegister'])->name('volunteers.public-register');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Dashboard
+    // Dashboard & Live Alerts
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/weather', [DashboardController::class, 'getWeather'])->name('dashboard.weather');
+    Route::get('/alerts/live-feed', [AlertApiController::class, 'getLiveAlerts'])->name('alerts.live');
 
     // News & Articles Management (Manajemen Berita & Artikel)
     Route::get('/news-management', [NewsController::class, 'index'])->name('news.index');

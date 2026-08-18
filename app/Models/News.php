@@ -36,7 +36,7 @@ class News extends Model
         });
 
         static::updating(function ($news) {
-            if ($news->isDirty('title') && empty($news->slug)) {
+            if ($news->isDirty('title')) {
                 $news->slug = static::generateUniqueSlug($news->title, $news->id);
             }
         });
@@ -60,10 +60,12 @@ class News extends Model
     }
 
     /**
-     * Get route key for implicit model binding
+     * Retrieve the model for a bound value (supports both ID and slug).
      */
-    public function getRouteKeyName()
+    public function resolveRouteBinding($value, $field = null)
     {
-        return 'slug';
+        return $this->where($field ?? 'id', $value)
+            ->orWhere('slug', $value)
+            ->firstOrFail();
     }
 }

@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\FinanceApiController;
 use App\Http\Controllers\Api\BmkgApiController;
 use App\Http\Controllers\Api\NewsApiController;
 use App\Http\Controllers\Api\SarOperationApiController;
+use App\Http\Controllers\Api\AlertApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +59,9 @@ Route::prefix('v1')->group(function () {
 
     // --- BMKG WEATHER & CLIMATE INTEGRATION ENDPOINTS ---
     Route::get('/bmkg/weather', [BmkgApiController::class, 'getWeather']);
+
+    // --- REAL-TIME EMERGENCY ALERTS & NOTIFICATIONS (FLUTTER CLIENT & COMMAND CENTER) ---
+    Route::get('/alerts/live', [AlertApiController::class, 'getLiveAlerts']);
 
     // --- FINANCIAL JOURNAL ENDPOINTS ---
     Route::get('/finance/accounts', [FinanceApiController::class, 'accounts']);
