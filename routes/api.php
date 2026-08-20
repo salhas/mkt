@@ -37,6 +37,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/volunteers', [VolunteerApiController::class, 'index']);
     Route::get('/volunteers/{id}', [VolunteerApiController::class, 'show']);
     Route::post('/volunteers/register', [VolunteerApiController::class, 'publicRegister']);
+    Route::patch('/volunteers/{id}/verify', [VolunteerApiController::class, 'verify']);
 
     Route::get('/disaster-events', [DisasterEventApiController::class, 'index']);
     Route::get('/disaster-events/{id}', [DisasterEventApiController::class, 'show']);
@@ -49,6 +50,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/logistics', [LogisticApiController::class, 'index']);
     Route::get('/management', [OrganizationMemberApiController::class, 'index']);
+    Route::get('/management/{id}', [OrganizationMemberApiController::class, 'show']);
 
     Route::get('/meetings', [MeetingApiController::class, 'index']);
     Route::get('/meetings/{id}', [MeetingApiController::class, 'show']);
@@ -73,6 +75,17 @@ Route::prefix('v1')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         
+        // Organization Management (Pengurus MKT) Endpoints
+        Route::post('/management', [OrganizationMemberApiController::class, 'store']);
+        Route::match(['put', 'post'], '/management/{id}', [OrganizationMemberApiController::class, 'update']);
+        Route::patch('/management/{id}/status', [OrganizationMemberApiController::class, 'updateStatus']);
+        Route::delete('/management/{id}', [OrganizationMemberApiController::class, 'destroy']);
+
+        // Volunteer Management & Verification Endpoints
+        Route::post('/volunteers', [VolunteerApiController::class, 'store']);
+        Route::match(['put', 'patch'], '/volunteers/{id}', [VolunteerApiController::class, 'update']);
+        Route::delete('/volunteers/{id}', [VolunteerApiController::class, 'destroy']);
+
         // Report Disaster & Meeting Management from Flutter Mobile App
         Route::post('/disaster-events', [DisasterEventApiController::class, 'store']);
         Route::post('/sar-operations', [SarOperationApiController::class, 'store']);

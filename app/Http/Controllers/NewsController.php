@@ -63,8 +63,7 @@ class NewsController extends Controller
         }
 
         if ($request->hasFile('image_file')) {
-            $path = $request->file('image_file')->store('news_images', 'public');
-            $validated['image_url'] = '/storage/' . $path;
+            $validated['image_url'] = $this->processAndStoreImage($request->file('image_file'));
         }
 
         unset($validated['image_file']);
@@ -94,8 +93,7 @@ class NewsController extends Controller
                 $oldPath = str_replace('/storage/', '', $news->image_url);
                 Storage::disk('public')->delete($oldPath);
             }
-            $path = $request->file('image_file')->store('news_images', 'public');
-            $validated['image_url'] = '/storage/' . $path;
+            $validated['image_url'] = $this->processAndStoreImage($request->file('image_file'));
         }
 
         unset($validated['image_file']);
@@ -103,6 +101,67 @@ class NewsController extends Controller
         $news->update($validated);
 
         return redirect()->back()->with('success', 'Berita / Artikel berhasil diperbarui.');
+    }
+
+    /**
+     * Store and optimize uploaded image for web & WhatsApp crawler compliance (< 300KB)
+     */
+    private function processAndStoreImage($file): string
+    {
+        $directory = storage_path('app/public/news_images');
+        if (!file_exists($directory)) {
+            @mkdir($directory, 0755, true);
+        }
+
+        $filename = \Illuminate\Support\Str::random(40) . '.jpg';
+        $destinationPath = $directory . '/' . $filename;
+
+        // If GD extension is available, optimize, resize, and convert to standard compressed JPEG
+        if (extension_loaded('gd')) {
+            try {
+                $imageInfo = @getimagesize($file->getRealPath());
+                if ($imageInfo) {
+                    $mime = $imageInfo['mime'];
+                    $srcImage = match ($mime) {
+                        'image/png' => @imagecreatefrompng($file->getRealPath()),
+                        'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($file->getRealPath()) : false,
+                        'image/gif' => @imagecreatefromgif($file->getRealPath()),
+                        default => @imagecreatefromjpeg($file->getRealPath()),
+                    };
+
+                    if ($srcImage) {
+                        $origWidth = imagesx($srcImage);
+                        $origHeight = imagesy($srcImage);
+                        $maxWidth = 1200;
+
+                        if ($origWidth > $maxWidth) {
+                            $newWidth = $maxWidth;
+                            $newHeight = (int) round(($origHeight / $origWidth) * $maxWidth);
+                            $resized = imagecreatetruecolor($newWidth, $newHeight);
+
+                            // Handle transparency for PNG/GIF
+                            $white = imagecolorallocate($resized, 255, 255, 255);
+                            imagefilledrectangle($resized, 0, 0, $newWidth, $newHeight, $white);
+                            imagecopyresampled($resized, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+                            imagedestroy($srcImage);
+                            $srcImage = $resized;
+                        }
+
+                        // Save as high-quality, lightweight JPEG (quality 82, typically 80-180 KB)
+                        imagejpeg($srcImage, $destinationPath, 82);
+                        imagedestroy($srcImage);
+                        @chmod($destinationPath, 0644);
+
+                        return '/storage/news_images/' . $filename;
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Fallback to default Laravel store on exception
+            }
+        }
+
+        $path = $file->store('news_images', 'public');
+        return '/storage/' . $path;
     }
 
     /**

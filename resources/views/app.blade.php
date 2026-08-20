@@ -17,9 +17,26 @@
         <!-- Dynamic Favicon & Share Thumbnail -->
         @php
             $mktProfile = \App\Models\MktProfile::first();
-            $faviconUrl = ($mktProfile && $mktProfile->logo) ? asset($mktProfile->logo) : asset('images/mkt_logo.png');
             
-            // Default OG metadata (using lightweight < 150KB og_thumbnail.jpg for WhatsApp crawler compliance)
+            // Safe favicon resolution (handling base64 or relative path)
+            if ($mktProfile && !empty($mktProfile->logo)) {
+                $faviconUrl = str_starts_with($mktProfile->logo, 'data:') || str_starts_with($mktProfile->logo, 'http')
+                    ? $mktProfile->logo
+                    : asset(ltrim($mktProfile->logo, '/'));
+            } else {
+                $faviconUrl = asset('images/mkt_logo.png');
+            }
+            
+            // Dynamic host base URL resolution (fallback from request root if APP_URL is localhost)
+            $requestBaseUrl = request()->root();
+            if (empty($requestBaseUrl) || str_contains($requestBaseUrl, 'localhost')) {
+                $configuredUrl = config('app.url', 'http://localhost');
+                $baseUrl = (!empty($configuredUrl) && !str_contains($configuredUrl, 'localhost')) ? rtrim($configuredUrl, '/') : $requestBaseUrl;
+            } else {
+                $baseUrl = rtrim($requestBaseUrl, '/');
+            }
+
+            // Default OG metadata
             $ogTitle = "Yayasan MKT Indonesia - Tanggap Kemanusiaan & Penanggulangan Bencana";
             $ogDesc = "Ekosistem penanggulangan bencana terpadu, relawan donor darah siaga 24/7, tim rescue SAR lapangan, dan transparansi donasi kemanusiaan.";
             $ogImage = asset('images/og_thumbnail.jpg');
@@ -28,18 +45,19 @@
 
             // Dynamic OG for News Article Detail Page
             $route = request()->route();
-            if ($route && $route->getName() === 'public.news.show') {
-                $slugOrId = $route->parameter('slug');
-                if ($slugOrId) {
-                    $newsItem = \App\Models\News::where('slug', $slugOrId)->orWhere('id', $slugOrId)->first();
-                    if ($newsItem) {
-                        $ogTitle = $newsItem->title . ' - Yayasan MKT Indonesia';
-                        $ogDesc = \Illuminate\Support\Str::limit(strip_tags($newsItem->content), 160);
-                        $ogType = "article";
-                        if ($newsItem->image_url) {
-                            $ogImage = str_starts_with($newsItem->image_url, 'http') 
-                                ? $newsItem->image_url 
-                                : url($newsItem->image_url);
+            $slugOrId = $route ? $route->parameter('slug') : (request()->segment(1) === 'berita' ? request()->segment(2) : null);
+            if ($slugOrId) {
+                $newsItem = \App\Models\News::where('slug', $slugOrId)->orWhere('id', $slugOrId)->first();
+                if ($newsItem) {
+                    $ogTitle = $newsItem->title . ' - Yayasan MKT Indonesia';
+                    $ogDesc = \Illuminate\Support\Str::limit(strip_tags($newsItem->content), 160);
+                    $ogType = "article";
+                    if (!empty($newsItem->image_url)) {
+                        if (str_starts_with($newsItem->image_url, 'http')) {
+                            $ogImage = $newsItem->image_url;
+                        } else {
+                            $imagePath = ltrim($newsItem->image_url, '/');
+                            $ogImage = $baseUrl . '/' . $imagePath;
                         }
                     }
                 }
@@ -47,14 +65,32 @@
 
             // Ensure absolute URLs with matching scheme
             if (!str_starts_with($ogImage, 'http')) {
-                $ogImage = url($ogImage);
+                $ogImage = $baseUrl . '/' . ltrim($ogImage, '/');
             }
-            if (request()->isSecure() && str_starts_with($ogImage, 'http://')) {
-                $ogImage = str_replace('http://', 'https://', $ogImage);
+
+            // Force HTTPS if request is secure or server indicates HTTPS
+            $isHttps = request()->isSecure() 
+                || request()->header('X-Forwarded-Proto') === 'https'
+                || request()->header('X-Forwarded-Ssl') === 'on'
+                || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
+
+            if ($isHttps) {
+                if (str_starts_with($ogImage, 'http://')) {
+                    $ogImage = str_replace('http://', 'https://', $ogImage);
+                }
+                if (str_starts_with($currentUrl, 'http://')) {
+                    $currentUrl = str_replace('http://', 'https://', $currentUrl);
+                }
             }
-            if (request()->isSecure() && str_starts_with($currentUrl, 'http://')) {
-                $currentUrl = str_replace('http://', 'https://', $currentUrl);
-            }
+
+            // Detect MIME Type for Open Graph
+            $imageExtension = strtolower(pathinfo(parse_url($ogImage, PHP_URL_PATH), PATHINFO_EXTENSION));
+            $ogMimeType = match ($imageExtension) {
+                'png' => 'image/png',
+                'webp' => 'image/webp',
+                'gif' => 'image/gif',
+                default => 'image/jpeg',
+            };
         @endphp
         <link rel="icon" type="image/png" href="{{ $faviconUrl }}">
         <link rel="shortcut icon" type="image/png" href="{{ $faviconUrl }}">
@@ -71,7 +107,7 @@
         <meta property="og:image:secure_url" content="{{ $ogImage }}">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
-        <meta property="og:image:type" content="image/jpeg">
+        <meta property="og:image:type" content="{{ $ogMimeType }}">
         <meta property="og:image:alt" content="{{ $ogTitle }}">
         <meta property="og:locale" content="id_ID">
 
