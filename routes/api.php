@@ -38,6 +38,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/volunteers/{id}', [VolunteerApiController::class, 'show']);
     Route::post('/volunteers/register', [VolunteerApiController::class, 'publicRegister']);
     Route::patch('/volunteers/{id}/verify', [VolunteerApiController::class, 'verify']);
+    Route::post('/volunteers', [VolunteerApiController::class, 'store']);
+    Route::match(['put', 'patch', 'post'], '/volunteers/{id}', [VolunteerApiController::class, 'update']);
+    Route::delete('/volunteers/{id}', [VolunteerApiController::class, 'destroy']);
 
     Route::get('/disaster-events', [DisasterEventApiController::class, 'index']);
     Route::get('/disaster-events/{id}', [DisasterEventApiController::class, 'show']);
@@ -51,6 +54,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/logistics', [LogisticApiController::class, 'index']);
     Route::get('/management', [OrganizationMemberApiController::class, 'index']);
     Route::get('/management/{id}', [OrganizationMemberApiController::class, 'show']);
+    Route::post('/management', [OrganizationMemberApiController::class, 'store']);
+    Route::match(['put', 'post'], '/management/{id}', [OrganizationMemberApiController::class, 'update']);
+    Route::patch('/management/{id}/status', [OrganizationMemberApiController::class, 'updateStatus']);
+    Route::delete('/management/{id}', [OrganizationMemberApiController::class, 'destroy']);
 
     Route::get('/meetings', [MeetingApiController::class, 'index']);
     Route::get('/meetings/{id}', [MeetingApiController::class, 'show']);
@@ -59,8 +66,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/news', [NewsApiController::class, 'index']);
     Route::get('/news/{id}', [NewsApiController::class, 'show']);
 
-    // --- BMKG WEATHER & CLIMATE INTEGRATION ENDPOINTS ---
+    // --- BMKG WEATHER, CLIMATE & EARTHQUAKE INTEGRATION ENDPOINTS ---
     Route::get('/bmkg/weather', [BmkgApiController::class, 'getWeather']);
+    Route::get('/bmkg/earthquakes', [BmkgApiController::class, 'getEarthquakes']);
+    Route::get('/bmkg/map-feed', [BmkgApiController::class, 'getMapFeed']);
 
     // --- REAL-TIME EMERGENCY ALERTS & NOTIFICATIONS (FLUTTER CLIENT & COMMAND CENTER) ---
     Route::get('/alerts/live', [AlertApiController::class, 'getLiveAlerts']);
@@ -74,17 +83,6 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
-        
-        // Organization Management (Pengurus MKT) Endpoints
-        Route::post('/management', [OrganizationMemberApiController::class, 'store']);
-        Route::match(['put', 'post'], '/management/{id}', [OrganizationMemberApiController::class, 'update']);
-        Route::patch('/management/{id}/status', [OrganizationMemberApiController::class, 'updateStatus']);
-        Route::delete('/management/{id}', [OrganizationMemberApiController::class, 'destroy']);
-
-        // Volunteer Management & Verification Endpoints
-        Route::post('/volunteers', [VolunteerApiController::class, 'store']);
-        Route::match(['put', 'patch'], '/volunteers/{id}', [VolunteerApiController::class, 'update']);
-        Route::delete('/volunteers/{id}', [VolunteerApiController::class, 'destroy']);
 
         // Report Disaster & Meeting Management from Flutter Mobile App
         Route::post('/disaster-events', [DisasterEventApiController::class, 'store']);

@@ -96,12 +96,16 @@ class OrganizationMemberApiController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
-            'status' => 'required|string|in:Aktif,Tidak Aktif,Demisioner',
+            'status' => 'nullable|string|in:Aktif,Tidak Aktif,Demisioner',
             'period' => 'nullable|string|max:100',
             'order_index' => 'nullable|integer',
             'notes' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
+
+        if (empty($validated['status'])) {
+            $validated['status'] = 'Aktif';
+        }
 
         if (empty($validated['period'])) {
             $validated['period'] = '2024 - 2029';

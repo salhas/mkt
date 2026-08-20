@@ -133,17 +133,23 @@ class VolunteerApiController extends Controller
         $validated = $request->validate([
             'partner_id' => 'nullable|exists:partners,id',
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:volunteers,email|max:255',
+            'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
             'blood_type' => 'nullable|string|max:10',
-            'role' => 'required|string|max:50',
-            'status' => 'required|string|max:50',
+            'role' => 'nullable|string|max:50',
+            'status' => 'nullable|string|max:50',
             'certifications' => 'nullable|string',
             'registered_at' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
 
+        if (empty($validated['status'])) {
+            $validated['status'] = 'Menunggu Verifikasi';
+        }
+        if (empty($validated['role'])) {
+            $validated['role'] = 'Relawan Rescuer';
+        }
         if (empty($validated['registered_at'])) {
             $validated['registered_at'] = now()->toDateString();
         }
@@ -183,12 +189,12 @@ class VolunteerApiController extends Controller
         $validated = $request->validate([
             'partner_id' => 'nullable|exists:partners,id',
             'name' => 'sometimes|required|string|max:255',
-            'email' => 'nullable|email|max:255|unique:volunteers,email,' . $volunteer->id,
+            'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
             'blood_type' => 'nullable|string|max:10',
-            'role' => 'sometimes|required|string|max:50',
-            'status' => 'sometimes|required|string|max:50',
+            'role' => 'nullable|string|max:50',
+            'status' => 'nullable|string|max:50',
             'certifications' => 'nullable|string',
             'registered_at' => 'nullable|date',
             'notes' => 'nullable|string',

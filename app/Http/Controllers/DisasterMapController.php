@@ -8,11 +8,16 @@ use Illuminate\Http\Request;
 
 class DisasterMapController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $events = DisasterEvent::orderBy('date_occurred', 'desc')->get();
+        
+        $bmkgController = app(\App\Http\Controllers\Api\BmkgApiController::class);
+        $bmkgData = $bmkgController->getEarthquakes($request)->getData(true);
+
         return Inertia::render('DisasterMap/Index', [
-            'events' => $events
+            'events' => $events,
+            'bmkgData' => $bmkgData,
         ]);
     }
 
