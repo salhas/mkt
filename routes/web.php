@@ -88,8 +88,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/donors', [DonorController::class, 'index'])->name('donors.index');
     Route::post('/donors', [DonorController::class, 'storeDonor'])->name('donors.store');
     Route::patch('/donors/{donor}', [DonorController::class, 'updateDonor'])->name('donors.update');
+    Route::delete('/donors/{donor}', [DonorController::class, 'destroyDonor'])->name('donors.destroy');
     Route::post('/donations', [DonorController::class, 'storeDonation'])->name('donations.store');
     Route::patch('/donations/{donation}', [DonorController::class, 'updateDonation'])->name('donations.update');
+    Route::delete('/donations/{donation}', [DonorController::class, 'destroyDonation'])->name('donations.destroy');
+    Route::post('/donations/sync-journals', [DonorController::class, 'syncDonations'])->name('donations.sync-journals');
 
     // Logistics (Logistik)
     Route::get('/logistics', [LogisticController::class, 'index'])->name('logistics.index');
@@ -108,6 +111,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/finance/journal/{journalEntry}', [FinanceController::class, 'destroyJournal'])->name('finance.journal.destroy');
     Route::get('/finance/ledger', [FinanceController::class, 'indexLedger'])->name('finance.ledger.index');
     Route::get('/finance/balance-sheet', [FinanceController::class, 'indexBalanceSheet'])->name('finance.balance-sheet.index');
+    Route::post('/finance/sync-donations', [FinanceController::class, 'syncDonations'])->name('finance.sync-donations');
 
     // Disaster Map (Peta Operasi)
     Route::get('/disaster-map', [DisasterMapController::class, 'index'])->name('disaster-map.index');

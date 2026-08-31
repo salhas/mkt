@@ -14,6 +14,18 @@ const props = defineProps({
 const search = ref(props.filters.search || '');
 const startDate = ref(props.filters.start_date || '');
 const endDate = ref(props.filters.end_date || '');
+const isSyncing = ref(false);
+
+const syncDonations = () => {
+    isSyncing.value = true;
+    router.post(route('finance.sync-donations'), {}, {
+        preserveScroll: true,
+        onFinish: () => {
+            isSyncing.value = false;
+            showSuccessToast('Transaksi donasi berhasil disinkronkan ke Jurnal & Laporan Keuangan.');
+        }
+    });
+};
 
 const handleFilter = () => {
     router.get(route('finance.journal.index'), {
@@ -236,8 +248,20 @@ const formatDate = (dateStr) => {
             <!-- Action Buttons: Export CSV, Print Preview & Add Journal -->
             <div class="flex items-center flex-wrap gap-2.5">
                 <button
+                    v-if="['webmaster', 'administrator', 'finance'].includes($page.props.auth.user.role)"
+                    @click="syncDonations"
+                    :disabled="isSyncing"
+                    class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-2xs disabled:opacity-50"
+                    title="Sinkronkan seluruh donasi masuk ke Jurnal Keuangan"
+                >
+                    <svg :class="['w-4 h-4', isSyncing ? 'animate-spin' : '']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>{{ isSyncing ? 'Menyinkronkan...' : 'Sinkronkan Donasi' }}</span>
+                </button>
+                <button
                     @click="exportCSV"
-                    class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-2xs"
+                    class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-2xs"
                     title="Download Excel / CSV"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -329,7 +353,12 @@ const formatDate = (dateStr) => {
                             <tr class="bg-gray-50/40 dark:bg-gray-900/30 font-medium hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors print:bg-gray-100 print:text-black">
                                 <td class="p-4 align-top">
                                     <span class="block text-gray-900 dark:text-white font-bold print:text-black">{{ formatDate(entry.entry_date) }}</span>
-                                    <span class="text-xs text-gray-400 font-mono print:text-gray-800">{{ entry.reference_number }}</span>
+                                    <div class="flex items-center gap-1 mt-0.5">
+                                        <span class="text-xs text-gray-400 font-mono print:text-gray-800">{{ entry.reference_number }}</span>
+                                        <span v-if="entry.reference_number && (entry.reference_number.startsWith('DON-') || entry.reference_number.startsWith('TX-'))" class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-[9px] font-extrabold uppercase">
+                                            Donasi
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="p-4 align-top text-gray-800 dark:text-gray-200 font-bold print:text-black" colspan="3">
                                     {{ entry.description }}

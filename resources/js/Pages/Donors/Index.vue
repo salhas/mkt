@@ -2,6 +2,8 @@
 import { ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
+import Swal from 'sweetalert2';
+import { showSuccessToast, showErrorToast } from '@/Utils/toast.js';
 
 const props = defineProps({
     donors: Object,
@@ -16,6 +18,7 @@ const type = ref(props.filters.type || '');
 // Filters for Donations
 const donationSearch = ref(props.filters.donation_search || '');
 const donationStatus = ref(props.filters.donation_status || '');
+const isSyncing = ref(false);
 
 const handleFilterDonors = () => {
     router.get(route('donors.index'), {
@@ -82,13 +85,44 @@ const openEditDonor = (d) => {
 const submitDonor = () => {
     if (editingDonor.value) {
         donorForm.patch(route('donors.update', editingDonor.value.id), {
-            onSuccess: () => isDonorModalOpen.value = false
+            onSuccess: () => {
+                isDonorModalOpen.value = false;
+                showSuccessToast('Data donatur berhasil diperbarui.');
+            }
         });
     } else {
         donorForm.post(route('donors.store'), {
-            onSuccess: () => isDonorModalOpen.value = false
+            onSuccess: () => {
+                isDonorModalOpen.value = false;
+                showSuccessToast('Donatur baru berhasil didaftarkan.');
+            }
         });
     }
+};
+
+const deleteDonor = (donor) => {
+    Swal.fire({
+        title: 'Hapus Donatur?',
+        text: `Apakah Anda yakin ingin menghapus data donatur "${donor.name}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ea580c',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.delete(route('donors.destroy', donor.id), {
+                preserveScroll: true,
+                onSuccess: () => showSuccessToast('Data donatur berhasil dihapus.'),
+                onError: (errors) => {
+                    const msg = errors.delete || 'Gagal menghapus donatur.';
+                    Swal.fire('Gagal Menghapus', msg, 'error');
+                }
+            });
+        }
+    });
 };
 
 // Donation actions
@@ -116,13 +150,51 @@ const openEditDonation = (dn) => {
 const submitDonation = () => {
     if (editingDonation.value) {
         donationForm.patch(route('donations.update', editingDonation.value.id), {
-            onSuccess: () => isDonationModalOpen.value = false
+            onSuccess: () => {
+                isDonationModalOpen.value = false;
+                showSuccessToast('Donasi berhasil diperbarui & disinkronkan ke Jurnal Keuangan.');
+            }
         });
     } else {
         donationForm.post(route('donations.store'), {
-            onSuccess: () => isDonationModalOpen.value = false
+            onSuccess: () => {
+                isDonationModalOpen.value = false;
+                showSuccessToast('Donasi berhasil dicatat & otomatis masuk ke Jurnal Keuangan.');
+            }
         });
     }
+};
+
+const deleteDonation = (donation) => {
+    Swal.fire({
+        title: 'Hapus Transaksi Donasi?',
+        text: `Hapus donasi "${donation.reference_number}" sejumlah ${formatIDR(donation.amount)}? Transaksi jurnal terkait juga akan dihapus.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.delete(route('donations.destroy', donation.id), {
+                preserveScroll: true,
+                onSuccess: () => showSuccessToast('Data donasi & jurnal terkait berhasil dihapus.')
+            });
+        }
+    });
+};
+
+const triggerSyncDonations = () => {
+    isSyncing.value = true;
+    router.post(route('donations.sync-journals'), {}, {
+        preserveScroll: true,
+        onFinish: () => {
+            isSyncing.value = false;
+            showSuccessToast('Seluruh transaksi donasi sukses telah disinkronkan ke Jurnal Keuangan & Neraca.');
+        }
+    });
 };
 
 // Helpers
@@ -158,7 +230,18 @@ const formatDate = (dateStr) => {
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Pencatatan Donatur, Transaksi Donasi Masuk, dan Transparansi Dana Kebencanaan</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <button
+                    @click="triggerSyncDonations"
+                    :disabled="isSyncing"
+                    class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center space-x-1.5 disabled:opacity-50"
+                    title="Sinkronisasi seluruh transaksi donasi sukses ke Jurnal Keuangan & Neraca"
+                >
+                    <svg :class="['w-4 h-4', isSyncing ? 'animate-spin' : '']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>{{ isSyncing ? 'Menyinkronkan...' : 'Sinkronkan ke Jurnal' }}</span>
+                </button>
                 <button
                     @click="openAddDonor"
                     class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center space-x-1.5"
@@ -256,14 +339,23 @@ const formatDate = (dateStr) => {
                                         {{ d.status }}
                                     </span>
                                 </td>
-                                <td class="py-3.5 text-right">
+                                <td class="py-3.5 text-right space-x-1 whitespace-nowrap">
                                     <button
                                         @click="openEditDonor(d)"
-                                        class="p-1 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition-all focus:outline-none"
+                                        class="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition-all focus:outline-none"
                                         title="Edit Donatur"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+                                    <button
+                                        @click="deleteDonor(d)"
+                                        class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all focus:outline-none"
+                                        title="Hapus Donatur"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </button>
                                 </td>
@@ -369,14 +461,23 @@ const formatDate = (dateStr) => {
                                         {{ dn.status }}
                                     </span>
                                 </td>
-                                <td class="py-3.5 text-right">
+                                <td class="py-3.5 text-right space-x-1 whitespace-nowrap">
                                     <button
                                         @click="openEditDonation(dn)"
-                                        class="p-1 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition-all focus:outline-none"
+                                        class="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition-all focus:outline-none"
                                         title="Edit Transaksi"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+                                    <button
+                                        @click="deleteDonation(dn)"
+                                        class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all focus:outline-none"
+                                        title="Hapus Transaksi Donasi"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </button>
                                 </td>

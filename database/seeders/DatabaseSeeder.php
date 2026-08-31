@@ -83,35 +83,8 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // 4. Seed Donors
-        $donors = [
-            ['name' => 'H. Muhammad Yusuf', 'email' => 'yusuf.haj@gmail.com', 'phone' => '+62 811-1234-567', 'address' => 'Menteng, Jakarta Pusat', 'type' => 'Personal', 'status' => 'Aktif'],
-            ['name' => 'PT. Mega Bintang Sejahtera', 'email' => 'csr@megabintang.co.id', 'phone' => '+62 21-555-1234', 'address' => 'Sudirman CBD, Jakarta', 'type' => 'Lembaga', 'status' => 'Aktif'],
-            ['name' => 'Yayasan Bakti Bersama', 'email' => 'contact@baktibersama.org', 'phone' => '+62 21-777-9999', 'address' => 'Kemang, Jakarta Selatan', 'type' => 'Lembaga', 'status' => 'Aktif'],
-            ['name' => 'Lina Marlina', 'email' => 'lina.marlina@hotmail.com', 'phone' => '+62 813-9876-543', 'address' => 'Bandung', 'type' => 'Personal', 'status' => 'Aktif'],
-            ['name' => 'Rian Ardianto', 'email' => 'rian.a@gmail.com', 'phone' => '+62 856-1122-334', 'address' => 'Surabaya', 'type' => 'Personal', 'status' => 'Aktif'],
-        ];
-        $createdDonors = [];
-        foreach ($donors as $d) {
-            $createdDonors[] = Donor::updateOrCreate(
-                ['email' => $d['email']],
-                $d
-            );
-        }
-
-        // 5. Seed Donations
-        $donations = [
-            ['donor_id' => 1, 'amount' => 5000000.00, 'donation_date' => '2026-07-01', 'payment_method' => 'Bank Transfer (BSI)', 'status' => 'Sukses', 'description' => 'Sedekah awal bulan untuk bencana banjir', 'reference_number' => 'TX-20260701-01'],
-            ['donor_id' => 2, 'amount' => 50000000.00, 'donation_date' => '2026-07-05', 'payment_method' => 'Bank Transfer (Mandiri)', 'status' => 'Sukses', 'description' => 'Dana CSR Peduli Gempa', 'reference_number' => 'TX-20260705-02'],
-            ['donor_id' => 3, 'amount' => 25000000.00, 'donation_date' => '2026-07-08', 'payment_method' => 'Bank Transfer (BCA)', 'status' => 'Sukses', 'description' => 'Donasi Program Dapur Umum Rescue', 'reference_number' => 'TX-20260708-03'],
-            ['donor_id' => 4, 'amount' => 1500000.00, 'donation_date' => '2026-07-10', 'payment_method' => 'E-Wallet (GoPay)', 'status' => 'Sukses', 'description' => 'Infak kemanusiaan umum', 'reference_number' => 'TX-20260710-04'],
-            ['donor_id' => 5, 'amount' => 500000.00, 'donation_date' => '2026-07-11', 'payment_method' => 'E-Wallet (OVO)', 'status' => 'Pending', 'description' => 'Donasi peduli longsor', 'reference_number' => 'TX-20260711-05'],
-            ['donor_id' => 1, 'amount' => 10000000.00, 'donation_date' => '2026-07-15', 'payment_method' => 'Bank Transfer (BSI)', 'status' => 'Sukses', 'description' => 'Donasi untuk pengadaan alat rescue air', 'reference_number' => 'TX-20260715-06'],
-            ['donor_id' => null, 'amount' => 250000.00, 'donation_date' => '2026-07-16', 'payment_method' => 'QRIS (ShopeePay)', 'status' => 'Sukses', 'description' => 'Hamba Allah - Donasi Bencana Alam', 'reference_number' => 'TX-20260716-07'],
-        ];
-        foreach ($donations as $dn) {
-            Donation::create($dn);
-        }
+        // 4. Donors (Kosongkan data awal untuk operasional riil)
+        // 5. Donations (Kosongkan data awal untuk operasional riil)
 
         // 6. Seed Logistics
         $logistics = [
@@ -182,53 +155,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // 9. Seed Financial Journal (Jurnal & Laporan)
-        // Setup initial balance, donation income, and operational expenses
-        
-        // Transaction A: Saldo Awal Modal Yayasan (100M IDR)
-        $je1 = JournalEntry::create([
-            'entry_date' => '2026-06-01',
-            'description' => 'Saldo awal modal pendirian Yayasan MKT',
-            'reference_number' => 'JE-202606-001'
-        ]);
-        JournalItem::create(['journal_entry_id' => $je1->id, 'account_id' => 1, 'type' => 'Debit', 'amount' => 100000000.00]); // Kas Utama
-        JournalItem::create(['journal_entry_id' => $je1->id, 'account_id' => 6, 'type' => 'Credit', 'amount' => 100000000.00]); // Saldo Awal Modal
-
-        // Transaction B: Penerimaan Donasi CSR PT Mega Bintang Sejahtera (50M IDR)
-        $je2 = JournalEntry::create([
-            'entry_date' => '2026-07-05',
-            'description' => 'Penerimaan Donasi CSR PT Mega Bintang Sejahtera',
-            'reference_number' => 'JE-202607-002'
-        ]);
-        JournalItem::create(['journal_entry_id' => $je2->id, 'account_id' => 2, 'type' => 'Debit', 'amount' => 50000000.00]); // Bank Mandiri
-        JournalItem::create(['journal_entry_id' => $je2->id, 'account_id' => 8, 'type' => 'Credit', 'amount' => 50000000.00]); // Pendapatan CSR
-
-        // Transaction C: Pembelian logistik dapur umum (beras, mie dll) untuk banjir (15M IDR)
-        $je3 = JournalEntry::create([
-            'entry_date' => '2026-07-06',
-            'description' => 'Pengeluaran kas pembelian beras & mie instan bencana banjir Jakarta',
-            'reference_number' => 'JE-202607-003'
-        ]);
-        JournalItem::create(['journal_entry_id' => $je3->id, 'account_id' => 9, 'type' => 'Debit', 'amount' => 15000000.00]); // Beban Logistik
-        JournalItem::create(['journal_entry_id' => $je3->id, 'account_id' => 1, 'type' => 'Credit', 'amount' => 15000000.00]); // Kas Utama
-
-        // Transaction D: Pembelian bahan bakar & sewa perlengkapan tanggap darurat Rescue (5.5M IDR)
-        $je4 = JournalEntry::create([
-            'entry_date' => '2026-07-07',
-            'description' => 'Pengeluaran operasional solar perahu & evakuasi rescue banjir',
-            'reference_number' => 'JE-202607-004'
-        ]);
-        JournalItem::create(['journal_entry_id' => $je4->id, 'account_id' => 10, 'type' => 'Debit', 'amount' => 5500000.00]); // Beban Rescue
-        JournalItem::create(['journal_entry_id' => $je4->id, 'account_id' => 1, 'type' => 'Credit', 'amount' => 5500000.00]); // Kas Utama
-
-        // Transaction E: Penerimaan Donasi H. Muhammad Yusuf (5M IDR)
-        $je5 = JournalEntry::create([
-            'entry_date' => '2026-07-01',
-            'description' => 'Penerimaan Donasi H. Muhammad Yusuf via BSI',
-            'reference_number' => 'JE-202607-001'
-        ]);
-        JournalItem::create(['journal_entry_id' => $je5->id, 'account_id' => 3, 'type' => 'Debit', 'amount' => 5000000.00]); // Bank BSI
-        JournalItem::create(['journal_entry_id' => $je5->id, 'account_id' => 7, 'type' => 'Credit', 'amount' => 5000000.00]); // Pendapatan Donasi Publik
+        // 9. Financial Journal (Kosongkan data awal untuk pembukuan riil)
 
         // 10. Seed Disaster Events (Peta Operasi)
         DisasterEvent::create([

@@ -127,4 +127,31 @@ class DonorController extends Controller
 
         return redirect()->back()->with('success', 'Donasi berhasil diperbarui.');
     }
+
+    public function destroyDonation(Donation $donation)
+    {
+        $donation->delete();
+
+        return redirect()->back()->with('success', 'Data transaksi donasi berhasil dihapus.');
+    }
+
+    public function destroyDonor(Donor $donor)
+    {
+        if ($donor->donations()->exists()) {
+            return redirect()->back()->withErrors([
+                'delete' => "Donatur {$donor->name} tidak dapat dihapus karena memiliki riwayat transaksi donasi."
+            ]);
+        }
+
+        $donor->delete();
+
+        return redirect()->back()->with('success', 'Data donatur berhasil dihapus.');
+    }
+
+    public function syncDonations(\App\Services\DonationAccountingService $accountingService)
+    {
+        $count = $accountingService->syncAllDonations();
+
+        return redirect()->back()->with('success', "Berhasil mensinkronisasi {$count} transaksi donasi ke Jurnal & Laporan Keuangan.");
+    }
 }

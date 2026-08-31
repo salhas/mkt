@@ -352,4 +352,13 @@ class FinanceController extends Controller
             'totalEquity' => collect($equity)->sum('balance'),
         ]);
     }
+
+    public function syncDonations(\App\Services\DonationAccountingService $accountingService)
+    {
+        $this->authorizeFinanceAccess();
+
+        $count = $accountingService->syncAllDonations();
+
+        return redirect()->back()->with('success', "Berhasil mensinkronisasi {$count} transaksi donasi ke Jurnal & Laporan Keuangan.");
+    }
 }

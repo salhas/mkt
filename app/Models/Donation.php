@@ -12,4 +12,15 @@ class Donation extends Model
     {
         return $this->belongsTo(Donor::class);
     }
+
+    protected static function booted(): void
+    {
+        static::saved(function (Donation $donation) {
+            app(\App\Services\DonationAccountingService::class)->syncDonation($donation);
+        });
+
+        static::deleted(function (Donation $donation) {
+            app(\App\Services\DonationAccountingService::class)->removeDonationJournal($donation);
+        });
+    }
 }
