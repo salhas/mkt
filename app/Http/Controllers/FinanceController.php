@@ -257,33 +257,76 @@ class FinanceController extends Controller
     // --- BUKU BESAR (GENERAL LEDGER) ---
     public function indexLedger(Request $request)
     {
-        $accounts = Account::orderBy('code')->get();
-        $selectedAccountId = $request->input('account_id', $accounts->first() ? $accounts->first()->id : null);
+        // Get all accounts with balance and mutation count
+        $allAccounts = Account::orderBy('code')->get();
+        
+        $accountsWithStats = $allAccounts->map(function($acc) {
+            $items = JournalItem::where('account_id', $acc->id)->get();
+            $debit = (float) $items->where('type', 'Debit')->sum('amount');
+            $credit = (float) $items->where('type', 'Credit')->sum('amount');
+            $balance = ($acc->type === 'Asset' || $acc->type === 'Expense')
+                ? ($debit - $credit)
+                : ($credit - $debit);
+
+            $acc->total_debit = $debit;
+            $acc->total_credit = $credit;
+            $acc->current_balance = $balance;
+            $acc->mutations_count = $items->count();
+            return $acc;
+        });
+
+        // Determine default selected account: requested account, or first account with mutations, or first account in COA
+        $defaultAccount = $accountsWithStats->firstWhere('mutations_count', '>', 0) ?: $accountsWithStats->first();
+        $selectedAccountId = $request->input('account_id', $defaultAccount ? $defaultAccount->id : null);
 
         $ledgerItems = [];
         $selectedAccount = null;
+        $initialBalance = 0;
 
         if ($selectedAccountId) {
-            $selectedAccount = Account::find($selectedAccountId);
-            $ledgerItems = JournalItem::where('account_id', $selectedAccountId)
+            $selectedAccount = $accountsWithStats->firstWhere('id', (int)$selectedAccountId) ?: Account::find($selectedAccountId);
+            
+            // Calculate initial / opening balance before start_date if filter is applied
+            if ($request->filled('start_date') && $selectedAccount) {
+                $priorItems = JournalItem::where('account_id', $selectedAccountId)
+                    ->whereHas('entry', function($q) use ($request) {
+                        $q->where('entry_date', '<', $request->input('start_date'));
+                    })->get();
+                $priorDebit = (float) $priorItems->where('type', 'Debit')->sum('amount');
+                $priorCredit = (float) $priorItems->where('type', 'Credit')->sum('amount');
+                
+                $initialBalance = ($selectedAccount->type === 'Asset' || $selectedAccount->type === 'Expense')
+                    ? ($priorDebit - $priorCredit)
+                    : ($priorCredit - $priorDebit);
+            }
+
+            $query = JournalItem::where('account_id', $selectedAccountId)
                 ->whereHas('entry', function($q) use ($request) {
                     if ($request->filled('start_date') && $request->filled('end_date')) {
                         $q->whereBetween('entry_date', [$request->input('start_date'), $request->input('end_date')]);
+                    } elseif ($request->filled('start_date')) {
+                        $q->where('entry_date', '>=', $request->input('start_date'));
+                    } elseif ($request->filled('end_date')) {
+                        $q->where('entry_date', '<=', $request->input('end_date'));
                     }
                 })
-                ->with('entry')
-                ->get()
-                ->sortBy(function($item) {
-                    return $item->entry->entry_date;
-                })
+                ->with('entry');
+
+            $ledgerItems = $query->get()
+                ->sortBy([
+                    fn($a, $b) => strcmp($a->entry->entry_date ?? '', $b->entry->entry_date ?? ''),
+                    fn($a, $b) => ($a->entry->id ?? 0) <=> ($b->entry->id ?? 0),
+                    fn($a, $b) => $a->id <=> $b->id,
+                ])
                 ->values();
         }
 
         return Inertia::render('Finance/Ledger', [
-            'accounts' => $accounts,
+            'accounts' => $accountsWithStats,
             'selectedAccountId' => (int) $selectedAccountId,
             'selectedAccount' => $selectedAccount,
             'ledgerItems' => $ledgerItems,
+            'initialBalance' => (float) $initialBalance,
             'filters' => $request->only(['account_id', 'start_date', 'end_date'])
         ]);
     }

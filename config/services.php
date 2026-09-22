@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'ai' => [
+        'provider' => env('AI_PROVIDER', 'gemini'),
+        'key' => env('AI_API_KEY', env('GEMINI_API_KEY', '')),
+        'model' => env('AI_MODEL', 'gemini-1.5-flash'),
+        'base_url' => env('AI_BASE_URL', ''),
+    ],
+
 ];

@@ -35,7 +35,12 @@ class NewsController extends Controller
         return Inertia::render('News/Index', [
             'news' => $news,
             'categories' => $categories,
-            'filters' => $request->only(['search', 'category'])
+            'filters' => $request->only(['search', 'category']),
+            'aiConfig' => [
+                'hasServerKey' => !empty(config('services.ai.key', env('AI_API_KEY', env('GEMINI_API_KEY', '')))),
+                'provider' => config('services.ai.provider', 'gemini'),
+                'model' => config('services.ai.model', 'gemini-1.5-flash'),
+            ]
         ]);
     }
 
@@ -177,5 +182,57 @@ class NewsController extends Controller
         $news->delete();
 
         return redirect()->back()->with('success', 'Berita / Artikel berhasil dihapus.');
+    }
+
+    /**
+     * Generate news article draft with AI
+     */
+    public function generateWithAi(Request $request, \App\Services\AiNewsAssistantService $aiService)
+    {
+        $validated = $request->validate([
+            'topic' => 'required|string|max:1000',
+            'category' => 'nullable|string|max:100',
+            'tone' => 'nullable|string|in:jurnalistik,humanis,darurat,edukatif',
+            'length' => 'nullable|string|in:singkat,standar,panjang',
+            'api_key' => 'nullable|string|max:255',
+            'provider' => 'nullable|string|in:gemini,openai,groq,openrouter',
+        ]);
+
+        $result = $aiService->generateArticle($validated);
+
+        return response()->json($result);
+    }
+
+    /**
+     * Enhance / polish / expand / shorten news content with AI
+     */
+    public function enhanceWithAi(Request $request, \App\Services\AiNewsAssistantService $aiService)
+    {
+        $validated = $request->validate([
+            'content' => 'required|string',
+            'action' => 'required|string|in:polish,expand,shorten,humanize',
+            'api_key' => 'nullable|string|max:255',
+            'provider' => 'nullable|string|in:gemini,openai,groq,openrouter',
+        ]);
+
+        $result = $aiService->enhanceContent($validated);
+
+        return response()->json($result);
+    }
+
+    /**
+     * Suggest catchy headlines with AI
+     */
+    public function suggestHeadlines(Request $request, \App\Services\AiNewsAssistantService $aiService)
+    {
+        $validated = $request->validate([
+            'content' => 'required|string',
+            'api_key' => 'nullable|string|max:255',
+            'provider' => 'nullable|string|in:gemini,openai,groq,openrouter',
+        ]);
+
+        $result = $aiService->suggestHeadlines($validated);
+
+        return response()->json($result);
     }
 }

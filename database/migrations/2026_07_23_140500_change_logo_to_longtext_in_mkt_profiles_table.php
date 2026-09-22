@@ -12,7 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement('ALTER TABLE mkt_profiles MODIFY logo LONGTEXT NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE mkt_profiles MODIFY logo LONGTEXT NULL');
+        } else {
+            Schema::table('mkt_profiles', function (Blueprint $table) {
+                $table->longText('logo')->nullable()->change();
+            });
+        }
     }
 
     /**
@@ -20,6 +26,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement('ALTER TABLE mkt_profiles MODIFY logo VARCHAR(255) NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE mkt_profiles MODIFY logo VARCHAR(255) NULL');
+        } else {
+            Schema::table('mkt_profiles', function (Blueprint $table) {
+                $table->string('logo', 255)->nullable()->change();
+            });
+        }
     }
 };

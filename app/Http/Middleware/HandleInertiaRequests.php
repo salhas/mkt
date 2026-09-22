@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\MktProfile;
+use App\Models\OrganizationMember;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -35,7 +37,44 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'mktProfile' => function () {
-                return \App\Models\MktProfile::first();
+                return MktProfile::first();
+            },
+            'organizationLeaders' => function () {
+                // Must explicitly select from Tier Pengurus (NOT Dewan Pembina / NOT Dewan Pengawas)
+                $chairman = OrganizationMember::where('tier', 'Pengurus')
+                    ->where(function($q) {
+                        $q->where('position', 'like', '%Ketua%');
+                    })
+                    ->orderBy('order_index')
+                    ->first();
+
+                if (!$chairman) {
+                    $chairman = OrganizationMember::where('name', 'like', '%Salman Hasmin%')->first();
+                }
+
+                $treasurer = OrganizationMember::where('tier', 'Pengurus')
+                    ->where('position', 'like', '%Bendahara%')
+                    ->orderBy('order_index')
+                    ->first();
+
+                if (!$treasurer) {
+                    $treasurer = OrganizationMember::where('position', 'like', '%Bendahara%')
+                        ->where('tier', '!=', 'Dewan Pembina')
+                        ->first();
+                }
+
+                return [
+                    'chairman' => [
+                        'name' => $chairman ? $chairman->name : 'Salman Hasmin, ST',
+                        'title' => 'Ketua Pengurus Yayasan MKT',
+                        'nip' => $chairman ? 'NIP/KTA: ' . $chairman->member_number : 'NIP/KTA: MKT-PG-001',
+                    ],
+                    'treasurer' => [
+                        'name' => $treasurer ? $treasurer->name : 'Sarif, ST',
+                        'title' => $treasurer ? $treasurer->position : 'Bendahara Umum',
+                        'nip' => $treasurer ? 'NIP/KTA: ' . $treasurer->member_number : 'NIP/KTA: MKT-PG-003',
+                    ],
+                ];
             },
         ];
     }

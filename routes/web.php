@@ -53,6 +53,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/news-management/{news}', [NewsController::class, 'update']);
     Route::delete('/news-management/{news}', [NewsController::class, 'destroy'])->name('news.destroy');
 
+    // AI News Assistant Endpoints (Zero-package native integration)
+    Route::post('/news-management/ai/generate', [NewsController::class, 'generateWithAi'])->name('news.ai.generate');
+    Route::post('/news-management/ai/enhance', [NewsController::class, 'enhanceWithAi'])->name('news.ai.enhance');
+    Route::post('/news-management/ai/headlines', [NewsController::class, 'suggestHeadlines'])->name('news.ai.headlines');
+
     // MKT Profile
     Route::get('/mkt-profile', [MktProfileController::class, 'index'])->name('mkt-profile.index');
     Route::post('/mkt-profile', [MktProfileController::class, 'update'])->name('mkt-profile.update');

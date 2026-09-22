@@ -3,6 +3,9 @@ import { ref, computed } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import { showSuccessToast, showErrorToast } from '@/Utils/toast.js';
+import FinancialPrintHeader from '@/Components/FinancialPrintHeader.vue';
+import FinancialPrintSignatures from '@/Components/FinancialPrintSignatures.vue';
+import FinancialPrintModal from '@/Components/FinancialPrintModal.vue';
 
 const props = defineProps({
     entries: Object,
@@ -15,6 +18,7 @@ const search = ref(props.filters.search || '');
 const startDate = ref(props.filters.start_date || '');
 const endDate = ref(props.filters.end_date || '');
 const isSyncing = ref(false);
+const isPrintModalOpen = ref(false);
 
 const syncDonations = () => {
     isSyncing.value = true;
@@ -93,7 +97,7 @@ const removeJournalItem = (idx) => {
     }
 };
 
-// Balanced validation sums
+// Balanced validation sums for form
 const totalDebit = computed(() => {
     return form.items
         .filter(i => i.type === 'Debit')
@@ -108,6 +112,35 @@ const totalCredit = computed(() => {
 
 const isBalanced = computed(() => {
     return Math.abs(totalDebit.value - totalCredit.value) < 0.01 && totalDebit.value > 0;
+});
+
+// Grand Totals for current entries view
+const grandTotalDebit = computed(() => {
+    let sum = 0;
+    if (props.entries && props.entries.data) {
+        props.entries.data.forEach(e => {
+            if (e.items) {
+                e.items.forEach(i => {
+                    if (i.type === 'Debit') sum += parseFloat(i.amount) || 0;
+                });
+            }
+        });
+    }
+    return sum;
+});
+
+const grandTotalCredit = computed(() => {
+    let sum = 0;
+    if (props.entries && props.entries.data) {
+        props.entries.data.forEach(e => {
+            if (e.items) {
+                e.items.forEach(i => {
+                    if (i.type === 'Credit') sum += parseFloat(i.amount) || 0;
+                });
+            }
+        });
+    }
+    return sum;
 });
 
 const submit = () => {
@@ -187,6 +220,7 @@ const formatIDR = (val) => {
 };
 
 const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
     return new Date(dateStr).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 </script>
@@ -200,35 +234,12 @@ const formatDate = (dateStr) => {
         </template>
 
         <!-- MODERN AESTHETIC PRINT HEADER (Only Visible When Printing) -->
-        <div class="hidden print:block mb-8 pb-4 border-b-2 border-amber-500">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-xl shadow-md">
-                        MKT
-                    </div>
-                    <div>
-                        <h1 class="text-base font-black text-gray-900 uppercase tracking-tight">YAYASAN MITRA KEMANUSIAAN TERPADU (MKT)</h1>
-                        <p class="text-xs font-bold text-amber-600">Ekosistem Penanggulangan Bencana & Filantropi Terpadu Indonesia</p>
-                        <p class="text-[10px] text-gray-600">Perumahan Insignia Oasis Blok B1-11 No 7, Kota Makassar, Sulsel | Hotline: +62 812-3456-7890</p>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <span class="inline-block px-3 py-1 bg-amber-100 text-amber-900 text-[10px] font-extrabold uppercase rounded-full border border-amber-300">
-                        Dokumen Keuangan Resmi
-                    </span>
-                    <p class="text-[10px] text-gray-500 mt-1">Tgl Cetak: {{ new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</p>
-                </div>
-            </div>
-
-            <div class="mt-4 pt-3 border-t border-gray-200 flex justify-between items-center bg-gray-50 p-2.5 rounded-xl text-black">
-                <div>
-                    <h2 class="text-xs font-bold uppercase tracking-wider">LAPORAN JURNAL TRANSAKSI KEUANGAN</h2>
-                    <p class="text-[10px] text-gray-600">Filter Periode: {{ startDate && endDate ? `${startDate} s/d ${endDate}` : 'Semua Transaksi Terdaftar' }}</p>
-                </div>
-                <div class="text-right">
-                    <span class="text-[10px] font-mono font-bold bg-white px-2 py-0.5 border border-gray-300 rounded">Double-Entry Verified</span>
-                </div>
-            </div>
+        <div class="hidden print:block mb-6">
+            <FinancialPrintHeader 
+                title="LAPORAN JURNAL TRANSAKSI KEUANGAN" 
+                :period="startDate && endDate ? `${startDate} s/d ${endDate}` : 'Semua Transaksi Terdaftar'"
+                doc-number="Double-Entry Verified"
+            />
         </div>
 
         <!-- Dedicated Page Header Section (Hidden in print) -->
@@ -245,7 +256,7 @@ const formatDate = (dateStr) => {
                 </div>
             </div>
 
-            <!-- Action Buttons: Export CSV, Print Preview & Add Journal -->
+            <!-- Action Buttons: Sync Donations, Print Preview & Add Journal -->
             <div class="flex items-center flex-wrap gap-2.5">
                 <button
                     v-if="['webmaster', 'administrator', 'finance'].includes($page.props.auth.user.role)"
@@ -260,20 +271,15 @@ const formatDate = (dateStr) => {
                     <span>{{ isSyncing ? 'Menyinkronkan...' : 'Sinkronkan Donasi' }}</span>
                 </button>
                 <button
-                    @click="exportCSV"
-                    class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-2xs"
-                    title="Download Excel / CSV"
+                    @click="isPrintModalOpen = true"
+                    class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-md shadow-amber-500/20"
+                    title="Buka Pratinjau Cetak Mode Terang"
                 >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    <span>Download CSV</span>
-                </button>
-                <button
-                    @click="triggerPrint"
-                    class="px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 border border-gray-200 dark:border-gray-700"
-                    title="Pratinjau Cetak / PDF"
-                >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    <span>Print / PDF</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    <span>Pratinjau Cetak</span>
                 </button>
                 <button
                     v-if="['webmaster', 'administrator', 'finance'].includes($page.props.auth.user.role)"
@@ -338,7 +344,7 @@ const formatDate = (dateStr) => {
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm print:text-xs">
                     <thead>
-                        <tr class="text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-800 uppercase text-[10px] font-black tracking-wider print:text-black print:border-black">
+                        <tr class="text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-800 uppercase text-[10px] font-black tracking-wider print:text-black print:border-black print:bg-slate-100">
                             <th class="p-4 font-semibold">Tanggal / Ref</th>
                             <th class="p-4 font-semibold">Keterangan / Deskripsi</th>
                             <th class="p-4 font-semibold">Kode Akun & Nama Akun</th>
@@ -351,19 +357,19 @@ const formatDate = (dateStr) => {
                         <template v-for="entry in entries.data" :key="entry.id">
                             <!-- Entry Header Row -->
                             <tr class="bg-gray-50/40 dark:bg-gray-900/30 font-medium hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors print:bg-gray-100 print:text-black">
-                                <td class="p-4 align-top">
+                                <td class="p-4 align-top print:p-2">
                                     <span class="block text-gray-900 dark:text-white font-bold print:text-black">{{ formatDate(entry.entry_date) }}</span>
                                     <div class="flex items-center gap-1 mt-0.5">
-                                        <span class="text-xs text-gray-400 font-mono print:text-gray-800">{{ entry.reference_number }}</span>
-                                        <span v-if="entry.reference_number && (entry.reference_number.startsWith('DON-') || entry.reference_number.startsWith('TX-'))" class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-[9px] font-extrabold uppercase">
+                                        <span class="text-xs text-gray-400 font-mono print:text-gray-800 print:text-[9px]">{{ entry.reference_number }}</span>
+                                        <span v-if="entry.reference_number && (entry.reference_number.startsWith('DON-') || entry.reference_number.startsWith('TX-'))" class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-[9px] font-extrabold uppercase print:border print:border-amber-400 print:text-black">
                                             Donasi
                                         </span>
                                     </div>
                                 </td>
-                                <td class="p-4 align-top text-gray-800 dark:text-gray-200 font-bold print:text-black" colspan="3">
+                                <td class="p-4 align-top text-gray-800 dark:text-gray-200 font-bold print:text-black print:p-2" colspan="3">
                                     {{ entry.description }}
                                 </td>
-                                <td></td>
+                                <td class="print:hidden"></td>
                                 <td v-if="['webmaster', 'administrator', 'finance'].includes($page.props.auth.user.role)" class="p-4 align-top text-right print:hidden">
                                     <div class="flex items-center justify-end space-x-1.5">
                                         <button
@@ -388,23 +394,32 @@ const formatDate = (dateStr) => {
                             <tr v-for="item in entry.items" :key="item.id" class="text-gray-700 dark:text-gray-300 print:text-black">
                                 <td></td>
                                 <td></td>
-                                <td class="p-4 text-xs">
-                                    <div :class="[item.type === 'Credit' ? 'pl-8' : '', 'font-medium']">
-                                        <span class="font-mono bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded text-[10px] mr-2 print:border print:border-black">
+                                <td class="p-4 text-xs print:p-2">
+                                    <div :class="[item.type === 'Credit' ? 'pl-8 print:pl-6' : '', 'font-medium']">
+                                        <span class="font-mono bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded text-[10px] mr-2 print:border print:border-black print:bg-white print:text-black">
                                             {{ item.account ? item.account.code : '-' }}
                                         </span>
                                         {{ item.account ? item.account.name : 'Unknown Account' }}
                                     </div>
                                 </td>
-                                <td class="p-4 text-right font-semibold text-gray-900 dark:text-white print:text-black">
+                                <td class="p-4 text-right font-semibold text-gray-900 dark:text-white print:text-black print:p-2">
                                     {{ item.type === 'Debit' ? formatIDR(item.amount) : '-' }}
                                 </td>
-                                <td class="p-4 text-right font-semibold text-gray-900 dark:text-white print:text-black">
+                                <td class="p-4 text-right font-semibold text-gray-900 dark:text-white print:text-black print:p-2">
                                     {{ item.type === 'Credit' ? formatIDR(item.amount) : '-' }}
                                 </td>
                                 <td class="print:hidden"></td>
                             </tr>
                         </template>
+
+                        <!-- Grand Total Row in Print -->
+                        <tr v-if="entries.data.length > 0" class="hidden print:table-row bg-slate-100 font-bold border-t-2 border-slate-400 text-black">
+                            <td colspan="3" class="p-3 text-right uppercase tracking-wider font-extrabold">TOTAL KESELURUHAN (BALANCE):</td>
+                            <td class="p-3 text-right font-black">{{ formatIDR(grandTotalDebit) }}</td>
+                            <td class="p-3 text-right font-black">{{ formatIDR(grandTotalCredit) }}</td>
+                            <td class="print:hidden"></td>
+                        </tr>
+
                         <tr v-if="entries.data.length === 0">
                             <td colspan="6" class="p-8 text-center text-gray-400 italic">
                                 Belum ada jurnal transaksi tercatat.
@@ -431,17 +446,8 @@ const formatDate = (dateStr) => {
         </div>
 
         <!-- PRINT FOOTER SIGNATURE SECTION (Only Visible When Printing) -->
-        <div class="hidden print:grid grid-cols-2 gap-8 mt-12 text-center text-xs text-black">
-            <div>
-                <p class="font-bold uppercase mb-16">Dibuat Oleh,<br />Bendahara / Keuangan</p>
-                <p class="font-bold underline">( Siti Rahmah, S.Pd. )</p>
-                <p class="text-[10px] text-gray-600">Bendahara Umum Yayasan MKT</p>
-            </div>
-            <div>
-                <p class="font-bold uppercase mb-16">Disetujui Oleh,<br />Ketua Umum Yayasan MKT</p>
-                <p class="font-bold underline">( Muhammad Ridwan, S.Kom. )</p>
-                <p class="text-[10px] text-gray-600">Ketua Eksekutif Yayasan MKT</p>
-            </div>
+        <div class="hidden print:block">
+            <FinancialPrintSignatures doc-number="MKT-JRN-2026-VAL" />
         </div>
 
         <!-- Add / Edit Journal Entry Modal (Hidden in print) -->
@@ -449,85 +455,214 @@ const formatDate = (dateStr) => {
             <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden transform transition-all my-8">
                 <div class="h-16 flex items-center justify-between px-6 border-b border-gray-100 dark:border-gray-800 bg-brand-50/40 dark:bg-brand-950/20">
                     <span class="font-bold text-gray-900 dark:text-white flex items-center space-x-2">
-                        <span>📝</span>
-                        <span>{{ editingJournal ? 'Edit Jurnal Transaksi (Double Entry)' : 'Catat Jurnal Baru (Double Entry)' }}</span>
+                        <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span>{{ editingJournal ? 'Edit Jurnal Transaksi' : 'Input Jurnal Transaksi Baru' }}</span>
                     </span>
-                    <button @click="isModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl font-bold">&times;</button>
+                    <button @click="isModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
 
                 <form @submit.prevent="submit" class="p-6 space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Tanggal Transaksi</label>
-                            <input v-model="form.entry_date" type="date" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-xs focus:border-brand-500 focus:outline-none" required />
+                            <input
+                                v-model="form.entry_date"
+                                type="date"
+                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                                required
+                            />
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">No. Referensi (misal: JE-001)</label>
-                            <input v-model="form.reference_number" type="text" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-xs focus:border-brand-500 focus:outline-none" placeholder="Auto-generated jika kosong" />
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">No. Referensi / Bukti (Opsional)</label>
+                            <input
+                                v-model="form.reference_number"
+                                type="text"
+                                placeholder="Contoh: JE-202607-001"
+                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:border-brand-500 focus:outline-none font-mono"
+                            />
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Keterangan / Deskripsi Transaksi</label>
-                        <input v-model="form.description" type="text" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-xs focus:border-brand-500 focus:outline-none" placeholder="Deskripsi pengeluaran / donasi..." required />
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Deskripsi / Keterangan Transaksi</label>
+                        <input
+                            v-model="form.description"
+                            type="text"
+                            placeholder="Contoh: Pembelian operasional logistik dapur umum banjir..."
+                            class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                            required
+                        />
                     </div>
 
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="block text-[10px] font-bold text-gray-400 uppercase">Pos Debet & Kredit (Min. 2 Baris)</label>
-                            <button type="button" @click="addJournalItem" class="text-xs font-bold text-brand-600 hover:text-brand-700 focus:outline-none">+ Tambah Baris</button>
+                    <!-- Items rows (Debit & Credit) -->
+                    <div class="pt-2">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-gray-900 dark:text-white uppercase">Pos Transaksi Akun (Debit & Credit)</span>
+                            <button
+                                type="button"
+                                @click="addJournalItem"
+                                class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center space-x-1"
+                            >
+                                <span>+ Tambah Baris Akun</span>
+                            </button>
                         </div>
 
-                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
-                            <div v-for="(item, idx) in form.items" :key="idx" class="flex items-center space-x-3 bg-gray-50/80 dark:bg-gray-800/40 p-2.5 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                <select v-model="item.account_id" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:border-brand-500 focus:outline-none flex-1" required>
-                                    <option value="" disabled>Pilih Akun...</option>
-                                    <option v-for="a in accounts" :key="a.id" :value="a.id">
-                                        [{{ a.code }}] {{ a.name }} ({{ a.type }})
-                                    </option>
-                                </select>
-
-                                <select v-model="item.type" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:border-brand-500 focus:outline-none w-28" required>
-                                    <option value="Debit">Debit</option>
-                                    <option value="Credit">Credit</option>
-                                </select>
-
-                                <input v-model="item.amount" type="number" step="0.01" placeholder="Jumlah (IDR)" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:border-brand-500 focus:outline-none w-36" required />
-
-                                <button type="button" @click="removeJournalItem(idx)" class="text-rose-500 hover:text-rose-700 disabled:opacity-30 p-1" :disabled="form.items.length <= 2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
+                        <div class="space-y-3">
+                            <div
+                                v-for="(item, idx) in form.items"
+                                :key="idx"
+                                class="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700/60"
+                            >
+                                <div class="flex-1">
+                                    <select
+                                        v-model="item.account_id"
+                                        class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 py-1.5 text-xs focus:border-brand-500 focus:outline-none"
+                                        required
+                                    >
+                                        <option value="" disabled>Pilih Akun COA...</option>
+                                        <option v-for="acc in accounts" :key="acc.id" :value="acc.id">
+                                            [{{ acc.code }}] {{ acc.name }} ({{ acc.type }})
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="w-24">
+                                    <select
+                                        v-model="item.type"
+                                        class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 py-1.5 text-xs focus:border-brand-500 focus:outline-none font-bold"
+                                        :class="item.type === 'Debit' ? 'text-emerald-600 dark:text-emerald-400' : 'text-brand-600 dark:text-brand-400'"
+                                        required
+                                    >
+                                        <option value="Debit">Debit</option>
+                                        <option value="Credit">Credit</option>
+                                    </select>
+                                </div>
+                                <div class="w-36">
+                                    <input
+                                        v-model="item.amount"
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="Nominal"
+                                        class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 py-1.5 text-xs focus:border-brand-500 focus:outline-none font-semibold text-right"
+                                        required
+                                    />
+                                </div>
+                                <button
+                                    v-if="form.items.length > 2"
+                                    type="button"
+                                    @click="removeJournalItem(idx)"
+                                    class="p-1.5 text-gray-400 hover:text-rose-500 rounded-lg"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>
                         </div>
 
-                        <div class="mt-4 p-4 rounded-2xl flex items-center justify-between text-xs font-semibold bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
-                            <div>
-                                <span class="text-gray-500 dark:text-gray-400 mr-4">Total Debit: <span class="text-gray-900 dark:text-white font-bold">{{ formatIDR(totalDebit) }}</span></span>
-                                <span class="text-gray-500 dark:text-gray-400">Total Credit: <span class="text-gray-900 dark:text-white font-bold">{{ formatIDR(totalCredit) }}</span></span>
+                        <!-- Balanced Indicator -->
+                        <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-200 dark:border-gray-700/60 flex items-center justify-between text-xs font-semibold">
+                            <div class="flex items-center space-x-4">
+                                <span>Debit: <strong class="text-emerald-600 dark:text-emerald-400">{{ formatIDR(totalDebit) }}</strong></span>
+                                <span>Credit: <strong class="text-brand-600 dark:text-brand-400">{{ formatIDR(totalCredit) }}</strong></span>
                             </div>
-                            <div class="flex items-center">
+                            <div>
                                 <span v-if="isBalanced" class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center space-x-1">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                                    <span>Jurnal Balance</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <span>Jurnal Seimbang (Balance)</span>
                                 </span>
-                                <span v-else class="text-rose-500 font-bold flex items-center space-x-1">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-8a1 1 0 00-1-1H7a1 1 0 000 2h1a1 1 0 001-1zm3 0a1 1 0 00-1-1h-1a1 1 0 000 2h1a1 1 0 001-1z" clip-rule="evenodd"></path></svg>
-                                    <span>Selisih: {{ formatIDR(Math.abs(totalDebit - totalCredit)) }}</span>
+                                <span v-else class="text-rose-600 dark:text-rose-400 font-bold">
+                                    ⚠️ Belum Balance (Selisih: {{ formatIDR(Math.abs(totalDebit - totalCredit)) }})
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-end space-x-3">
-                        <button type="button" @click="isModalOpen = false" class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-500 rounded-xl text-xs font-semibold hover:bg-gray-50">Batal</button>
-                        <button type="submit" :disabled="form.processing || !isBalanced" class="px-5 py-2 bg-brand-500 hover:bg-brand-600 disabled:bg-gray-300 dark:disabled:bg-gray-800 disabled:text-gray-400 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/20">
-                            {{ editingJournal ? 'Perbarui Jurnal' : 'Simpan Jurnal Baru' }}
+                    <div class="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end space-x-3">
+                        <button
+                            type="button"
+                            @click="isModalOpen = false"
+                            class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-800"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            :disabled="form.processing || !isBalanced"
+                            class="px-5 py-2 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md transition-all"
+                        >
+                            {{ form.processing ? 'Menyimpan...' : 'Simpan Jurnal' }}
                         </button>
                     </div>
                 </form>
             </div>
         </div>
+
+        <!-- ON-SCREEN LIGHT MODE PRINT PREVIEW MODAL -->
+        <FinancialPrintModal 
+            :show="isPrintModalOpen" 
+            title="Pratinjau Cetak Jurnal Transaksi Keuangan (Mode Terang)"
+            @close="isPrintModalOpen = false"
+        >
+            <FinancialPrintHeader 
+                title="LAPORAN JURNAL TRANSAKSI KEUANGAN" 
+                :period="startDate && endDate ? `${startDate} s/d ${endDate}` : 'Semua Transaksi Terdaftar'"
+                doc-number="Double-Entry Verified"
+            />
+
+            <!-- Preview Table -->
+            <table class="w-full text-left text-xs border border-slate-300">
+                <thead>
+                    <tr class="bg-slate-100 text-slate-900 border-b border-slate-300 font-bold uppercase text-[10px]">
+                        <th class="p-2.5 border border-slate-300">Tanggal / Ref</th>
+                        <th class="p-2.5 border border-slate-300">Keterangan / Deskripsi</th>
+                        <th class="p-2.5 border border-slate-300">Kode & Nama Akun</th>
+                        <th class="p-2.5 border border-slate-300 text-right">Debit (Rp)</th>
+                        <th class="p-2.5 border border-slate-300 text-right">Credit (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-slate-800">
+                    <template v-for="entry in entries.data" :key="'prev-' + entry.id">
+                        <tr class="bg-slate-50/70 font-semibold border-b border-slate-200">
+                            <td class="p-2.5 align-top border border-slate-300">
+                                <span class="block font-bold text-slate-900">{{ formatDate(entry.entry_date) }}</span>
+                                <span class="text-[10px] text-slate-500 font-mono">{{ entry.reference_number }}</span>
+                                <span v-if="entry.reference_number && (entry.reference_number.startsWith('DON-') || entry.reference_number.startsWith('TX-'))" class="ml-1 px-1 py-0.2 rounded bg-amber-100 text-amber-800 text-[8.5px] font-bold">
+                                    Donasi
+                                </span>
+                            </td>
+                            <td class="p-2.5 align-top text-slate-900 font-bold border border-slate-300" colspan="4">
+                                {{ entry.description }}
+                            </td>
+                        </tr>
+                        <tr v-for="item in entry.items" :key="'prev-item-' + item.id">
+                            <td class="border border-slate-300"></td>
+                            <td class="border border-slate-300"></td>
+                            <td class="p-2 border border-slate-300">
+                                <div :class="item.type === 'Credit' ? 'pl-6' : ''">
+                                    <span class="font-mono bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-[10px] mr-1.5 border border-slate-200">
+                                        {{ item.account ? item.account.code : '-' }}
+                                    </span>
+                                    {{ item.account ? item.account.name : 'Unknown Account' }}
+                                </div>
+                            </td>
+                            <td class="p-2 text-right font-medium border border-slate-300">
+                                {{ item.type === 'Debit' ? formatIDR(item.amount) : '-' }}
+                            </td>
+                            <td class="p-2 text-right font-medium border border-slate-300">
+                                {{ item.type === 'Credit' ? formatIDR(item.amount) : '-' }}
+                            </td>
+                        </tr>
+                    </template>
+
+                    <tr v-if="entries.data.length > 0" class="bg-slate-100 font-bold border-t-2 border-slate-400 text-slate-900">
+                        <td colspan="3" class="p-2.5 text-right uppercase tracking-wider font-extrabold">TOTAL KESELURUHAN (BALANCE):</td>
+                        <td class="p-2.5 text-right font-black text-emerald-700">{{ formatIDR(grandTotalDebit) }}</td>
+                        <td class="p-2.5 text-right font-black text-emerald-700">{{ formatIDR(grandTotalCredit) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <FinancialPrintSignatures doc-number="MKT-JRN-2026-VAL" />
+        </FinancialPrintModal>
     </AuthenticatedLayout>
 </template>

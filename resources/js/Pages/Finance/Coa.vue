@@ -3,6 +3,9 @@ import { ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { showSuccessToast, showErrorToast } from '@/Utils/toast.js';
+import FinancialPrintHeader from '@/Components/FinancialPrintHeader.vue';
+import FinancialPrintSignatures from '@/Components/FinancialPrintSignatures.vue';
+import FinancialPrintModal from '@/Components/FinancialPrintModal.vue';
 
 const props = defineProps({
     accounts: Array,
@@ -15,6 +18,7 @@ const props = defineProps({
 const search = ref(props.filters.search || '');
 const selectedType = ref(props.filters.type || 'Semua');
 const selectedStatus = ref(props.filters.status || 'Semua');
+const isPrintModalOpen = ref(false);
 
 const handleFilter = () => {
     router.get(route('finance.coa.index'), {
@@ -111,6 +115,10 @@ const deleteAccount = (account) => {
     }
 };
 
+const triggerPrint = () => {
+    window.print();
+};
+
 const getTypeBadgeStyle = (type) => {
     switch (type) {
         case 'Asset': return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
@@ -131,9 +139,18 @@ const getTypeBadgeStyle = (type) => {
             <span>Keuangan & Laporan</span>
         </template>
 
-        <div class="max-w-7xl mx-auto space-y-6">
+        <!-- MODERN AESTHETIC PRINT HEADER (Only Visible When Printing) -->
+        <div class="hidden print:block mb-6">
+            <FinancialPrintHeader 
+                title="BAGAN AKUN STANDAR / CHART OF ACCOUNTS (COA)" 
+                subtitle="Struktur Klasifikasi Akuntansi Keuangan Yayasan MKT"
+                doc-number="Dokumen Master COA"
+            />
+        </div>
+
+        <div class="space-y-6">
             <!-- Dedicated Page Header -->
-            <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="print:hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div class="flex items-center space-x-4">
                     <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-500 to-amber-400 text-white flex items-center justify-center text-2xl shadow-lg shadow-brand-500/20 shrink-0">
                         📊
@@ -147,21 +164,34 @@ const getTypeBadgeStyle = (type) => {
                     </div>
                 </div>
 
-                <button
-                    v-if="['webmaster', 'administrator', 'finance'].includes($page.props.auth.user.role)"
-                    @click="openAddModal"
-                    class="px-5 py-3 bg-gradient-to-r from-brand-500 to-amber-500 hover:from-brand-600 hover:to-amber-600 text-white text-xs font-bold rounded-2xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center space-x-2 shrink-0"
-                >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                    <span>+ Tambah Kode Akun (COA)</span>
-                </button>
-                <span v-else class="px-4 py-2 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 text-xs font-semibold rounded-2xl border border-gray-200 dark:border-gray-700 shrink-0">
-                    🔒 Read-Only (Hanya Lihat)
-                </span>
+                <div class="flex items-center flex-wrap gap-2.5">
+                    <button
+                        @click="isPrintModalOpen = true"
+                        class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-bold rounded-2xl transition-all flex items-center space-x-1.5 shadow-md shadow-amber-500/20"
+                        title="Buka Pratinjau Cetak Mode Terang"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        <span>Pratinjau Cetak</span>
+                    </button>
+                    <button
+                        v-if="['webmaster', 'administrator', 'finance'].includes($page.props.auth.user.role)"
+                        @click="openAddModal"
+                        class="px-5 py-2.5 bg-gradient-to-r from-brand-500 to-amber-500 hover:from-brand-600 hover:to-amber-600 text-white text-xs font-bold rounded-2xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center space-x-2 shrink-0"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                        <span>+ Tambah Akun</span>
+                    </button>
+                    <span v-else class="px-4 py-2 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 text-xs font-semibold rounded-2xl border border-gray-200 dark:border-gray-700 shrink-0">
+                        🔒 Read-Only
+                    </span>
+                </div>
             </div>
 
-            <!-- Stats Bar -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <!-- Stats Bar (Hidden in print) -->
+            <div class="print:hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-sm text-center">
                     <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Total Akun</span>
                     <span class="text-2xl font-black text-gray-900 dark:text-white mt-1 block">{{ stats.total_accounts || 0 }}</span>
@@ -188,8 +218,8 @@ const getTypeBadgeStyle = (type) => {
                 </div>
             </div>
 
-            <!-- Search & Type Filter Bar -->
-            <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <!-- Search & Type Filter Bar (Hidden in print) -->
+            <div class="print:hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center space-x-1.5 overflow-x-auto scrollbar-thin py-1 w-full md:w-auto">
                     <button
                         v-for="t in accountTypes"
@@ -235,59 +265,59 @@ const getTypeBadgeStyle = (type) => {
             </div>
 
             <!-- COA Table -->
-            <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl shadow-sm overflow-hidden">
+            <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl shadow-sm overflow-hidden print:border-black print:shadow-none print:rounded-none">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
-                        <thead class="bg-gray-50/80 dark:bg-gray-800/60 uppercase text-[10px] font-black text-gray-400 tracking-wider border-b border-gray-100 dark:border-gray-800">
+                    <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300 print:text-black">
+                        <thead class="bg-gray-50/80 dark:bg-gray-800/60 uppercase text-[10px] font-black text-gray-400 tracking-wider border-b border-gray-100 dark:border-gray-800 print:text-black print:border-black print:bg-slate-100">
                             <tr>
-                                <th class="px-6 py-4">Kode Akun</th>
-                                <th class="px-6 py-4">Nama Akun COA</th>
-                                <th class="px-6 py-4">Tipe Akun</th>
-                                <th class="px-6 py-4 text-center">Saldo Normal</th>
-                                <th class="px-6 py-4">Keterangan / Penggunaan</th>
-                                <th class="px-6 py-4 text-center">Status</th>
-                                <th class="px-6 py-4 text-right">Aksi</th>
+                                <th class="px-6 py-4 print:p-2">Kode Akun</th>
+                                <th class="px-6 py-4 print:p-2">Nama Akun COA</th>
+                                <th class="px-6 py-4 print:p-2">Tipe Akun</th>
+                                <th class="px-6 py-4 text-center print:p-2">Saldo Normal</th>
+                                <th class="px-6 py-4 print:p-2">Keterangan / Penggunaan</th>
+                                <th class="px-6 py-4 text-center print:p-2">Status</th>
+                                <th class="px-6 py-4 text-right print:hidden">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                            <tr v-for="a in accounts" :key="a.id" class="hover:bg-gray-50/50 dark:hover:bg-gray-800/40 transition-colors">
-                                <td class="px-6 py-4 font-mono font-black text-brand-600 dark:text-brand-400">
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800 print:divide-slate-300">
+                            <tr v-for="a in accounts" :key="a.id" class="hover:bg-gray-50/50 dark:hover:bg-gray-800/40 transition-colors print:text-black print-zebra">
+                                <td class="px-6 py-4 font-mono font-black text-brand-600 dark:text-brand-400 print:text-black print:p-2">
                                     {{ a.code }}
                                 </td>
-                                <td class="px-6 py-4">
-                                    <h4 class="font-bold text-gray-900 dark:text-white">{{ a.name }}</h4>
+                                <td class="px-6 py-4 print:p-2">
+                                    <h4 class="font-bold text-gray-900 dark:text-white print:text-black">{{ a.name }}</h4>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <span :class="['px-2.5 py-0.5 rounded-full text-[10px] font-bold border', getTypeBadgeStyle(a.type)]">
+                                <td class="px-6 py-4 print:p-2">
+                                    <span :class="['px-2.5 py-0.5 rounded-full text-[10px] font-bold border print:text-black print:bg-white print:border-slate-300', getTypeBadgeStyle(a.type)]">
                                         {{ a.type }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-center">
+                                <td class="px-6 py-4 text-center print:p-2">
                                     <span :class="[
                                         a.normal_balance === 'Debit'
                                             ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border-blue-200'
                                             : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200',
-                                        'px-2 py-0.5 rounded-md text-[10px] font-bold border'
+                                        'px-2 py-0.5 rounded-md text-[10px] font-bold border print:text-black print:bg-white print:border-slate-300'
                                     ]">
                                         {{ a.normal_balance || 'Debit' }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <p class="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1">
+                                <td class="px-6 py-4 print:p-2">
+                                    <p class="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1 print:text-black">
                                         {{ a.description || 'Akun standar jurnal umum Yayasan MKT' }}
                                     </p>
                                 </td>
-                                <td class="px-6 py-4 text-center">
+                                <td class="px-6 py-4 text-center print:p-2">
                                     <span :class="[
                                         a.status === 'Aktif'
                                             ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200'
                                             : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border-gray-300',
-                                        'px-2.5 py-0.5 rounded-full text-[10px] font-bold border'
+                                        'px-2.5 py-0.5 rounded-full text-[10px] font-bold border print:text-black print:bg-white print:border-slate-300'
                                     ]">
                                         {{ a.status || 'Aktif' }}
                                     </span>
                                 </td>
-                                <td v-if="['webmaster', 'administrator', 'finance'].includes($page.props.auth.user.role)" class="px-6 py-4 text-right">
+                                <td v-if="['webmaster', 'administrator', 'finance'].includes($page.props.auth.user.role)" class="px-6 py-4 text-right print:hidden">
                                     <div class="flex items-center justify-end space-x-2">
                                         <button
                                             @click="openEditModal(a)"
@@ -305,7 +335,7 @@ const getTypeBadgeStyle = (type) => {
                                         </button>
                                     </div>
                                 </td>
-                                <td v-else class="px-6 py-4 text-center text-xs text-gray-400 font-italic">
+                                <td v-else class="px-6 py-4 text-center text-xs text-gray-400 font-italic print:hidden">
                                     Read Only
                                 </td>
                             </tr>
@@ -315,8 +345,13 @@ const getTypeBadgeStyle = (type) => {
             </div>
         </div>
 
+        <!-- PRINT FOOTER SIGNATURE SECTION (Only Visible When Printing) -->
+        <div class="hidden print:block">
+            <FinancialPrintSignatures doc-number="MKT-COA-2026-VAL" />
+        </div>
+
         <!-- FORM MODAL TAMBAH / EDIT KODE AKUN -->
-        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+        <div v-if="isModalOpen" class="print:hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
             <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl my-8">
                 <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center space-x-2">
@@ -405,5 +440,54 @@ const getTypeBadgeStyle = (type) => {
                 </form>
             </div>
         </div>
+
+        <!-- ON-SCREEN LIGHT MODE PRINT PREVIEW MODAL -->
+        <FinancialPrintModal 
+            :show="isPrintModalOpen" 
+            title="Pratinjau Cetak Bagan Akun Standar (COA) Mode Terang"
+            @close="isPrintModalOpen = false"
+        >
+            <FinancialPrintHeader 
+                title="BAGAN AKUN STANDAR / CHART OF ACCOUNTS (COA)" 
+                subtitle="Struktur Klasifikasi Akuntansi Keuangan Yayasan MKT"
+                doc-number="Dokumen Master COA"
+            />
+
+            <!-- Preview Table -->
+            <table class="w-full text-left text-xs border border-slate-300">
+                <thead>
+                    <tr class="bg-slate-100 text-slate-900 border-b border-slate-300 font-bold uppercase text-[10px]">
+                        <th class="p-2 border border-slate-300">Kode Akun</th>
+                        <th class="p-2 border border-slate-300">Nama Akun COA</th>
+                        <th class="p-2 border border-slate-300">Tipe Klasifikasi</th>
+                        <th class="p-2 border border-slate-300 text-center">Saldo Normal</th>
+                        <th class="p-2 border border-slate-300">Keterangan Fungsi</th>
+                        <th class="p-2 border border-slate-300 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-slate-800">
+                    <tr v-for="a in accounts" :key="'prev-coa-' + a.id" class="border-b border-slate-200">
+                        <td class="p-2 font-mono font-bold border border-slate-300">{{ a.code }}</td>
+                        <td class="p-2 font-bold text-slate-900 border border-slate-300">{{ a.name }}</td>
+                        <td class="p-2 border border-slate-300">
+                            <span class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded border border-slate-200 text-[10px] font-semibold">
+                                {{ a.type }}
+                            </span>
+                        </td>
+                        <td class="p-2 text-center border border-slate-300">
+                            <span class="font-mono text-[10px] font-bold">{{ a.normal_balance || 'Debit' }}</span>
+                        </td>
+                        <td class="p-2 text-[10px] text-slate-600 border border-slate-300">{{ a.description || '-' }}</td>
+                        <td class="p-2 text-center border border-slate-300">
+                            <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 rounded border border-emerald-200 text-[9px] font-bold">
+                                {{ a.status || 'Aktif' }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <FinancialPrintSignatures doc-number="MKT-COA-2026-VAL" />
+        </FinancialPrintModal>
     </AuthenticatedLayout>
 </template>

@@ -1,12 +1,14 @@
 <script setup>
 import { ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AiNewsAssistantModal from '@/Components/AiNewsAssistantModal.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 
 const props = defineProps({
     news: Object,
     categories: Array,
     filters: Object,
+    aiConfig: Object,
 });
 
 const search = ref(props.filters?.search || '');
@@ -15,6 +17,30 @@ const selectedCategory = ref(props.filters?.category || 'Semua');
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const editingNews = ref(null);
+
+// AI Assistant State
+const showAiModal = ref(false);
+const aiTargetContext = ref('create'); // 'create', 'edit', or 'standalone'
+
+const openAiAssistant = (context = 'create') => {
+    aiTargetContext.value = context;
+    showAiModal.value = true;
+};
+
+const handleApplyAiData = (data) => {
+    if (aiTargetContext.value === 'edit' && showEditModal.value) {
+        if (data.title) editForm.title = data.title;
+        if (data.category) editForm.category = data.category;
+        if (data.content) editForm.content = data.content;
+    } else {
+        if (data.title) createForm.title = data.title;
+        if (data.category) createForm.category = data.category;
+        if (data.content) createForm.content = data.content;
+        if (!showCreateModal.value) {
+            showCreateModal.value = true;
+        }
+    }
+};
 
 // Create Form State
 const createFileInput = ref(null);
@@ -172,13 +198,23 @@ const filterNews = () => {
                     </select>
                 </div>
 
-                <button
-                    @click="showCreateModal = true"
-                    class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs shadow-md shadow-orange-500/20 active:scale-95 transition flex items-center justify-center space-x-1.5"
-                >
-                    <span>➕</span>
-                    <span>Tambah Berita Baru</span>
-                </button>
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <button
+                        type="button"
+                        @click="openAiAssistant('standalone')"
+                        class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs shadow-md shadow-orange-500/20 active:scale-95 transition flex items-center justify-center space-x-1.5 group"
+                    >
+                        <span class="group-hover:rotate-12 transition-transform">✨</span>
+                        <span>Asisten AI Berita</span>
+                    </button>
+                    <button
+                        @click="showCreateModal = true"
+                        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-md active:scale-95 transition flex items-center justify-center space-x-1.5"
+                    >
+                        <span>➕</span>
+                        <span>Tambah Berita</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Table Card -->
@@ -256,9 +292,36 @@ const filterNews = () => {
                         <button @click="showCreateModal = false" class="text-gray-400 hover:text-gray-600">✕</button>
                     </div>
 
+                    <!-- AI Inspiration Banner in Create Modal -->
+                    <div class="p-3 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-transparent border border-orange-500/20 flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-xs">
+                            <span class="text-base">✨</span>
+                            <div>
+                                <p class="text-gray-900 dark:text-white font-bold">Butuh Bantuan Menulis Artikel?</p>
+                                <p class="text-[11px] text-gray-500 dark:text-gray-400">Buat draf berita otomatis dari poin singkat dengan AI</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            @click="openAiAssistant('create')"
+                            class="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-sm transition shrink-0"
+                        >
+                            Buka AI
+                        </button>
+                    </div>
+
                     <form @submit.prevent="submitCreate" class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Judul Artikel</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Judul Artikel</label>
+                                <button
+                                    type="button"
+                                    @click="openAiAssistant('create')"
+                                    class="text-[11px] text-orange-600 dark:text-orange-400 hover:underline font-bold flex items-center space-x-1"
+                                >
+                                    <span>💡 Ide Judul AI</span>
+                                </button>
+                            </div>
                             <input v-model="createForm.title" type="text" required placeholder="Judul berita/liputan..." class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5 px-3 focus:border-brand-500 focus:ring-brand-500" />
                         </div>
 
@@ -368,7 +431,16 @@ const filterNews = () => {
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Konten Lengkap Berita</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Konten Lengkap Berita</label>
+                                <button
+                                    type="button"
+                                    @click="openAiAssistant('create')"
+                                    class="text-[11px] text-orange-600 dark:text-orange-400 hover:underline font-bold flex items-center space-x-1"
+                                >
+                                    <span>✨ Buat / Poles dengan AI</span>
+                                </button>
+                            </div>
                             <textarea v-model="createForm.content" required rows="6" placeholder="Tulis isi narasi artikel berita..." class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs p-3 focus:border-brand-500 focus:ring-brand-500"></textarea>
                         </div>
 
@@ -392,7 +464,16 @@ const filterNews = () => {
 
                     <form @submit.prevent="submitEdit" class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Judul Artikel</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Judul Artikel</label>
+                                <button
+                                    type="button"
+                                    @click="openAiAssistant('edit')"
+                                    class="text-[11px] text-orange-600 dark:text-orange-400 hover:underline font-bold flex items-center space-x-1"
+                                >
+                                    <span>💡 Ide Judul AI</span>
+                                </button>
+                            </div>
                             <input v-model="editForm.title" type="text" required class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs py-2.5 px-3 focus:border-brand-500 focus:ring-brand-500" />
                         </div>
 
@@ -502,7 +583,16 @@ const filterNews = () => {
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Konten Lengkap Berita</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Konten Lengkap Berita</label>
+                                <button
+                                    type="button"
+                                    @click="openAiAssistant('edit')"
+                                    class="text-[11px] text-orange-600 dark:text-orange-400 hover:underline font-bold flex items-center space-x-1"
+                                >
+                                    <span>✨ Poles / Ringkas dengan AI</span>
+                                </button>
+                            </div>
                             <textarea v-model="editForm.content" required rows="6" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs p-3 focus:border-brand-500 focus:ring-brand-500"></textarea>
                         </div>
 
@@ -515,6 +605,18 @@ const filterNews = () => {
                     </form>
                 </div>
             </div>
+
+            <!-- AI News Assistant Modal Component -->
+            <AiNewsAssistantModal
+                :show="showAiModal"
+                :categories="categories"
+                :initial-title="aiTargetContext === 'edit' ? editForm.title : createForm.title"
+                :initial-category="aiTargetContext === 'edit' ? editForm.category : createForm.category"
+                :initial-content="aiTargetContext === 'edit' ? editForm.content : createForm.content"
+                :ai-config="aiConfig"
+                @close="showAiModal = false"
+                @apply="handleApplyAiData"
+            />
 
         </div>
     </AuthenticatedLayout>
