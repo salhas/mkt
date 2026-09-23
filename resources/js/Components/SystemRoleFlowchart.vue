@@ -5,28 +5,213 @@ import { usePage, Link } from '@inertiajs/vue3';
 const page = usePage();
 const currentUser = computed(() => page.props.auth.user);
 
-// Authorization check: only webmaster and administrator
+// Authorization check: strictly webmaster and administrator
 const isAuthorized = computed(() => {
     return currentUser.value && ['webmaster', 'administrator'].includes(currentUser.value.role);
 });
 
-// View modes: 'global' (End-to-End Bencana & Donasi), 'roles' (Detail per Role), 'matrix' (Matriks Hak Akses)
-const activeView = ref('global');
+// View modes: 'tree' (Bagan Pohon Hierarki), 'global' (End-to-End), 'roles' (Detail per Role), 'matrix' (Matriks Hak Akses)
+const activeView = ref('tree');
 
 // Active selected role for deep-dive
 const selectedRoleKey = ref('webmaster');
 
-// Search query for filtering workflows
+// Search query for filtering workflows & tree
 const searchQuery = ref('');
 
-// Step detail expansion
+// Step detail expansion in roles view
 const expandedStepId = ref(null);
 
 const toggleStep = (id) => {
     expandedStepId.value = expandedStepId.value === id ? null : id;
 };
 
-// --- DATA: ROLES DEFINITIONS & WORKFLOWS ---
+// Tree Branch Collapsed States
+const collapsedPillars = ref({});
+
+const togglePillar = (id) => {
+    collapsedPillars.value[id] = !collapsedPillars.value[id];
+};
+
+const isPillarCollapsed = (id) => {
+    return !!collapsedPillars.value[id];
+};
+
+const expandAllPillars = () => {
+    collapsedPillars.value = {};
+};
+
+const collapseAllPillars = () => {
+    treeData.forEach(p => {
+        collapsedPillars.value[p.id] = true;
+    });
+};
+
+const isNodeHighlighted = (text) => {
+    if (!searchQuery.value) return false;
+    return text.toLowerCase().includes(searchQuery.value.toLowerCase());
+};
+
+// --- DATA 1: HIERARCHICAL TREE DATA (BAGAN POHON SISTEM & ROLE) ---
+const treeData = [
+    {
+        id: 'pilar-governance',
+        title: 'Pilar 1: Tata Kelola & Sistem',
+        badge: 'Governance & Core',
+        icon: '🏛️',
+        colorTheme: 'purple',
+        badgeClass: 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+        borderClass: 'border-purple-200 dark:border-purple-800',
+        headerBg: 'bg-purple-50/60 dark:bg-purple-950/30 text-purple-900 dark:text-purple-200',
+        accentBg: 'bg-purple-500',
+        desc: 'Fondasi otoritas, administrasi hukum yayasan, otentikasi peran, dan keamanan sistem.',
+        roles: [
+            {
+                name: 'Webmaster (Super Administrator)',
+                code: 'webmaster',
+                icon: '👑',
+                colorClass: 'text-purple-600 dark:text-purple-400',
+                badgeClass: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
+                nodes: [
+                    { title: 'Manajemen User & RBAC', url: '/users', desc: 'Pembuatan akun, kontrol 7 role, status aktif/non-aktif', code: 'US-01' },
+                    { title: 'Profil Lembaga & Bank MKT', url: '/mkt-profile', desc: 'Visi-misi, legalitas SK Kemenkumham, rekening resmi BSI/Mandiri/BCA', code: 'PF-02' },
+                    { title: 'AI Assistant & API Gateway', url: '/news-management', desc: 'Integrasi Google Gemini, OpenAI, Groq, webhook BMKG cuaca/gempa', code: 'AI-03' },
+                    { title: 'Audit Trail & Keamanan', url: '/dashboard', desc: 'Monitoring integritas data, mitigasi downtime, audit transaksi', code: 'SC-04' },
+                ]
+            },
+            {
+                name: 'Administrator (Admin Operasional)',
+                code: 'administrator',
+                icon: '⚡',
+                colorClass: 'text-blue-600 dark:text-blue-400',
+                badgeClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+                nodes: [
+                    { title: 'Verifikasi Relawan Mandiri', url: '/volunteers', desc: 'Validasi form pendaftaran calon relawan publik & golongan darah', code: 'VR-01' },
+                    { title: 'Notulensi & Arsip Rapat', url: '/meetings', desc: 'Dokumentasi risalah rapat evaluasi bencana, keputusan taktis, berkas PDF', code: 'MT-02' },
+                    { title: 'Kurasi Berita Lapangan', url: '/news-management', desc: 'Publikasi artikel respon bencana didukung prompt AI jurnalistik', code: 'NW-03' },
+                    { title: 'Struktur Pengurus MKT', url: '/management', desc: 'Pengelolaan hierarki 3-tier: Dewan Pembina, Pengawas, Pengurus Harian', code: 'MG-04' },
+                ]
+            }
+        ]
+    },
+    {
+        id: 'pilar-rescue',
+        title: 'Pilar 2: Kesiapsiagaan & Respon SAR',
+        badge: 'Disaster & Rescue Ops',
+        icon: '🚨',
+        colorTheme: 'rose',
+        badgeClass: 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+        borderClass: 'border-rose-200 dark:border-rose-800',
+        headerBg: 'bg-rose-50/60 dark:bg-rose-950/30 text-rose-900 dark:text-rose-200',
+        accentBg: 'bg-rose-500',
+        desc: 'Deteksi dini, koordinasi SAR gabungan, pencarian, pertolongan korban, dan Command Center 24/7.',
+        roles: [
+            {
+                name: 'Tim Rescue & Relawan Lapangan',
+                code: 'relawan',
+                icon: '⛑️',
+                colorClass: 'text-rose-600 dark:text-rose-400',
+                badgeClass: 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300',
+                nodes: [
+                    { title: 'Deteksi Prabencana & BMKG', url: '/disaster-map', desc: 'Prakiraan cuaca maritim & plotting koordinat rawan di Peta Bencana', code: 'DM-01' },
+                    { title: 'Registrasi Operasi SAR', url: '/sar-operations', desc: 'Penerbitan kode register SAR-YYYYMM-XXX, Danru/SMC, status darurat', code: 'SR-02' },
+                    { title: 'Command Center Pusdalops', url: '/sar-operations/command-center', desc: 'Pusat pantau 24 jam armada perahu RIB, drone thermal, dan personel', code: 'CC-03' },
+                    { title: 'Pelaporan Statistik Korban', url: '/sar-operations', desc: 'Update data korban selamat, luka-luka, meninggal dunia, dan hilang', code: 'KB-04' },
+                ]
+            },
+            {
+                name: 'Mitra Potensi SAR (Basarnas / BPBD / PMI)',
+                code: 'mitra',
+                icon: '🤝',
+                colorClass: 'text-amber-600 dark:text-amber-400',
+                badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
+                nodes: [
+                    { title: 'Direktori Kemitraan Resmi', url: '/volunteers', desc: 'Pendataan instansi lintas sektor, MoU kerjasama, person in charge', code: 'PT-01' },
+                    { title: 'Pengerahan Tim Gabungan', url: '/sar-operations/command-center', desc: 'Deployment gabungan personel BSG Basarnas, PMI Rescue, Tagana, Polairud', code: 'PT-02' },
+                ]
+            }
+        ]
+    },
+    {
+        id: 'pilar-aid',
+        title: 'Pilar 3: Medis Darurat & Bantuan Logistik',
+        badge: 'Medical & Humanitarian Aid',
+        icon: '📦',
+        colorTheme: 'teal',
+        badgeClass: 'bg-teal-100 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border-teal-200 dark:border-teal-800',
+        borderClass: 'border-teal-200 dark:border-teal-800',
+        headerBg: 'bg-teal-50/60 dark:bg-teal-950/30 text-teal-900 dark:text-teal-200',
+        accentBg: 'bg-teal-500',
+        desc: 'Pertolongan pertama gawat darurat, mobilisasi darah PMI, dan rantai pasok kebutuhan pokok pengungsi.',
+        roles: [
+            {
+                name: 'Dokter & Tim Medis MKT',
+                code: 'medis',
+                icon: '🩺',
+                colorClass: 'text-teal-600 dark:text-teal-400',
+                badgeClass: 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300',
+                nodes: [
+                    { title: 'Posko Triase Medis Lapangan', url: '/sar-operations', desc: 'First aid korban darurat, stabilisasi kondisi, trauma healing anak', code: 'MD-01' },
+                    { title: 'Aksi Donor Darah Rutin (PMI)', url: '/volunteers', desc: 'Pengerahan relawan donor darah (A, B, AB, O) untuk stok darurat rumah sakit', code: 'BD-02' },
+                    { title: 'Rujukan Ambulance Medis', url: '/mitra', desc: 'Koordinasi pengantaran pasien gawat darurat ke rumah sakit mitra', code: 'AM-03' },
+                ]
+            },
+            {
+                name: 'Staff Gudang & Logistik',
+                code: 'staff',
+                icon: '🏕️',
+                colorClass: 'text-emerald-600 dark:text-emerald-400',
+                badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
+                nodes: [
+                    { title: 'Inventarisasi Bantuan Masuk', url: '/logistics', desc: 'Penerimaan beras, mie, selimut, perahu karet, dan tenda pengungsian', code: 'LG-01' },
+                    { title: 'Distribusi Logistik ke Posko', url: '/logistics', desc: 'Pencatatan barang keluar dengan tanda terima resmi penanggung jawab posko', code: 'LG-02' },
+                ]
+            }
+        ]
+    },
+    {
+        id: 'pilar-finance',
+        title: 'Pilar 4: Filantropi & Akuntansi PSAK',
+        badge: 'Donations & Transparent Finance',
+        icon: '💰',
+        colorTheme: 'emerald',
+        badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+        borderClass: 'border-emerald-200 dark:border-emerald-800',
+        headerBg: 'bg-emerald-50/60 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-200',
+        accentBg: 'bg-emerald-500',
+        desc: 'Pengelolaan donasi publik yang akuntabel, auto-journaling ke buku kas, dan pelaporan neraca berstandar yayasan.',
+        roles: [
+            {
+                name: 'Donatur (Publik & Lembaga)',
+                code: 'donatur',
+                icon: '❤️',
+                colorClass: 'text-orange-600 dark:text-orange-400',
+                badgeClass: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300',
+                nodes: [
+                    { title: 'Penyaluran Donasi Publik', url: '/', desc: 'Pemilihan program kemanusiaan & transfer dana via BSI/Mandiri/BCA', code: 'DN-01' },
+                    { title: 'Kwitansi & Doa Elektronik', url: '/donors', desc: 'Penerbitan bukti tanda terima donasi sah dengan status Sukses', code: 'DN-02' },
+                    { title: 'Monitoring Transparansi Dana', url: '/berita', desc: 'Pemantauan serapan dana donasi melalui berita & neraca keuangan publik', code: 'DN-03' },
+                ]
+            },
+            {
+                name: 'Finance & Keuangan (Bendahara)',
+                code: 'finance',
+                icon: '💵',
+                colorClass: 'text-emerald-600 dark:text-emerald-400',
+                badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
+                nodes: [
+                    { title: 'Bagan Akun (COA Standar)', url: '/finance/coa', desc: 'Pengaturan akun Aset (1), Kewajiban (2), Ekuitas (3), Donasi (4), Beban (5)', code: 'FN-01' },
+                    { title: 'Sinkronisasi Donasi (Auto-Journal)', url: '/donors', desc: 'Konversi donasi sukses otomatis mendebet Kas Bank & mengkredit Pendapatan', code: 'FN-02' },
+                    { title: 'Jurnal Umum Berpasangan', url: '/finance/journal', desc: 'Pencatatan belanja operasional BBM rescue, logistik pangan, dan perawatan armada', code: 'FN-03' },
+                    { title: 'Buku Besar & Saldo Awal Dinamis', url: '/finance/ledger', desc: 'Penghitungan mutasi kas dan akumulasi saldo berjalan per rentang tanggal', code: 'FN-04' },
+                    { title: 'Neraca PSAK & Cetak Resmi', url: '/finance/balance-sheet', desc: 'Penerbitan Neraca resmi dengan Kop Yayasan & tanda tangan Ketua/Bendahara', code: 'FN-05' },
+                ]
+            }
+        ]
+    }
+];
+
+// --- DATA 2: ROLES DEFINITIONS & WORKFLOWS (FOR ROLES DEEP-DIVE) ---
 const rolesData = [
     {
         key: 'webmaster',
@@ -352,17 +537,6 @@ const selectedRole = computed(() => {
     return rolesData.find(r => r.key === selectedRoleKey.value) || rolesData[0];
 });
 
-// Filtered roles based on search
-const filteredRoles = computed(() => {
-    if (!searchQuery.value) return rolesData;
-    const q = searchQuery.value.toLowerCase();
-    return rolesData.filter(r => 
-        r.name.toLowerCase().includes(q) ||
-        r.summary.toLowerCase().includes(q) ||
-        r.steps.some(s => s.title.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q))
-    );
-});
-
 // RACI / Access Permissions Matrix
 const accessMatrix = [
     { module: 'Dashboard & Cuaca BMKG', wm: 'Full CRUD', adm: 'Full CRUD', fin: 'Read Only', res: 'Read Only', mit: 'Read Only', med: 'Read Only', don: 'Read Only' },
@@ -407,10 +581,10 @@ const printFlowchart = () => {
                         </span>
                     </div>
                     <h2 class="text-2xl font-black text-gray-900 dark:text-white mt-2 tracking-tight">
-                        Alur & Flowchart Sistem Berdasarkan Peran (Role Ecosystem)
+                        Alur & Bagan Pohon Sistem (System Tree Hierarchy & Workflows)
                     </h2>
                     <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-3xl">
-                        Panduan arsitektur operasional penanggulangan bencana, pembagian tugas 7 peran pengguna, rantai komando SAR, integrasi keuangan PSAK, hingga pelaporan publik.
+                        Visualisasi hierarki pohon rantai proses, pembagian tugas 7 peran pengguna, pilar kesiapsiagaan SAR, logistik medis, dan akuntabilitas akuntansi PSAK Yayasan MKT.
                     </p>
                 </div>
 
@@ -423,13 +597,28 @@ const printFlowchart = () => {
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                         </svg>
-                        <span>Cetak SOP Alur</span>
+                        <span>Cetak Dokumen</span>
                     </button>
                 </div>
             </div>
 
             <!-- Main View Switcher Tabs -->
             <div class="flex flex-wrap items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-2">
+                <!-- Tab 1: Bagan Pohon (Tree Chart) -->
+                <button
+                    @click="activeView = 'tree'"
+                    :class="[
+                        activeView === 'tree'
+                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-md shadow-orange-500/20'
+                            : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800',
+                        'px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition-all'
+                    ]"
+                >
+                    <span>🌳</span>
+                    <span>1. Bagan Pohon Sistem & Role (Tree Chart)</span>
+                </button>
+
+                <!-- Tab 2: Alur Global (Pipeline) -->
                 <button
                     @click="activeView = 'global'"
                     :class="[
@@ -440,9 +629,10 @@ const printFlowchart = () => {
                     ]"
                 >
                     <span>🌐</span>
-                    <span>1. Alur Ekosistem Global (End-to-End)</span>
+                    <span>2. Alur Ekosistem Global (End-to-End)</span>
                 </button>
 
+                <!-- Tab 3: Detail per Role -->
                 <button
                     @click="activeView = 'roles'"
                     :class="[
@@ -453,9 +643,10 @@ const printFlowchart = () => {
                     ]"
                 >
                     <span>👥</span>
-                    <span>2. Detail Alur & SOP per Role (7 Peran)</span>
+                    <span>3. Detail Alur & SOP per Role (7 Peran)</span>
                 </button>
 
+                <!-- Tab 4: Matriks Hak Akses (RACI) -->
                 <button
                     @click="activeView = 'matrix'"
                     :class="[
@@ -466,12 +657,187 @@ const printFlowchart = () => {
                     ]"
                 >
                     <span>📊</span>
-                    <span>3. Matriks Hak Akses Modul (RACI)</span>
+                    <span>4. Matriks Hak Akses Modul (RACI)</span>
                 </button>
             </div>
 
             <!-- =================================================================== -->
-            <!-- VIEW 1: GLOBAL END-TO-END FLOWCHART -->
+            <!-- VIEW 1: BAGAN POHON HIERARKI SISTEM & ROLE (TREE CHART) -->
+            <!-- =================================================================== -->
+            <div v-if="activeView === 'tree'" class="space-y-6">
+                <!-- Toolbar: Search filter & Expand/Collapse All -->
+                <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="relative flex-1 max-w-md">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            🔍
+                        </span>
+                        <input
+                            v-model="searchQuery"
+                            type="text"
+                            placeholder="Cari alur/modul dalam pohon (misal: 'donasi', 'SAR', 'perahu', 'jurnal')..."
+                            class="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-orange-500"
+                        />
+                    </div>
+
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <button
+                            @click="expandAllPillars"
+                            class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition"
+                        >
+                            Buka Semua Cabang
+                        </button>
+                        <button
+                            @click="collapseAllPillars"
+                            class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition"
+                        >
+                            Tutup Semua Cabang
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TREE DIAGRAM CONTAINER -->
+                <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 sm:p-10 shadow-sm relative overflow-hidden">
+                    
+                    <!-- TREE ROOT NODE: YAYASAN MKT INDONESIA -->
+                    <div class="flex flex-col items-center">
+                        <div class="relative z-10 max-w-lg w-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white p-5 rounded-2xl shadow-xl shadow-orange-500/20 text-center border-2 border-white/20">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/20 text-amber-200 border border-white/10 mb-2">
+                                🏛️ AKAR POHON EKOSISTEM (ROOT HUB)
+                            </span>
+                            <h3 class="text-xl font-black tracking-tight">YAYASAN MITRA KEMANUSIAAN TERPADU</h3>
+                            <p class="text-xs text-orange-100 mt-1">
+                                Pusat Komando Terintegrasi: Prabencana, Tanggap Darurat Rescue SAR, Medis Donor Darah, hingga Akuntansi Filantropi.
+                            </p>
+                            <div class="mt-3 flex justify-center items-center space-x-3 text-[11px] font-mono text-orange-200 border-t border-white/15 pt-2">
+                                <span>Pusdalops 24/7</span>
+                                <span>•</span>
+                                <span>Makassar, Sulawesi Selatan</span>
+                                <span>•</span>
+                                <span>v2.5 Platform</span>
+                            </div>
+                        </div>
+
+                        <!-- Stem Vertical Line connecting Root to Pillars -->
+                        <div class="w-0.5 h-10 bg-gradient-to-b from-orange-500 to-gray-300 dark:to-gray-700"></div>
+
+                        <!-- Horizontal Branch Crossbar (Desktop only) -->
+                        <div class="hidden lg:block w-11/12 max-w-5xl h-0.5 bg-gray-300 dark:bg-gray-700 relative">
+                            <!-- 4 Drops to Pillars -->
+                            <div class="absolute left-[12.5%] -bottom-4 w-0.5 h-4 bg-purple-400"></div>
+                            <div class="absolute left-[37.5%] -bottom-4 w-0.5 h-4 bg-rose-400"></div>
+                            <div class="absolute left-[62.5%] -bottom-4 w-0.5 h-4 bg-teal-400"></div>
+                            <div class="absolute left-[87.5%] -bottom-4 w-0.5 h-4 bg-emerald-400"></div>
+                        </div>
+                    </div>
+
+                    <!-- TREE LEVEL 1: 4 PILAR UTAMA (BRANCHES) -->
+                    <div class="mt-4 lg:mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div
+                            v-for="pilar in treeData"
+                            :key="pilar.id"
+                            class="border rounded-2xl overflow-hidden transition-all duration-200 bg-white dark:bg-gray-900 flex flex-col"
+                            :class="[
+                                pilar.borderClass,
+                                isNodeHighlighted(pilar.title) || isNodeHighlighted(pilar.desc) ? 'ring-2 ring-orange-500 shadow-lg' : 'shadow-sm'
+                            ]"
+                        >
+                            <!-- Pillar Header -->
+                            <div :class="['p-4 border-b flex items-start justify-between cursor-pointer transition', pilar.headerBg, pilar.borderClass]" @click="togglePillar(pilar.id)">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="text-2xl shrink-0">{{ pilar.icon }}</span>
+                                    <div>
+                                        <div class="flex items-center space-x-1.5">
+                                            <h4 class="text-xs font-black tracking-tight">{{ pilar.title }}</h4>
+                                        </div>
+                                        <p class="text-[10px] opacity-75 mt-0.5 line-clamp-1">{{ pilar.desc }}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    class="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition text-gray-500 shrink-0"
+                                    :title="isPillarCollapsed(pilar.id) ? 'Buka Cabang' : 'Tutup Cabang'"
+                                >
+                                    <svg
+                                        class="w-4 h-4 transition-transform duration-200"
+                                        :class="isPillarCollapsed(pilar.id) ? '-rotate-90' : 'rotate-0'"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Pillar Body (Sub-branches for each Role) -->
+                            <div v-show="!isPillarCollapsed(pilar.id)" class="p-4 space-y-4 flex-1">
+                                <!-- Roles in Pillar -->
+                                <div
+                                    v-for="(r, rIdx) in pilar.roles"
+                                    :key="r.code"
+                                    class="border border-gray-100 dark:border-gray-800 rounded-xl p-3.5 bg-gray-50/50 dark:bg-gray-800/20 relative"
+                                    :class="isNodeHighlighted(r.name) ? 'ring-2 ring-orange-400' : ''"
+                                >
+                                    <!-- Role Card Title -->
+                                    <div class="flex items-center space-x-2 mb-2 pb-2 border-b border-gray-200/60 dark:border-gray-700/60">
+                                        <span class="text-lg">{{ r.icon }}</span>
+                                        <div class="overflow-hidden">
+                                            <h5 :class="['text-xs font-black tracking-tight truncate', r.colorClass]">
+                                                {{ r.name }}
+                                            </h5>
+                                            <span class="text-[9px] text-gray-400 font-mono">role: {{ r.code }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Leaf Nodes (Action & Sub-Process) -->
+                                    <div class="space-y-1.5 pl-2 relative">
+                                        <!-- Vertical connection line -->
+                                        <div class="absolute left-0 top-1 bottom-1 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+
+                                        <div
+                                            v-for="node in r.nodes"
+                                            :key="node.code"
+                                            class="relative pl-3 text-xs group"
+                                        >
+                                            <!-- Branch tick line -->
+                                            <div class="absolute left-0 top-3 w-2.5 h-0.5 bg-gray-200 dark:bg-gray-700"></div>
+
+                                            <div
+                                                class="p-2 rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-orange-400 dark:hover:border-orange-500 transition-all shadow-2xs"
+                                                :class="isNodeHighlighted(node.title) || isNodeHighlighted(node.desc) ? 'ring-2 ring-orange-400 bg-orange-50/40 dark:bg-orange-950/20' : ''"
+                                            >
+                                                <div class="flex items-center justify-between">
+                                                    <span class="font-bold text-gray-900 dark:text-gray-100 group-hover:text-orange-600 dark:group-hover:text-orange-400 text-[11px]">
+                                                        {{ node.title }}
+                                                    </span>
+                                                    <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                                                        {{ node.code }}
+                                                    </span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
+                                                    {{ node.desc }}
+                                                </p>
+                                                <div class="mt-1.5 flex justify-end">
+                                                    <Link
+                                                        v-if="node.url"
+                                                        :href="node.url"
+                                                        class="text-[9px] font-extrabold text-orange-600 dark:text-orange-400 hover:underline flex items-center space-x-0.5"
+                                                    >
+                                                        <span>Buka Modul</span>
+                                                        <span>→</span>
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =================================================================== -->
+            <!-- VIEW 2: GLOBAL END-TO-END FLOWCHART -->
             <!-- =================================================================== -->
             <div v-if="activeView === 'global'" class="space-y-6">
                 <!-- Visual Pipeline Summary Cards -->
@@ -654,7 +1020,7 @@ const printFlowchart = () => {
             </div>
 
             <!-- =================================================================== -->
-            <!-- VIEW 2: PER-ROLE WORKFLOW DETAIL -->
+            <!-- VIEW 3: DETAIL ALUR & SOP PER ROLE (DEEP DIVE) -->
             <!-- =================================================================== -->
             <div v-if="activeView === 'roles'" class="space-y-6">
                 <!-- Role Selector Tabs -->
@@ -791,7 +1157,7 @@ const printFlowchart = () => {
             </div>
 
             <!-- =================================================================== -->
-            <!-- VIEW 3: MATRIKS HAK AKSES MODUL (RACI) -->
+            <!-- VIEW 4: MATRIKS HAK AKSES MODUL (RACI) -->
             <!-- =================================================================== -->
             <div v-if="activeView === 'matrix'" class="space-y-4">
                 <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-sm overflow-hidden">
