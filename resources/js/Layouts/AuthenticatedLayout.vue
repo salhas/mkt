@@ -403,6 +403,23 @@ const toggleFinance = () => {
                         </svg>
                         <span v-if="isSidebarOpen" class="text-sm">Manajemen User</span>
                     </Link>
+
+                    <!-- Alur & Flowchart Sistem (Khusus Webmaster & Administrator) -->
+                    <Link
+                        v-if="['webmaster', 'administrator'].includes($page.props.auth.user.role)"
+                        :href="route('dashboard', { tab: 'alur' })"
+                        :class="[
+                            route().current('dashboard') && ($page.url.includes('tab=alur') || $page.url.includes('tab=flowchart'))
+                                ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400 font-semibold'
+                                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                        ]"
+                    >
+                        <svg class="w-5 h-5 text-amber-500 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span v-if="isSidebarOpen" class="text-sm">Alur Sistem (Flowchart)</span>
+                    </Link>
                 </div>
             </nav>
 

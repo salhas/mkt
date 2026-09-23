@@ -1,7 +1,52 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import BmkgWeatherWidget from '@/Components/BmkgWeatherWidget.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import SystemRoleFlowchart from '@/Components/SystemRoleFlowchart.vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { ref, computed, onMounted, watch } from 'vue';
+
+const page = usePage();
+const currentUser = computed(() => page.props.auth.user);
+
+const canViewFlowchart = computed(() => {
+    return currentUser.value && ['webmaster', 'administrator'].includes(currentUser.value.role);
+});
+
+const activeMainTab = ref('overview'); // 'overview' | 'flowchart'
+
+const checkUrlTab = () => {
+    if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if ((tab === 'alur' || tab === 'flowchart') && canViewFlowchart.value) {
+            activeMainTab.value = 'flowchart';
+        } else {
+            activeMainTab.value = 'overview';
+        }
+    }
+};
+
+onMounted(() => {
+    checkUrlTab();
+});
+
+watch(() => page.url, () => {
+    checkUrlTab();
+});
+
+const setMainTab = (tab) => {
+    if (tab === 'flowchart' && !canViewFlowchart.value) return;
+    activeMainTab.value = tab;
+    if (typeof window !== 'undefined') {
+        const url = new URL(window.location);
+        if (tab === 'flowchart') {
+            url.searchParams.set('tab', 'alur');
+        } else {
+            url.searchParams.delete('tab');
+        }
+        window.history.replaceState({}, '', url);
+    }
+};
 
 const props = defineProps({
     volunteerStats: Object,
@@ -61,8 +106,51 @@ const formatDate = (dateStr) => {
             </div>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Navigation Tab Bar -->
+        <div class="flex items-center space-x-2 mb-6 border-b border-gray-200 dark:border-gray-800 pb-2">
+            <button
+                @click="setMainTab('overview')"
+                :class="[
+                    activeMainTab === 'overview'
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-md shadow-orange-500/20'
+                        : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800 font-medium',
+                    'px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition-all'
+                ]"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path>
+                </svg>
+                <span>Ringkasan Operasional</span>
+            </button>
+
+            <!-- Tab Alur (Flowchart Sistem) - Khusus Webmaster & Administrator -->
+            <button
+                v-if="canViewFlowchart"
+                @click="setMainTab('flowchart')"
+                :class="[
+                    activeMainTab === 'flowchart'
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-md shadow-orange-500/20'
+                        : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800 font-medium',
+                    'px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition-all group'
+                ]"
+            >
+                <span class="text-base group-hover:scale-110 transition-transform">🔀</span>
+                <span>Alur Sistem (Flowchart)</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-400/30">
+                    Khusus Webmaster & Admin
+                </span>
+            </button>
+        </div>
+
+        <!-- TAB CONTENT 1: ALUR SISTEM & FLOWCHART ROLE -->
+        <div v-if="activeMainTab === 'flowchart' && canViewFlowchart">
+            <SystemRoleFlowchart />
+        </div>
+
+        <!-- TAB CONTENT 2: RINGKASAN OPERASIONAL (OVERVIEW) -->
+        <div v-else class="space-y-8">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Donations Stat -->
             <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
                 <div class="flex justify-between items-start">
@@ -283,6 +371,7 @@ const formatDate = (dateStr) => {
                     </tbody>
                 </table>
             </div>
+        </div>
         </div>
     </AuthenticatedLayout>
 </template>
