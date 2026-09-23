@@ -87,6 +87,8 @@ Route::prefix('v1')->group(function () {
         // Report Disaster & Meeting Management from Flutter Mobile App
         Route::post('/disaster-events', [DisasterEventApiController::class, 'store']);
         Route::post('/sar-operations', [SarOperationApiController::class, 'store']);
+        Route::match(['put', 'patch', 'post'], '/sar-operations/{id}', [SarOperationApiController::class, 'update']);
+        Route::delete('/sar-operations/{id}', [SarOperationApiController::class, 'destroy']);
         Route::post('/meetings', [MeetingApiController::class, 'store']);
 
         // News CRUD Endpoints (Protected for Webmaster, Admin, Staff)
