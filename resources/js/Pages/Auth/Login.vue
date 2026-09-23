@@ -74,6 +74,22 @@ const submit = () => {
     });
 };
 
+const quickRoles = [
+    { label: 'Salman Hasmin', role: 'Webmaster (Owner)', email: 'salman.hasmin@gmail.com', icon: '👑' },
+    { label: 'Webmaster MKT', role: 'Super Admin', email: 'webmaster@mkt.or.id', icon: '🛡️' },
+    { label: 'Administrator', role: 'Admin Panel', email: 'administrator@mkt.or.id', icon: '⚡' },
+    { label: 'Finance & Kas', role: 'Keuangan', email: 'finance@mkt.or.id', icon: '💰' },
+    { label: 'Tim Rescue', role: 'Relawan SAR', email: 'relawan@mkt.or.id', icon: '⛑️' },
+    { label: 'Mitra Instansi', role: 'Basarnas / BPBD', email: 'mitra@mkt.or.id', icon: '🤝' },
+    { label: 'Dokter / Medis', role: 'Tenaga Medis', email: 'medis@mkt.or.id', icon: '🩺' },
+    { label: 'Donatur', role: 'Donatur Publik', email: 'donatur@mkt.or.id', icon: '❤️' },
+];
+
+const fillQuickLogin = (email) => {
+    form.email = email;
+    form.password = 'password123';
+};
+
 const translations = {
     id: {
         title: 'Login Sistem MKT',
@@ -284,6 +300,38 @@ const translations = {
                             </PrimaryButton>
                         </div>
                     </form>
+
+                    <!-- Quick Login Roles (Dev & Operational Helper) -->
+                    <div class="pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <span>⚡</span>
+                                <span>{{ currentLang === 'id' ? 'Akses Cepat Akun Demo / Role' : 'Quick Access by Role' }}</span>
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 font-mono font-semibold">
+                                pass: password123
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <button
+                                v-for="role in quickRoles"
+                                :key="role.email"
+                                type="button"
+                                @click="fillQuickLogin(role.email)"
+                                class="flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-left border border-slate-200 dark:border-slate-800 hover:border-orange-400 dark:hover:border-orange-500 bg-slate-50 dark:bg-slate-900/50 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 transition-all text-xs group"
+                            >
+                                <span class="text-sm shrink-0">{{ role.icon }}</span>
+                                <div class="overflow-hidden min-w-0">
+                                    <div class="text-[11px] font-bold text-slate-800 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 truncate">
+                                        {{ role.label }}
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 dark:text-slate-500 truncate">
+                                        {{ role.email }}
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Back to Landing Page Link -->
                     <div class="text-center pt-2">
