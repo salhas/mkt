@@ -537,20 +537,35 @@ const openAddModal = (mode = 'agenda') => {
     isFormModalOpen.value = true;
 };
 
+const formatDateTimeLocalInput = (dateVal) => {
+    if (!dateVal) return '';
+    const str = String(dateVal).trim();
+    // Matches YYYY-MM-DDTHH:mm or YYYY-MM-DD HH:mm
+    const match = str.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/);
+    if (match) {
+        return `${match[1]}T${match[2]}`;
+    }
+    // If only YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+        return `${str}T00:00`;
+    }
+    // Fallback using Date parser
+    try {
+        const d = new Date(str.replace(' ', 'T'));
+        if (!isNaN(d.getTime())) {
+            const pad = (n) => n < 10 ? '0' + n : n;
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+    } catch (e) {}
+    return '';
+};
+
 const openEditModal = (m, mode = 'normal') => {
     editingMeeting.value = m;
     form.clearErrors();
 
-    // Format datetime-local (YYYY-MM-DDTHH:mm)
-    let formattedDate = '';
-    if (m.meeting_date) {
-        const d = new Date(m.meeting_date);
-        const pad = (n) => n < 10 ? '0' + n : n;
-        formattedDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-
     form.title = m.title || '';
-    form.meeting_date = formattedDate;
+    form.meeting_date = formatDateTimeLocalInput(m.meeting_date);
     form.location = m.location || '';
     form.category = m.category || 'Rapat Koordinasi';
     form.leader = m.leader || '';
@@ -607,24 +622,46 @@ const submitForm = () => {
 
     form.attendees_str = selectedAttendees.value.join(', ');
 
-    const payload = {
-        ...form.data(),
-        attendees: selectedAttendees.value,
-        action_items: JSON.stringify(form.action_items.filter(item => item.task && item.task.trim() !== ''))
-    };
+    const attendeesData = [...selectedAttendees.value];
+    const actionItemsData = JSON.stringify(form.action_items.filter(item => item.task && item.task.trim() !== ''));
 
     if (editingMeeting.value) {
-        form.transform(() => payload).post(route('meetings.update', editingMeeting.value.id), {
-            onSuccess: () => {
+        form.transform((data) => ({
+            ...data,
+            attendees: attendeesData,
+            action_items: actionItemsData,
+        })).post(route('meetings.update', editingMeeting.value.id), {
+            preserveScroll: true,
+            onSuccess: (page) => {
                 isFormModalOpen.value = false;
-                if (activeMeeting.value && activeMeeting.value.id === editingMeeting.value.id) {
-                    const updated = props.meetings.data.find(x => x.id === editingMeeting.value.id);
-                    if (updated) activeMeeting.value = updated;
+                const freshMeetings = page?.props?.meetings?.data || props.meetings?.data || [];
+                const updated = freshMeetings.find(x => x.id === editingMeeting.value?.id);
+                if (activeMeeting.value && editingMeeting.value && activeMeeting.value.id === editingMeeting.value.id) {
+                    if (updated) {
+                        activeMeeting.value = updated;
+                    } else {
+                        activeMeeting.value = {
+                            ...activeMeeting.value,
+                            title: form.title,
+                            meeting_date: form.meeting_date,
+                            location: form.location,
+                            category: form.category,
+                            status: form.status,
+                            agenda: form.agenda,
+                            summary: form.summary,
+                            post_attendance_message: form.post_attendance_message,
+                        };
+                    }
                 }
             }
         });
     } else {
-        form.transform(() => payload).post(route('meetings.store'), {
+        form.transform((data) => ({
+            ...data,
+            attendees: attendeesData,
+            action_items: actionItemsData,
+        })).post(route('meetings.store'), {
+            preserveScroll: true,
             onSuccess: () => {
                 isFormModalOpen.value = false;
             }
@@ -674,7 +711,8 @@ const printMeetingSummary = () => {
 
 const formatDate = (dateStr) => {
     if (!dateStr) return '-';
-    const date = new Date(dateStr);
+    const date = new Date(String(dateStr).replace(' ', 'T'));
+    if (isNaN(date.getTime())) return String(dateStr);
     return new Intl.DateTimeFormat('id-ID', {
         weekday: 'long',
         year: 'numeric',
@@ -687,7 +725,8 @@ const formatDate = (dateStr) => {
 
 const formatShortDate = (dateStr) => {
     if (!dateStr) return '-';
-    const date = new Date(dateStr);
+    const date = new Date(String(dateStr).replace(' ', 'T'));
+    if (isNaN(date.getTime())) return String(dateStr);
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'short',
@@ -697,7 +736,8 @@ const formatShortDate = (dateStr) => {
 
 const getCountdownInfo = (dateStr) => {
     if (!dateStr) return null;
-    const target = new Date(dateStr);
+    const target = new Date(String(dateStr).replace(' ', 'T'));
+    if (isNaN(target.getTime())) return null;
     const now = new Date();
     // Compare day boundaries
     const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate());
@@ -1710,6 +1750,7 @@ const getCategoryColor = (category) => {
                                             required
                                             class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-2.5 focus:ring-2 focus:ring-brand-500 transition"
                                         />
+                                        <span v-if="form.errors.meeting_date" class="text-xs text-rose-500 mt-1 block">{{ form.errors.meeting_date }}</span>
                                     </div>
                                     <div>
                                         <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Kategori Kegiatan / Rapat <span class="text-rose-500">*</span></label>
@@ -1719,6 +1760,7 @@ const getCategoryColor = (category) => {
                                         >
                                             <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
                                         </select>
+                                        <span v-if="form.errors.category" class="text-xs text-rose-500 mt-1 block">{{ form.errors.category }}</span>
                                     </div>
                                 </div>
 
@@ -1731,6 +1773,7 @@ const getCategoryColor = (category) => {
                                             placeholder="Gedung Yayasan MKT / Posko Lapangan / Zoom Meeting"
                                             class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-2.5 focus:ring-2 focus:ring-brand-500 transition"
                                         />
+                                        <span v-if="form.errors.location" class="text-xs text-rose-500 mt-1 block">{{ form.errors.location }}</span>
                                     </div>
                                     <div>
                                         <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Status Kegiatan</label>
@@ -1740,6 +1783,7 @@ const getCategoryColor = (category) => {
                                         >
                                             <option v-for="st in statuses" :key="st" :value="st">{{ st }}</option>
                                         </select>
+                                        <span v-if="form.errors.status" class="text-xs text-rose-500 mt-1 block">{{ form.errors.status }}</span>
                                     </div>
                                 </div>
 

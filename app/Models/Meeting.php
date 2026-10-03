@@ -30,7 +30,7 @@ class Meeting extends Model
     ];
 
     protected $casts = [
-        'meeting_date' => 'datetime',
+        'meeting_date' => 'datetime:Y-m-d H:i:s',
         'attendees' => 'array',
         'action_items' => 'array',
         'is_attendance_open' => 'boolean',

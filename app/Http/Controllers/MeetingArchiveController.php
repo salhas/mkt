@@ -181,6 +181,9 @@ class MeetingArchiveController extends Controller
             'post_attendance_image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
 
+        // Format meeting_date to standard SQL format
+        $validated['meeting_date'] = \Carbon\Carbon::parse($validated['meeting_date'])->format('Y-m-d H:i:s');
+
         if ($request->hasFile('attachment')) {
             $path = $request->file('attachment')->store('meeting_attachments', 'public');
             $validated['attachment_path'] = '/storage/' . $path;
@@ -227,6 +230,9 @@ class MeetingArchiveController extends Controller
             'post_attendance_image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
 
+        // Format meeting_date to standard SQL format
+        $validated['meeting_date'] = \Carbon\Carbon::parse($validated['meeting_date'])->format('Y-m-d H:i:s');
+
         if ($request->hasFile('attachment')) {
             $rawAtt = $meeting->getRawOriginal('attachment_path') ?? $meeting->attachment_path;
             $oldAtt = preg_replace('#^.*?storage/#', '', (string)$rawAtt);
@@ -236,6 +242,8 @@ class MeetingArchiveController extends Controller
             $path = $request->file('attachment')->store('meeting_attachments', 'public');
             $validated['attachment_path'] = '/storage/' . $path;
             @chmod(storage_path('app/public/' . $path), 0644);
+        } else {
+            unset($validated['attachment']);
         }
 
         if ($request->hasFile('post_attendance_image')) {
@@ -254,6 +262,8 @@ class MeetingArchiveController extends Controller
                 Storage::disk('public')->delete($oldImg);
             }
             $validated['post_attendance_image'] = null;
+        } else {
+            unset($validated['post_attendance_image']);
         }
 
         if (is_string($request->input('attendees'))) {

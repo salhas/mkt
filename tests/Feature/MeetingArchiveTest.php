@@ -192,4 +192,41 @@ class MeetingArchiveTest extends TestCase
             'id' => $meeting->id,
         ]);
     }
+
+    public function test_can_update_meeting_date_specifically_in_agenda_form(): void
+    {
+        $user = User::factory()->create();
+
+        $meeting = Meeting::create([
+            'title' => 'Sosialisasi Relawan MKT',
+            'meeting_date' => '2026-10-04 09:00:00',
+            'category' => 'Agenda Kegiatan / Baksos',
+            'location' => 'Posko Gurila SAR Unhas',
+            'status' => 'Terjadwal',
+            'post_attendance_image' => '/storage/meeting_attendance_images/sample.png',
+            'post_attendance_message' => 'Harap hadir tepat waktu',
+            'created_by' => $user->id,
+        ]);
+
+        // Update with HTML5 datetime-local string (YYYY-MM-DDTHH:mm)
+        $newDateInput = '2026-10-25T14:30';
+
+        $response = $this
+            ->actingAs($user)
+            ->post(route('meetings.update', $meeting->id), [
+                'title' => 'Sosialisasi Relawan MKT',
+                'meeting_date' => $newDateInput,
+                'category' => 'Agenda Kegiatan / Baksos',
+                'location' => 'Posko Gurila SAR Unhas',
+                'status' => 'Terjadwal',
+                'agenda' => 'Pembahasan materi',
+            ]);
+
+        $response->assertSessionHas('success');
+        $meeting->refresh();
+
+        $this->assertEquals('2026-10-25 14:30:00', $meeting->meeting_date->format('Y-m-d H:i:s'));
+        // Verify post_attendance_image was not erased when only date was edited
+        $this->assertNotNull($meeting->post_attendance_image);
+    }
 }
