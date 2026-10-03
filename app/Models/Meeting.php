@@ -21,6 +21,8 @@ class Meeting extends Model
         'summary',
         'action_items',
         'status',
+        'attendance_token',
+        'is_attendance_open',
         'attachment_path',
         'created_by',
     ];
@@ -29,10 +31,34 @@ class Meeting extends Model
         'meeting_date' => 'datetime',
         'attendees' => 'array',
         'action_items' => 'array',
+        'is_attendance_open' => 'boolean',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($meeting) {
+            if (empty($meeting->attendance_token)) {
+                $meeting->attendance_token = strtolower(\Illuminate\Support\Str::random(12));
+            }
+        });
+    }
 
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(MeetingAttendance::class, 'meeting_id')->orderBy('attended_at', 'desc');
+    }
+
+    public function ensureAttendanceToken(): string
+    {
+        if (empty($this->attendance_token)) {
+            $this->attendance_token = strtolower(\Illuminate\Support\Str::random(12));
+            $this->saveQuietly();
+        }
+        return $this->attendance_token;
     }
 }

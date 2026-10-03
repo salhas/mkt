@@ -12,7 +12,18 @@ class MeetingArchiveController extends Controller
 {
     public function index(Request $request)
     {
+        $tab = $request->input('tab', 'semua');
         $query = Meeting::with('creator');
+
+        // Tab filter (semua, agenda, arsip)
+        if ($tab === 'agenda') {
+            $query->where(function ($q) {
+                $q->whereIn('status', ['Terjadwal', 'Berlangsung'])
+                  ->orWhere('meeting_date', '>=', Carbon::today());
+            })->where('status', '!=', 'Selesai');
+        } elseif ($tab === 'arsip') {
+            $query->whereIn('status', ['Selesai', 'Diarsipkan']);
+        }
 
         // Search filter (Judul, pimpinan, notulis, lokasi, summary, agenda)
         if ($request->filled('search')) {
@@ -45,9 +56,16 @@ class MeetingArchiveController extends Controller
             $query->whereDate('meeting_date', '<=', $request->input('end_date'));
         }
 
-        $meetings = $query->orderBy('meeting_date', 'desc')
-                          ->paginate(10)
-                          ->withQueryString();
+        // Order: upcoming agenda asc, otherwise desc
+        if ($tab === 'agenda') {
+            $meetings = $query->orderBy('meeting_date', 'asc')
+                              ->paginate(10)
+                              ->withQueryString();
+        } else {
+            $meetings = $query->orderBy('meeting_date', 'desc')
+                              ->paginate(10)
+                              ->withQueryString();
+        }
 
         // Calculate statistics
         $allMeetings = Meeting::all();
@@ -55,6 +73,23 @@ class MeetingArchiveController extends Controller
         $thisMonthCount = $allMeetings->filter(function ($m) {
             return $m->meeting_date && Carbon::parse($m->meeting_date)->isCurrentMonth();
         })->count();
+
+        $upcomingCount = $allMeetings->filter(function ($m) {
+            return in_array($m->status, ['Terjadwal', 'Berlangsung']) ||
+                ($m->meeting_date && Carbon::parse($m->meeting_date)->isFuture() && $m->status !== 'Selesai');
+        })->count();
+
+        $completedCount = $allMeetings->where('status', 'Selesai')->count();
+
+        // Next nearest upcoming meeting/agenda
+        $nextUpcomingMeeting = Meeting::with('creator')
+            ->where(function ($q) {
+                $q->whereIn('status', ['Terjadwal', 'Berlangsung'])
+                  ->orWhere('meeting_date', '>=', Carbon::now());
+            })
+            ->whereNotIn('status', ['Selesai', 'Dibatalkan', 'Diarsipkan'])
+            ->orderBy('meeting_date', 'asc')
+            ->first();
 
         $totalActionItems = 0;
         $completedActionItems = 0;
@@ -69,8 +104,16 @@ class MeetingArchiveController extends Controller
             }
         }
 
-        $categories = ['Rapat Koordinasi', 'Evaluasi Bencana', 'Rapat Pleno', 'Sosialisasi Donasi', 'Internal Tim'];
-        $statuses = ['Selesai', 'Terjadwal', 'Draft', 'Diarsipkan'];
+        $categories = [
+            'Agenda Kegiatan / Baksos',
+            'Rapat Koordinasi',
+            'Pelatihan & Siaga SAR',
+            'Evaluasi Bencana',
+            'Rapat Pleno',
+            'Sosialisasi Donasi',
+            'Internal Tim',
+        ];
+        $statuses = ['Terjadwal', 'Berlangsung', 'Selesai', 'Draft', 'Diarsipkan', 'Dibatalkan'];
 
         // Active members & volunteers for combobox attendance select
         $activeVolunteers = \App\Models\Volunteer::where('status', 'Aktif')
@@ -103,10 +146,13 @@ class MeetingArchiveController extends Controller
 
         return Inertia::render('Meetings/Index', [
             'meetings' => $meetings,
-            'filters' => $request->only(['search', 'category', 'status', 'start_date', 'end_date']),
+            'nextUpcomingMeeting' => $nextUpcomingMeeting,
+            'filters' => array_merge(['tab' => $tab], $request->only(['search', 'category', 'status', 'start_date', 'end_date'])),
             'stats' => [
                 'totalMeetings' => $totalMeetings,
                 'thisMonthCount' => $thisMonthCount,
+                'upcomingCount' => $upcomingCount,
+                'completedCount' => $completedCount,
                 'totalActionItems' => $totalActionItems,
                 'completedActionItems' => $completedActionItems,
             ],
@@ -150,7 +196,7 @@ class MeetingArchiveController extends Controller
 
         Meeting::create($validated);
 
-        return redirect()->back()->with('success', 'Arsip rapat berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Agenda / notulensi rapat berhasil ditambahkan.');
     }
 
     public function update(Request $request, Meeting $meeting)
@@ -187,7 +233,7 @@ class MeetingArchiveController extends Controller
 
         $meeting->update($validated);
 
-        return redirect()->back()->with('success', 'Arsip rapat berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Agenda / notulensi rapat berhasil diperbarui.');
     }
 
     public function destroy(Meeting $meeting)
@@ -198,6 +244,6 @@ class MeetingArchiveController extends Controller
 
         $meeting->delete();
 
-        return redirect()->back()->with('success', 'Arsip rapat berhasil dihapus.');
+        return redirect()->back()->with('success', 'Agenda / arsip rapat berhasil dihapus.');
     }
 }

@@ -15,6 +15,7 @@ use App\Http\Controllers\SarOperationController;
 use App\Http\Controllers\SarParticipationController;
 use App\Http\Controllers\PublicPageController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\MeetingAttendanceController;
 use App\Http\Controllers\Api\AlertApiController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +40,10 @@ Route::get('/kontak', [PublicPageController::class, 'contact'])->name('public.co
 
 // Public Volunteer Registration Route (with Email Notification)
 Route::post('/register-volunteer', [VolunteerController::class, 'publicRegister'])->name('volunteers.public-register');
+
+// Public Self-Service Meeting Attendance (Presensi Mandiri Peserta/Tamu via QR Code)
+Route::get('/presensi/{token}', [MeetingAttendanceController::class, 'showPublicForm'])->name('public.attendance.show');
+Route::post('/presensi/{token}', [MeetingAttendanceController::class, 'submitPublicAttendance'])->name('public.attendance.submit');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard & Live Alerts
@@ -79,6 +84,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/meetings', [MeetingArchiveController::class, 'store'])->name('meetings.store');
     Route::post('/meetings/{meeting}', [MeetingArchiveController::class, 'update'])->name('meetings.update');
     Route::delete('/meetings/{meeting}', [MeetingArchiveController::class, 'destroy'])->name('meetings.destroy');
+    Route::get('/meetings/{meeting}/attendances', [MeetingAttendanceController::class, 'getAttendances'])->name('meetings.attendances.data');
+    Route::patch('/meetings/{meeting}/toggle-attendance', [MeetingAttendanceController::class, 'toggleAttendance'])->name('meetings.attendances.toggle');
+    Route::delete('/meetings/attendances/{attendance}', [MeetingAttendanceController::class, 'destroyAttendance'])->name('meetings.attendances.destroy');
+    Route::get('/meetings/{meeting}/export-attendances', [MeetingAttendanceController::class, 'exportAttendances'])->name('meetings.attendances.export');
 
     // Mitra & Relawan (PMI, Rumah Sakit, Basarnas, BPBD, Rescue, Relawan)
     Route::get('/volunteers', [VolunteerController::class, 'index'])->name('volunteers.index');

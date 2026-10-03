@@ -87,7 +87,7 @@ const treeData = [
                 badgeClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
                 nodes: [
                     { title: 'Verifikasi Relawan Mandiri', url: '/volunteers', desc: 'Validasi form pendaftaran calon relawan publik & golongan darah', code: 'VR-01' },
-                    { title: 'Notulensi & Arsip Rapat', url: '/meetings', desc: 'Dokumentasi risalah rapat evaluasi bencana, keputusan taktis, berkas PDF', code: 'MT-02' },
+                    { title: 'Agenda & Arsip Rapat', url: '/meetings', desc: 'Jadwal agenda kegiatan, risalah rapat evaluasi bencana, keputusan taktis, berkas PDF', code: 'MT-02' },
                     { title: 'Kurasi Berita Lapangan', url: '/news-management', desc: 'Publikasi artikel respon bencana didukung prompt AI jurnalistik', code: 'NW-03' },
                     { title: 'Struktur Pengurus MKT', url: '/management', desc: 'Pengelolaan hierarki 3-tier: Dewan Pembina, Pengawas, Pengurus Harian', code: 'MG-04' },
                 ]
@@ -270,8 +270,8 @@ const rolesData = [
         badgeColor: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800',
         cardBg: 'from-blue-500/10 to-transparent',
         icon: '⚡',
-        summary: 'Penanggung jawab operasional harian yayasan. Mengawal verifikasi relawan publik, notulensi rapat, kurasi berita, dan koordinasi antar-divisi.',
-        modules: ['Mitra & Relawan (/volunteers)', 'Arsip Rapat (/meetings)', 'Berita & Artikel (/news-management)', 'Struktur Pengurus (/management)', 'Logistik Darurat (/logistics)'],
+        summary: 'Penanggung jawab operasional harian yayasan. Mengawal verifikasi relawan publik, agenda kegiatan & notulensi rapat, kurasi berita, dan koordinasi antar-divisi.',
+        modules: ['Mitra & Relawan (/volunteers)', 'Agenda & Arsip Rapat (/meetings)', 'Berita & Artikel (/news-management)', 'Struktur Pengurus (/management)', 'Logistik Darurat (/logistics)'],
         steps: [
             {
                 id: 'adm-1',
@@ -285,13 +285,13 @@ const rolesData = [
             },
             {
                 id: 'adm-2',
-                title: '2. Dokumentasi & Pengarsipan Rapat Koordinasi',
-                desc: 'Mencatat notulensi rapat evaluasi penanganan bencana, rapat kerja pengurus, dan keputusan strategis.',
-                input: 'Agenda rapat, peserta hadir, berkas lampiran (PDF/DOCX).',
-                action: 'Simpan risalah rapat, poin keputusan, dan tindak lanjut tugas (action items).',
-                output: 'Arsip resmi notulensi yayasan yang mudah ditelusuri kapan saja.',
+                title: '2. Pengelolaan Agenda Kegiatan & Notulensi Rapat',
+                desc: 'Menjadwalkan agenda kegiatan/baksos, mencatat notulensi rapat evaluasi penanganan bencana, dan keputusan strategis.',
+                input: 'Agenda kegiatan, peserta hadir, berkas lampiran (PDF/DOCX).',
+                action: 'Simpan jadwal kegiatan, risalah rapat, poin keputusan, dan tindak lanjut tugas (action items).',
+                output: 'Arsip resmi agenda dan notulensi yayasan yang mudah ditelusuri kapan saja.',
                 moduleUrl: '/meetings',
-                moduleName: 'Arsip Rapat'
+                moduleName: 'Agenda & Arsip Rapat'
             },
             {
                 id: 'adm-3',

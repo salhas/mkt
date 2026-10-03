@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import MktLogo from '@/Components/MktLogo.vue';
 import LiveAlertCenter from '@/Components/LiveAlertCenter.vue';
@@ -8,8 +8,18 @@ const page = usePage();
 
 // Navigation state
 const isSidebarOpen = ref(true);
-const isFinanceOpen = ref(true);
 const isProfileDropdownOpen = ref(false);
+
+const checkFinanceActive = () => {
+    try {
+        return typeof route === 'function' ? route().current('finance.*') : false;
+    } catch (e) {
+        return false;
+    }
+};
+
+// Sub menu Keuangan & Laporan otomatis tertutup jika tidak sedang diakses
+const isFinanceOpen = ref(false);
 
 // Dark mode state
 const isDarkMode = ref(false);
@@ -22,6 +32,14 @@ onMounted(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
         isSidebarOpen.value = false;
     }
+
+    // Buka sub menu hanya jika rute aktif saat ini adalah rute finance
+    isFinanceOpen.value = checkFinanceActive();
+});
+
+// Auto-sync state saat berpindah halaman: buka jika sedang diakses, sembunyikan jika tidak aktif
+watch(() => page.url, () => {
+    isFinanceOpen.value = checkFinanceActive();
 });
 
 const toggleDarkMode = () => {
@@ -238,6 +256,7 @@ const toggleFinance = () => {
                     <!-- Finance (Collapse Group) -->
                     <div>
                         <button
+                            type="button"
                             @click="toggleFinance"
                             :class="[
                                 route().current('finance.*')
@@ -266,53 +285,62 @@ const toggleFinance = () => {
                             </svg>
                         </button>
 
-                        <!-- Submenus -->
-                        <div v-show="isFinanceOpen && isSidebarOpen" class="pl-8 mt-1 space-y-1">
-                            <Link
-                                :href="route('finance.coa.index')"
-                                :class="[
-                                    route().current('finance.coa.index')
-                                        ? 'text-brand-600 dark:text-brand-400 font-semibold'
-                                        : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
-                                    'block py-1.5 text-xs transition-all duration-150'
-                                ]"
-                            >
-                                • Daftar COA (Kode Akun)
-                            </Link>
-                            <Link
-                                :href="route('finance.journal.index')"
-                                :class="[
-                                    route().current('finance.journal.index')
-                                        ? 'text-brand-600 dark:text-brand-400 font-semibold'
-                                        : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
-                                    'block py-1.5 text-xs transition-all duration-150'
-                                ]"
-                            >
-                                • Jurnal Umum
-                            </Link>
-                            <Link
-                                :href="route('finance.ledger.index')"
-                                :class="[
-                                    route().current('finance.ledger.index')
-                                        ? 'text-brand-600 dark:text-brand-400 font-semibold'
-                                        : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
-                                    'block py-1.5 text-xs transition-all duration-150'
-                                ]"
-                            >
-                                • Buku Besar (Ledger)
-                            </Link>
-                            <Link
-                                :href="route('finance.balance-sheet.index')"
-                                :class="[
-                                    route().current('finance.balance-sheet.index')
-                                        ? 'text-brand-600 dark:text-brand-400 font-semibold'
-                                        : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
-                                    'block py-1.5 text-xs transition-all duration-150'
-                                ]"
-                            >
-                                • Neraca Keuangan
-                            </Link>
-                        </div>
+                        <!-- Submenus (Hanya Tampil Jika Aktif / Dibuka) -->
+                        <transition
+                            enter-active-class="transition-all duration-200 ease-out"
+                            enter-from-class="opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                            enter-to-class="opacity-100 translate-y-0 max-h-60"
+                            leave-active-class="transition-all duration-150 ease-in"
+                            leave-from-class="opacity-100 translate-y-0 max-h-60"
+                            leave-to-class="opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                        >
+                            <div v-show="isFinanceOpen && isSidebarOpen" class="pl-8 mt-1 space-y-1">
+                                <Link
+                                    :href="route('finance.coa.index')"
+                                    :class="[
+                                        route().current('finance.coa.index')
+                                            ? 'text-brand-600 dark:text-brand-400 font-semibold'
+                                            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
+                                        'block py-1.5 text-xs transition-all duration-150'
+                                    ]"
+                                >
+                                    • Daftar COA (Kode Akun)
+                                </Link>
+                                <Link
+                                    :href="route('finance.journal.index')"
+                                    :class="[
+                                        route().current('finance.journal.index')
+                                            ? 'text-brand-600 dark:text-brand-400 font-semibold'
+                                            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
+                                        'block py-1.5 text-xs transition-all duration-150'
+                                    ]"
+                                >
+                                    • Jurnal Umum
+                                </Link>
+                                <Link
+                                    :href="route('finance.ledger.index')"
+                                    :class="[
+                                        route().current('finance.ledger.index')
+                                            ? 'text-brand-600 dark:text-brand-400 font-semibold'
+                                            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
+                                        'block py-1.5 text-xs transition-all duration-150'
+                                    ]"
+                                >
+                                    • Buku Besar (Ledger)
+                                </Link>
+                                <Link
+                                    :href="route('finance.balance-sheet.index')"
+                                    :class="[
+                                        route().current('finance.balance-sheet.index')
+                                            ? 'text-brand-600 dark:text-brand-400 font-semibold'
+                                            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
+                                        'block py-1.5 text-xs transition-all duration-150'
+                                    ]"
+                                >
+                                    • Neraca Keuangan
+                                </Link>
+                            </div>
+                        </transition>
                     </div>
                 </div>
 
@@ -371,7 +399,7 @@ const toggleFinance = () => {
                         <span v-if="isSidebarOpen" class="text-sm">Berita & Artikel</span>
                     </Link>
 
-                    <!-- Arsip Rapat -->
+                    <!-- Agenda & Arsip Rapat -->
                     <Link
                         :href="route('meetings.index')"
                         :class="[
@@ -382,9 +410,9 @@ const toggleFinance = () => {
                         ]"
                     >
                         <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zM9 14h2v2H9v-2zm4 0h2v2h-2v-2z"></path>
                         </svg>
-                        <span v-if="isSidebarOpen" class="text-sm">Arsip Rapat</span>
+                        <span v-if="isSidebarOpen" class="text-sm">Agenda & Arsip Rapat</span>
                     </Link>
 
                     <!-- Manajemen User (Pengguna) -->
