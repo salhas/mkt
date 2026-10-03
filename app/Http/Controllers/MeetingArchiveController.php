@@ -177,11 +177,18 @@ class MeetingArchiveController extends Controller
             'action_items' => 'nullable',
             'status' => 'required|string|max:50',
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,png,jpg,jpeg|max:10240',
+            'post_attendance_message' => 'nullable|string|max:5000',
+            'post_attendance_image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
 
         if ($request->hasFile('attachment')) {
             $path = $request->file('attachment')->store('meeting_attachments', 'public');
             $validated['attachment_path'] = '/storage/' . $path;
+        }
+
+        if ($request->hasFile('post_attendance_image')) {
+            $imgPath = $request->file('post_attendance_image')->store('meeting_attendance_images', 'public');
+            $validated['post_attendance_image'] = '/storage/' . $imgPath;
         }
 
         // Format attendees & action_items if passed as JSON string
@@ -214,6 +221,8 @@ class MeetingArchiveController extends Controller
             'action_items' => 'nullable',
             'status' => 'required|string|max:50',
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,png,jpg,jpeg|max:10240',
+            'post_attendance_message' => 'nullable|string|max:5000',
+            'post_attendance_image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
 
         if ($request->hasFile('attachment')) {
@@ -222,6 +231,19 @@ class MeetingArchiveController extends Controller
             }
             $path = $request->file('attachment')->store('meeting_attachments', 'public');
             $validated['attachment_path'] = '/storage/' . $path;
+        }
+
+        if ($request->hasFile('post_attendance_image')) {
+            if ($meeting->post_attendance_image && Storage::disk('public')->exists(str_replace('/storage/', '', $meeting->post_attendance_image))) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $meeting->post_attendance_image));
+            }
+            $imgPath = $request->file('post_attendance_image')->store('meeting_attendance_images', 'public');
+            $validated['post_attendance_image'] = '/storage/' . $imgPath;
+        } elseif ($request->boolean('remove_post_attendance_image')) {
+            if ($meeting->post_attendance_image && Storage::disk('public')->exists(str_replace('/storage/', '', $meeting->post_attendance_image))) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $meeting->post_attendance_image));
+            }
+            $validated['post_attendance_image'] = null;
         }
 
         if (is_string($request->input('attendees'))) {

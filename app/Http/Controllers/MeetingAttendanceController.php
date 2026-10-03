@@ -36,6 +36,8 @@ class MeetingAttendanceController extends Controller
                 'attendance_token' => $meeting->attendance_token,
                 'is_attendance_open' => $meeting->is_attendance_open,
                 'total_attended' => $totalAttended,
+                'post_attendance_image' => $meeting->post_attendance_image,
+                'post_attendance_message' => $meeting->post_attendance_message,
             ],
             'flash' => [
                 'success' => session('success'),

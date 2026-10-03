@@ -476,6 +476,23 @@ const clearAllAttendees = () => {
     selectedAttendees.value = [];
 };
 
+const postAttendanceImagePreview = ref(null);
+
+const onPostAttendanceImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        form.post_attendance_image = file;
+        form.remove_post_attendance_image = false;
+        postAttendanceImagePreview.value = URL.createObjectURL(file);
+    }
+};
+
+const removePostAttendanceImage = () => {
+    form.post_attendance_image = null;
+    form.remove_post_attendance_image = true;
+    postAttendanceImagePreview.value = null;
+};
+
 const form = useForm({
     title: '',
     meeting_date: '',
@@ -489,6 +506,9 @@ const form = useForm({
     action_items: [],
     status: 'Terjadwal',
     attachment: null,
+    post_attendance_image: null,
+    post_attendance_message: '',
+    remove_post_attendance_image: false,
 });
 
 const openAddModal = (mode = 'agenda') => {
@@ -509,6 +529,7 @@ const openAddModal = (mode = 'agenda') => {
     selectedAttendees.value = [];
     comboboxSearch.value = '';
     isComboboxDropdownOpen.value = false;
+    postAttendanceImagePreview.value = null;
     isFormModalOpen.value = true;
 };
 
@@ -535,6 +556,11 @@ const openEditModal = (m, mode = 'normal') => {
     form.action_items = Array.isArray(m.action_items) && m.action_items.length > 0
         ? JSON.parse(JSON.stringify(m.action_items))
         : [{ task: '', pic: '', deadline: '', completed: false }];
+
+    form.post_attendance_message = m.post_attendance_message || '';
+    form.post_attendance_image = null;
+    form.remove_post_attendance_image = false;
+    postAttendanceImagePreview.value = m.post_attendance_image || null;
 
     if (mode === 'write_notes') {
         form.status = 'Selesai';
@@ -1533,6 +1559,25 @@ const getCategoryColor = (category) => {
                             Unduh Dokumen
                         </a>
                     </div>
+
+                    <!-- Post-Attendance Info Preview for Admin -->
+                    <div v-if="activeMeeting.post_attendance_image || activeMeeting.post_attendance_message" class="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200 dark:border-amber-900/40 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>Tampilan Informasi Pasca-Presensi Online Peserta</span>
+                            </span>
+                            <span class="text-[10px] text-amber-700 dark:text-amber-400 font-medium">Tampil di HP peserta setelah presensi</span>
+                        </div>
+
+                        <div v-if="activeMeeting.post_attendance_image" class="max-w-xs rounded-xl overflow-hidden border border-amber-200 dark:border-amber-800 bg-black/10">
+                            <img :src="activeMeeting.post_attendance_image" alt="Flyer Pasca Presensi" class="w-full h-auto object-cover max-h-48" />
+                        </div>
+
+                        <div v-if="activeMeeting.post_attendance_message" class="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed bg-white/70 dark:bg-gray-800/60 p-3 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                            {{ activeMeeting.post_attendance_message }}
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Modal Footer (Fixed Bottom) -->
@@ -1858,6 +1903,78 @@ const getCategoryColor = (category) => {
                                         placeholder="1. Pembukaan & Doa&#10;2. Sosialisasi kesiapan personil / logistik&#10;3. Rencana penanganan bencana"
                                         class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-2.5 focus:ring-2 focus:ring-brand-500 transition text-xs leading-relaxed"
                                     ></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Section: Lampiran Gambar & Pesan Khusus Pasca-Presensi Online (Tampil ke Peserta) -->
+                            <div class="space-y-4 p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/50">
+                                <div class="flex items-center justify-between pb-2 border-b border-amber-200/60 dark:border-amber-900/40">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        <h4 class="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                                            <span>Informasi & Lampiran Pasca-Presensi Online</span>
+                                        </h4>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800">
+                                        📱 Tampil di HP Peserta
+                                    </span>
+                                </div>
+
+                                <p class="text-[11px] text-gray-600 dark:text-gray-400 leading-relaxed">
+                                    Upload gambar (flyer, pamflet kegiatan, denah lokasi) dan pesan di bawah ini. Informasi ini otomatis ditampilkan pada layar smartphone peserta/undangan segera setelah mereka berhasil mengirimkan presensi online.
+                                </p>
+
+                                <!-- Field: Lampirkan Image -->
+                                <div>
+                                    <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1 text-xs">
+                                        Lampirkan Gambar / Flyer / Denah Acara
+                                    </label>
+                                    <div class="flex items-start gap-3.5">
+                                        <!-- Image Preview if available -->
+                                        <div v-if="postAttendanceImagePreview" class="relative group shrink-0">
+                                            <img
+                                                :src="postAttendanceImagePreview"
+                                                alt="Preview"
+                                                class="w-24 h-24 object-cover rounded-xl border-2 border-amber-500 shadow-md bg-white dark:bg-gray-800"
+                                            />
+                                            <button
+                                                type="button"
+                                                @click="removePostAttendanceImage"
+                                                class="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full p-1 shadow-md hover:bg-rose-700 transition"
+                                                title="Hapus Gambar"
+                                            >
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                        </div>
+
+                                        <div class="flex-1 space-y-1">
+                                            <input
+                                                type="file"
+                                                @change="onPostAttendanceImageChange"
+                                                accept="image/*"
+                                                class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 dark:file:bg-amber-950 dark:file:text-amber-200 hover:file:bg-amber-200 transition"
+                                            />
+                                            <p class="text-[10px] text-gray-400">
+                                                Format didukung: JPG, PNG, WEBP, GIF (Maks. 5 MB).
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Field: Textarea Pesan / Pengumuman -->
+                                <div>
+                                    <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1 text-xs">
+                                        Pesan / Pengumuman / Instruksi Khusus Peserta
+                                    </label>
+                                    <textarea
+                                        v-model="form.post_attendance_message"
+                                        rows="3"
+                                        placeholder="Tuliskan ucapan selamat datang, panduan tata tertib acara, instruksi pengambilan ID card/konsumsi, atau link grup WhatsApp koordinasi relawan (contoh: https://chat.whatsapp.com/...)"
+                                        class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-2.5 focus:ring-2 focus:ring-amber-500 transition text-xs leading-relaxed"
+                                    ></textarea>
+                                    <p class="text-[10px] text-gray-400 mt-1">
+                                        Tautan URL atau link grup WhatsApp yang Anda tuliskan akan otomatis aktif dan dapat diklik langsung oleh peserta di HP mereka.
+                                    </p>
                                 </div>
                             </div>
 

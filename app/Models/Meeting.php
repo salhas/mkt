@@ -24,6 +24,8 @@ class Meeting extends Model
         'attendance_token',
         'is_attendance_open',
         'attachment_path',
+        'post_attendance_image',
+        'post_attendance_message',
         'created_by',
     ];
 

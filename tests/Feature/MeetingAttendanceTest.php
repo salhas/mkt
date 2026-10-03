@@ -240,4 +240,39 @@ class MeetingAttendanceTest extends TestCase
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
         $this->assertStringContainsString('attachment; filename=', $response->headers->get('content-disposition'));
     }
+
+    public function test_can_create_meeting_with_post_attendance_image_and_message(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        $admin = User::factory()->create();
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('denah_lokasi.png');
+
+        $response = $this
+            ->actingAs($admin)
+            ->post(route('meetings.store'), [
+                'title' => 'Simulasi Gabungan SAR & Medis',
+                'meeting_date' => now()->addDays(3)->format('Y-m-d H:i:s'),
+                'category' => 'Agenda Kegiatan / Baksos',
+                'status' => 'Terjadwal',
+                'post_attendance_image' => $file,
+                'post_attendance_message' => 'Selamat datang! Silakan menuju Posko Medis di Lt. 2 atau gabung grup WA: https://chat.whatsapp.com/test',
+            ]);
+
+        $response->assertRedirect();
+        
+        $meeting = Meeting::where('title', 'Simulasi Gabungan SAR & Medis')->first();
+        $this->assertNotNull($meeting);
+        $this->assertNotNull($meeting->post_attendance_image);
+        $this->assertEquals('Selamat datang! Silakan menuju Posko Medis di Lt. 2 atau gabung grup WA: https://chat.whatsapp.com/test', $meeting->post_attendance_message);
+
+        // Verify public attendance form shows this image and message
+        $publicRes = $this->get(route('public.attendance.show', $meeting->attendance_token));
+        $publicRes->assertOk();
+        $publicRes->assertInertia(fn (Assert $page) => $page
+            ->component('Public/MeetingAttendance')
+            ->where('meeting.post_attendance_image', $meeting->post_attendance_image)
+            ->where('meeting.post_attendance_message', $meeting->post_attendance_message)
+        );
+    }
 }

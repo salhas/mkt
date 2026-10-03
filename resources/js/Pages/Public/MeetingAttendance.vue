@@ -140,6 +140,18 @@ const resetForAnotherAttendee = () => {
     selectedInstitutionType.value = '';
 };
 
+const activeZoomImage = ref(null);
+
+const formatMessageWithLinks = (text) => {
+    if (!text) return '';
+    const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    const urlPattern = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+    return escaped.replace(urlPattern, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-orange-400 hover:text-orange-300 underline font-bold break-all">$1 ↗</a>');
+};
+
 const formatDate = (dateStr) => {
     if (!dateStr) return '-';
     try {
@@ -277,6 +289,47 @@ onMounted(() => {
                     <div class="flex justify-between">
                         <span class="text-slate-400">Agenda Kegiatan:</span>
                         <span class="font-semibold text-orange-300 text-right truncate max-w-[200px]">{{ meeting.title }}</span>
+                    </div>
+                </div>
+
+                <!-- Post-Attendance Announcement & Attached Image from Committee (Lampiran & Pesan Pasca-Presensi) -->
+                <div v-if="meeting.post_attendance_image || meeting.post_attendance_message" class="bg-gradient-to-b from-orange-500/15 via-slate-950/70 to-slate-950/90 rounded-2xl p-4 sm:p-5 border border-orange-500/30 space-y-3.5 shadow-xl">
+                    <div class="flex items-center gap-2 pb-2 border-b border-orange-500/20">
+                        <span class="w-2.5 h-2.5 rounded-full bg-orange-400 animate-pulse"></span>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-orange-300 flex items-center gap-1.5">
+                            <span>📢 Informasi & Lampiran Khusus Panitia</span>
+                        </h4>
+                    </div>
+
+                    <!-- Lampiran Gambar / Flyer Acara / Denah -->
+                    <div v-if="meeting.post_attendance_image" class="rounded-xl overflow-hidden border border-white/10 shadow-lg bg-black/50 group relative">
+                        <img 
+                            :src="meeting.post_attendance_image" 
+                            alt="Lampiran Kegiatan" 
+                            class="w-full max-h-72 object-contain mx-auto cursor-pointer hover:scale-[1.01] transition duration-200"
+                            @click="activeZoomImage = meeting.post_attendance_image"
+                        />
+                        <div class="p-2.5 bg-slate-950/90 text-center flex items-center justify-between px-4 border-t border-white/5">
+                            <span class="text-[11px] text-slate-400 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                Klik untuk memperbesar
+                            </span>
+                            <a 
+                                :href="meeting.post_attendance_image" 
+                                target="_blank" 
+                                download 
+                                class="text-[11px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                <span>Unduh Gambar</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Pesan / Instruksi Khusus (Auto-linking URLs) -->
+                    <div v-if="meeting.post_attendance_message" class="bg-slate-900/90 rounded-xl p-3.5 border border-white/10 text-xs text-slate-200 whitespace-pre-line leading-relaxed space-y-1">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-orange-400/90">Instruksi & Arahan:</div>
+                        <div v-html="formatMessageWithLinks(meeting.post_attendance_message)"></div>
                     </div>
                 </div>
 
@@ -470,6 +523,20 @@ onMounted(() => {
                 Akses aman untuk peserta, mitra Basarnas, BPBD, PMI, dan tamu undangan.
             </p>
         </footer>
+
+        <!-- Lightbox Zoom Modal for Post-Attendance Image -->
+        <div v-if="activeZoomImage" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click="activeZoomImage = null">
+            <div class="relative max-w-2xl w-full max-h-[90vh] flex flex-col items-center" @click.stop>
+                <button 
+                    type="button" 
+                    @click="activeZoomImage = null"
+                    class="absolute -top-10 right-0 text-white hover:text-orange-400 text-sm font-bold flex items-center gap-1"
+                >
+                    <span>Tutup (✕)</span>
+                </button>
+                <img :src="activeZoomImage" alt="Lampiran Penuh" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" />
+            </div>
+        </div>
     </div>
 </template>
 
