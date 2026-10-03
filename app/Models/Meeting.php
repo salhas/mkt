@@ -63,4 +63,17 @@ class Meeting extends Model
         }
         return $this->attendance_token;
     }
+
+    public function getPostAttendanceImageAttribute($value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, 'data:')) {
+            return $value;
+        }
+
+        return asset(ltrim($value, '/'));
+    }
 }

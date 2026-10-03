@@ -184,11 +184,13 @@ class MeetingArchiveController extends Controller
         if ($request->hasFile('attachment')) {
             $path = $request->file('attachment')->store('meeting_attachments', 'public');
             $validated['attachment_path'] = '/storage/' . $path;
+            @chmod(storage_path('app/public/' . $path), 0644);
         }
 
         if ($request->hasFile('post_attendance_image')) {
             $imgPath = $request->file('post_attendance_image')->store('meeting_attendance_images', 'public');
             $validated['post_attendance_image'] = '/storage/' . $imgPath;
+            @chmod(storage_path('app/public/' . $imgPath), 0644);
         }
 
         // Format attendees & action_items if passed as JSON string
@@ -226,22 +228,30 @@ class MeetingArchiveController extends Controller
         ]);
 
         if ($request->hasFile('attachment')) {
-            if ($meeting->attachment_path && Storage::disk('public')->exists(str_replace('/storage/', '', $meeting->attachment_path))) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $meeting->attachment_path));
+            $rawAtt = $meeting->getRawOriginal('attachment_path') ?? $meeting->attachment_path;
+            $oldAtt = preg_replace('#^.*?storage/#', '', (string)$rawAtt);
+            if ($oldAtt && Storage::disk('public')->exists($oldAtt)) {
+                Storage::disk('public')->delete($oldAtt);
             }
             $path = $request->file('attachment')->store('meeting_attachments', 'public');
             $validated['attachment_path'] = '/storage/' . $path;
+            @chmod(storage_path('app/public/' . $path), 0644);
         }
 
         if ($request->hasFile('post_attendance_image')) {
-            if ($meeting->post_attendance_image && Storage::disk('public')->exists(str_replace('/storage/', '', $meeting->post_attendance_image))) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $meeting->post_attendance_image));
+            $rawImg = $meeting->getRawOriginal('post_attendance_image') ?? $meeting->post_attendance_image;
+            $oldImg = preg_replace('#^.*?storage/#', '', (string)$rawImg);
+            if ($oldImg && Storage::disk('public')->exists($oldImg)) {
+                Storage::disk('public')->delete($oldImg);
             }
             $imgPath = $request->file('post_attendance_image')->store('meeting_attendance_images', 'public');
             $validated['post_attendance_image'] = '/storage/' . $imgPath;
+            @chmod(storage_path('app/public/' . $imgPath), 0644);
         } elseif ($request->boolean('remove_post_attendance_image')) {
-            if ($meeting->post_attendance_image && Storage::disk('public')->exists(str_replace('/storage/', '', $meeting->post_attendance_image))) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $meeting->post_attendance_image));
+            $rawImg = $meeting->getRawOriginal('post_attendance_image') ?? $meeting->post_attendance_image;
+            $oldImg = preg_replace('#^.*?storage/#', '', (string)$rawImg);
+            if ($oldImg && Storage::disk('public')->exists($oldImg)) {
+                Storage::disk('public')->delete($oldImg);
             }
             $validated['post_attendance_image'] = null;
         }

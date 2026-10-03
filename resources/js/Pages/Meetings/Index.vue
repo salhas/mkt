@@ -477,12 +477,14 @@ const clearAllAttendees = () => {
 };
 
 const postAttendanceImagePreview = ref(null);
+const imagePreviewHasError = ref(false);
 
 const onPostAttendanceImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
         form.post_attendance_image = file;
         form.remove_post_attendance_image = false;
+        imagePreviewHasError.value = false;
         postAttendanceImagePreview.value = URL.createObjectURL(file);
     }
 };
@@ -490,6 +492,7 @@ const onPostAttendanceImageChange = (e) => {
 const removePostAttendanceImage = () => {
     form.post_attendance_image = null;
     form.remove_post_attendance_image = true;
+    imagePreviewHasError.value = false;
     postAttendanceImagePreview.value = null;
 };
 
@@ -530,6 +533,7 @@ const openAddModal = (mode = 'agenda') => {
     comboboxSearch.value = '';
     isComboboxDropdownOpen.value = false;
     postAttendanceImagePreview.value = null;
+    imagePreviewHasError.value = false;
     isFormModalOpen.value = true;
 };
 
@@ -561,6 +565,7 @@ const openEditModal = (m, mode = 'normal') => {
     form.post_attendance_image = null;
     form.remove_post_attendance_image = false;
     postAttendanceImagePreview.value = m.post_attendance_image || null;
+    imagePreviewHasError.value = false;
 
     if (mode === 'write_notes') {
         form.status = 'Selesai';
@@ -1571,7 +1576,12 @@ const getCategoryColor = (category) => {
                         </div>
 
                         <div v-if="activeMeeting.post_attendance_image" class="max-w-xs rounded-xl overflow-hidden border border-amber-200 dark:border-amber-800 bg-black/10">
-                            <img :src="activeMeeting.post_attendance_image" alt="Flyer Pasca Presensi" class="w-full h-auto object-cover max-h-48" />
+                            <img
+                                :src="activeMeeting.post_attendance_image"
+                                alt="Flyer Pasca Presensi"
+                                class="w-full h-auto object-cover max-h-48"
+                                @error="(e) => e.target.parentElement.style.display = 'none'"
+                            />
                         </div>
 
                         <div v-if="activeMeeting.post_attendance_message" class="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed bg-white/70 dark:bg-gray-800/60 p-3 rounded-xl border border-amber-100 dark:border-amber-900/30">
@@ -1932,16 +1942,25 @@ const getCategoryColor = (category) => {
                                     <div class="flex items-start gap-3.5">
                                         <!-- Image Preview if available -->
                                         <div v-if="postAttendanceImagePreview" class="relative group shrink-0">
+                                            <div v-if="imagePreviewHasError" class="w-24 h-24 rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 dark:bg-amber-950/40 p-2 flex flex-col items-center justify-center text-center">
+                                                <svg class="w-5 h-5 text-amber-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                </svg>
+                                                <span class="text-[9px] font-bold text-amber-700 dark:text-amber-300 leading-tight">File di Server Belum Ada</span>
+                                            </div>
                                             <img
+                                                v-show="!imagePreviewHasError"
                                                 :src="postAttendanceImagePreview"
                                                 alt="Preview"
+                                                @error="imagePreviewHasError = true"
+                                                @load="imagePreviewHasError = false"
                                                 class="w-24 h-24 object-cover rounded-xl border-2 border-amber-500 shadow-md bg-white dark:bg-gray-800"
                                             />
                                             <button
                                                 type="button"
                                                 @click="removePostAttendanceImage"
                                                 class="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full p-1 shadow-md hover:bg-rose-700 transition"
-                                                title="Hapus Gambar"
+                                                title="Hapus / Ganti Gambar"
                                             >
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                             </button>

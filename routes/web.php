@@ -156,9 +156,19 @@ require __DIR__.'/auth.php';
 
 // Storage Static Fallback Route for Shared Hosting / cPanel environments
 Route::get('/storage/{path}', function ($path) {
-    $fullPath = storage_path('app/public/' . $path);
-    if (!file_exists($fullPath)) {
+    // Sanitize path to prevent directory traversal
+    $cleanPath = str_replace(['..', "\0"], '', $path);
+    $fullPath = storage_path('app/public/' . $cleanPath);
+
+    if (!file_exists($fullPath) || is_dir($fullPath)) {
         abort(404);
     }
-    return response()->file($fullPath);
-})->where('path', '.*');
+
+    $mimeType = @mime_content_type($fullPath) ?: 'application/octet-stream';
+
+    return response()->file($fullPath, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+})->where('path', '.*')->name('storage.fallback');
+

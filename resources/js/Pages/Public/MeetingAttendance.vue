@@ -308,6 +308,7 @@ onMounted(() => {
                             alt="Lampiran Kegiatan" 
                             class="w-full max-h-72 object-contain mx-auto cursor-pointer hover:scale-[1.01] transition duration-200"
                             @click="activeZoomImage = meeting.post_attendance_image"
+                            @error="(e) => e.target.closest('.group')?.style.setProperty('display', 'none', 'important')"
                         />
                         <div class="p-2.5 bg-slate-950/90 text-center flex items-center justify-between px-4 border-t border-white/5">
                             <span class="text-[11px] text-slate-400 flex items-center gap-1">
