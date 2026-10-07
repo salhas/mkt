@@ -47,13 +47,16 @@ const ctaForm = ref({
     partner_address: '',
     personnel_count: 5,
     mou_number: '',
-    partner_description: ''
+    partner_description: '',
+    partner_terms_accepted: false
 });
 const ctaSubmitted = ref(false);
 const isSubmittingCta = ref(false);
 const ctaFeedbackMessage = ref('');
+const showTermsDetails = ref(false);
 
 const resetCtaForm = () => {
+    showTermsDetails.value = false;
     ctaForm.value = {
         name: '',
         email: '',
@@ -73,7 +76,8 @@ const resetCtaForm = () => {
         partner_address: '',
         personnel_count: 5,
         mou_number: '',
-        partner_description: ''
+        partner_description: '',
+        partner_terms_accepted: false
     };
 };
 
@@ -169,6 +173,11 @@ const handleCtaSubmit = async () => {
         let payload = {};
 
         if (ctaModalType.value === 'mitra') {
+            if (!ctaForm.value.partner_terms_accepted) {
+                alert('Mohon centang persetujuan Syarat & Ketentuan Kemitraan dan Kolaborasi MKT Indonesia terlebih dahulu.');
+                isSubmittingCta.value = false;
+                return;
+            }
             endpoint = '/register-partner';
             payload = {
                 name: ctaForm.value.partner_name || ctaForm.value.name,
@@ -182,7 +191,8 @@ const handleCtaSubmit = async () => {
                 personnel_count: parseInt(ctaForm.value.personnel_count) || 0,
                 mou_number: ctaForm.value.mou_number || null,
                 description: ctaForm.value.partner_description || null,
-                password: ctaForm.value.password || 'password123'
+                password: ctaForm.value.password || 'password123',
+                terms_accepted: ctaForm.value.partner_terms_accepted
             };
         } else {
             endpoint = '/register-volunteer';
@@ -212,7 +222,7 @@ const handleCtaSubmit = async () => {
         if (response.ok && data.success !== false) {
             ctaSubmitted.value = true;
             ctaFeedbackMessage.value = data.message || (ctaModalType.value === 'mitra' 
-                ? 'Pendaftaran kemitraan lembaga berhasil dikirim! Tim MKT Indonesia akan segera menghubungi PIC Anda.' 
+                ? 'Registrasi Kemitraan & Kolaborasi MKT berhasil dikirim! Tim MKT Indonesia akan segera menghubungi narahubung PIC Anda.' 
                 : 'Pendaftaran relawan berhasil dikirim! Akun Anda telah aktif.');
             resetCtaForm();
         } else {
@@ -222,7 +232,7 @@ const handleCtaSubmit = async () => {
         isSubmittingCta.value = false;
         ctaSubmitted.value = true;
         ctaFeedbackMessage.value = ctaModalType.value === 'mitra' 
-            ? 'Pendaftaran kemitraan lembaga berhasil diterima oleh sistem MKT Indonesia.' 
+            ? 'Registrasi Kemitraan & Kolaborasi MKT berhasil diterima oleh sistem MKT Indonesia.' 
             : 'Pendaftaran relawan berhasil dikirim ke sistem MKT Indonesia.';
         resetCtaForm();
     }
@@ -630,10 +640,10 @@ const navigationLinks = computed(() => [
                             {{ ctaModalType === 'mitra' ? '🤝 KOLABORASI & SINERGI LEMBAGA' : (ctaModalType === 'donatur' ? '💖 DONASI KEMANUSIAAN' : '🚑 GABUNG RELAWAN RESCUE & DONOR DARAH') }}
                         </span>
                         <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
-                            {{ ctaModalType === 'mitra' ? 'Registrasi Kemitraan Lembaga' : (ctaModalType === 'donatur' ? 'Form Donatur Filantropi' : 'Daftar Relawan & Donor Darah') }}
+                            {{ ctaModalType === 'mitra' ? 'Registrasi Kemitraan & Kolaborasi MKT' : (ctaModalType === 'donatur' ? 'Form Donatur Filantropi' : 'Daftar Relawan & Donor Darah') }}
                         </h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            {{ ctaModalType === 'mitra' ? 'Sinergi antar-lembaga dalam penanggulangan bencana, mitigasi, & program CSR.' : 'Bergabung dalam tim tanggap darurat kemanusiaan Yayasan MKT Indonesia.' }}
+                            {{ ctaModalType === 'mitra' ? 'Menghubungkan potensi, memperkuat kolaborasi, dan menghasilkan dampak kemanusiaan yang lebih besar.' : 'Bergabung dalam tim tanggap darurat kemanusiaan Yayasan MKT Indonesia.' }}
                         </p>
                     </div>
                     <button @click="showCtaModal = false" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">
@@ -659,7 +669,7 @@ const navigationLinks = computed(() => [
                         class="py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5"
                         :class="ctaModalType === 'mitra' ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
                     >
-                        <span>🤝 Kemitraan Lembaga / Mitra</span>
+                        <span>🤝 Kemitraan & Kolaborasi MKT</span>
                     </button>
                 </div>
 
@@ -744,12 +754,124 @@ const navigationLinks = computed(() => [
                         <textarea v-model="ctaForm.partner_description" rows="2" placeholder="Jelaskan bidang kerjasama, pengerahan relawan bersama, dukungan logistik, atau program..." class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm p-2.5"></textarea>
                     </div>
 
+                    <!-- Checkbox & Rincian Syarat & Ketentuan Kemitraan dan Kolaborasi MKT Indonesia -->
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-blue-50/80 dark:bg-slate-900/80 border border-blue-200/90 dark:border-blue-900/60 space-y-3">
+                        <div class="flex items-start space-x-3">
+                            <input 
+                                id="partner_terms_checkbox"
+                                v-model="ctaForm.partner_terms_accepted" 
+                                type="checkbox" 
+                                required 
+                                class="mt-0.5 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 cursor-pointer shrink-0"
+                            />
+                            <label for="partner_terms_checkbox" class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed cursor-pointer select-none">
+                                Saya menyatakan mewakili lembaga/organisasi/komunitas di atas secara sah, telah membaca, memahami, dan menyetujui seluruh 
+                                <span class="font-bold text-blue-700 dark:text-blue-400">Syarat & Ketentuan Kemitraan dan Kolaborasi MKT Indonesia</span>. <span class="text-rose-500 font-bold">*</span>
+                            </label>
+                        </div>
+
+                        <!-- Tombol Aksi: Baca Rincian (A-G), Halaman Lengkap & Download Berkas PDF -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-blue-100 dark:border-blue-900/40 text-[11px]">
+                            <div class="flex items-center space-x-3">
+                                <button
+                                    type="button"
+                                    @click="showTermsDetails = !showTermsDetails"
+                                    class="inline-flex items-center space-x-1 font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                                >
+                                    <span>{{ showTermsDetails ? '▲ Tutup Ringkasan' : '📖 Baca Ringkasan (A - G)' }}</span>
+                                </button>
+                                <span class="text-slate-300 dark:text-slate-700">|</span>
+                                <a 
+                                    href="/syarat-ketentuan" 
+                                    target="_blank" 
+                                    class="inline-flex items-center space-x-1 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 font-bold transition-colors"
+                                    title="Buka halaman web regulasi lengkap"
+                                >
+                                    <span>🌐 Halaman Web Lengkap ↗</span>
+                                </a>
+                            </div>
+
+                            <a 
+                                href="/syarat-ketentuan-kemitraan" 
+                                target="_blank" 
+                                download="Syarat-dan-Ketentuan-Kemitraan-dan-Kolaborasi-MKT.pdf"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-xs active:scale-95 text-[11px]"
+                                title="Download Dokumen Resmi Syarat & Ketentuan Kemitraan dan Kolaborasi MKT Indonesia"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                                <span>📥 Unduh Berkas Lengkap (PDF)</span>
+                            </a>
+                        </div>
+
+                        <!-- Ringkasan Narasi Syarat & Ketentuan (Sesuai SYARAT KETENTUAN.docx) -->
+                        <div v-if="showTermsDetails" class="p-3.5 rounded-xl bg-white dark:bg-slate-950 border border-blue-100 dark:border-blue-900/50 text-xs text-slate-600 dark:text-slate-300 space-y-2.5 max-h-60 overflow-y-auto leading-relaxed shadow-inner">
+                            <div class="font-black text-blue-900 dark:text-blue-300 border-b pb-1.5 border-slate-100 dark:border-slate-800">
+                                RINGKASAN SYARAT & KETENTUAN KEMITRAAN DAN KOLABORASI MKT INDONESIA
+                            </div>
+
+                            <div>
+                                <strong class="text-slate-900 dark:text-white">A. Ketentuan Umum:</strong>
+                                <p class="text-[11px] mt-0.5">
+                                    Kemitraan terbuka bagi lembaga, komunitas, perguruan tinggi, CSR, dan relawan di bidang kemanusiaan, kebencanaan, sosial, kesehatan, dsb. Kemitraan tidak mengubah identitas, struktur, kewenangan, maupun independensi organisasi mitra. Prinsip: <em>"Menghubungkan potensi, memperkuat kolaborasi, dan menghasilkan dampak kemanusiaan yang lebih besar."</em>
+                                </p>
+                            </div>
+
+                            <div>
+                                <strong class="text-slate-900 dark:text-white">B. Persyaratan Mitra:</strong>
+                                <ul class="list-disc pl-4 text-[11px] space-y-0.5 mt-0.5">
+                                    <li>Memiliki identitas dan keberadaan organisasi yang jelas (berbadan hukum maupun komunitas terpercaya).</li>
+                                    <li>Memiliki kegiatan, kapasitas, jaringan, atau sumber daya yang relevan dengan misi kemanusiaan MKT.</li>
+                                    <li>Menunjuk narahubung/PIC resmi yang dapat dihubungi.</li>
+                                    <li>Memberikan informasi yang benar, lengkap, dan bersedia verifikasi data.</li>
+                                    <li>Menjunjung profesionalitas, transparansi, kesetaraan, inklusivitas, dan tidak bertentangan dengan hukum.</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <strong class="text-slate-900 dark:text-white">C. Prinsip Kemitraan:</strong>
+                                <p class="text-[11px] mt-0.5">
+                                    1. Kesetaraan | 2. Independensi | 3. Transparansi | 4. Akuntabilitas | 5. Non-diskriminasi & Inklusivitas | 6. Kepentingan Kemanusiaan | 7. Tidak Mengambil Alih Kewenangan resmi pihak lain.
+                                </p>
+                            </div>
+
+                            <div>
+                                <strong class="text-slate-900 dark:text-white">D. Komitmen Mitra:</strong>
+                                <p class="text-[11px] mt-0.5">
+                                    Menjaga reputasi kemitraan, mematuhi kesepakatan, menjaga kerahasiaan informasi terbatas, tidak menyalahgunakan nama/logo/fasilitas MKT Indonesia, serta menyelesaikan dinamika melalui komunikasi dan mekanisme musyawarah.
+                                </p>
+                            </div>
+
+                            <div>
+                                <strong class="text-slate-900 dark:text-white">E. Penggunaan Data dan Informasi:</strong>
+                                <p class="text-[11px] mt-0.5">
+                                    Data formulir digunakan untuk identifikasi, verifikasi, pemetaan potensi/sumber daya, koordinasi kemitraan, dan pengembangan ekosistem kemanusiaan MKT Indonesia sesuai peraturan perundang-undangan.
+                                </p>
+                            </div>
+
+                            <div>
+                                <strong class="text-slate-900 dark:text-white">F. Verifikasi dan Persetujuan Kemitraan:</strong>
+                                <p class="text-[11px] mt-0.5">
+                                    Registrasi melalui alur: <strong>Registrasi → Verifikasi → Komunikasi/Klarifikasi → Penilaian Kesesuaian → Persetujuan Kemitraan</strong>. Dapat dituangkan dalam MoU, PKS, MoA, atau surat kesepakatan kerja sama bersama.
+                                </p>
+                            </div>
+
+                            <div>
+                                <strong class="text-slate-900 dark:text-white">G. Penolakan atau Pengakhiran Kemitraan:</strong>
+                                <p class="text-[11px] mt-0.5">
+                                    MKT Indonesia berhak menolak atau mengakhiri kemitraan apabila ditemukan data palsu, pelanggaran hukum/prinsip kemanusiaan, penyalahgunaan identitas MKT, atau konflik kepentingan.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <button 
                         type="submit" 
-                        :disabled="isSubmittingCta"
-                        class="w-full py-3.5 text-white font-bold rounded-xl shadow-lg shadow-blue-600/25 active:scale-98 transition-all text-xs sm:text-sm flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-70"
+                        :disabled="isSubmittingCta || !ctaForm.partner_terms_accepted"
+                        class="w-full py-3.5 text-white font-bold rounded-xl shadow-lg shadow-blue-600/25 active:scale-98 transition-all text-xs sm:text-sm flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <span>{{ isSubmittingCta ? 'Memproses Pendaftaran Mitra...' : '🤝 Kirim Pendaftaran Kemitraan Lembaga' }}</span>
+                        <span>{{ isSubmittingCta ? 'Memproses Registrasi Mitra...' : '🤝 Kirim Registrasi Kemitraan & Kolaborasi MKT' }}</span>
                     </button>
                 </form>
 

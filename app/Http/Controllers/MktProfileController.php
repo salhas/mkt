@@ -42,6 +42,13 @@ class MktProfileController extends Controller
         $profile->fill($request->all());
         $profile->save();
 
+        // Regenerate dokumen Syarat & Ketentuan PDF resmi dengan profil terbaru
+        try {
+            \App\Services\PartnerTermsPdfService::generatePdf();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal memperbarui berkas PDF syarat ketentuan: ' . $e->getMessage());
+        }
+
         return redirect()->back()->with('success', 'Profil Lembaga MKT berhasil diperbarui.');
     }
 }

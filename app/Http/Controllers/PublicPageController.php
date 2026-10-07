@@ -139,4 +139,46 @@ class PublicPageController extends Controller
             'mktProfile' => MktProfile::first()
         ]);
     }
+
+    /**
+     * Halaman Web Syarat & Ketentuan Kemitraan dan Kolaborasi MKT
+     */
+    public function partnerTerms(Request $request)
+    {
+        $filePath = public_path('docs/syarat-dan-ketentuan-kemitraan-mkt.pdf');
+
+        if (!file_exists($filePath)) {
+            abort(404, 'Berkas Syarat & Ketentuan Kemitraan tidak ditemukan.');
+        }
+
+        // Tampilkan halaman web interaktif jika diminta via Inertia atau query view=web
+        if ($request->header('X-Inertia') || $request->query('view') === 'web' || $request->routeIs('public.partner-terms')) {
+            return Inertia::render('Public/PartnerTerms', [
+                'pdfUrl' => '/docs/syarat-dan-ketentuan-kemitraan-mkt.pdf',
+                'downloadUrl' => route('partner.terms.download'),
+                'mktProfile' => MktProfile::first(),
+            ]);
+        }
+
+        // Default endpoint /syarat-ketentuan-kemitraan menyajikan berkas PDF resmi
+        return response()->download($filePath, 'Syarat-dan-Ketentuan-Kemitraan-dan-Kolaborasi-MKT.pdf', [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
+    /**
+     * Unduh langsung berkas PDF resmi
+     */
+    public function downloadPartnerTerms()
+    {
+        $filePath = public_path('docs/syarat-dan-ketentuan-kemitraan-mkt.pdf');
+
+        if (!file_exists($filePath)) {
+            abort(404, 'Berkas Syarat & Ketentuan Kemitraan tidak ditemukan.');
+        }
+
+        return response()->download($filePath, 'Syarat-dan-Ketentuan-Kemitraan-dan-Kolaborasi-MKT.pdf', [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
 }

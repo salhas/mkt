@@ -42,6 +42,11 @@ Route::get('/kontak', [PublicPageController::class, 'contact'])->name('public.co
 Route::post('/register-volunteer', [VolunteerController::class, 'publicRegister'])->name('volunteers.public-register');
 Route::post('/register-partner', [VolunteerController::class, 'publicRegisterPartner'])->name('partners.public-register');
 
+// Halaman Web & Berkas Resmi Syarat & Ketentuan Kemitraan dan Kolaborasi MKT
+Route::get('/syarat-ketentuan', [PublicPageController::class, 'partnerTerms'])->name('public.partner-terms');
+Route::get('/syarat-ketentuan-kemitraan', [PublicPageController::class, 'partnerTerms'])->name('partner.terms.download');
+Route::get('/syarat-ketentuan-kemitraan/download', [PublicPageController::class, 'downloadPartnerTerms'])->name('partner.terms.file');
+
 // Public Self-Service Meeting Attendance (Presensi Mandiri Peserta/Tamu via QR Code)
 Route::get('/presensi/{token}', [MeetingAttendanceController::class, 'showPublicForm'])->name('public.attendance.show');
 Route::post('/presensi/{token}', [MeetingAttendanceController::class, 'submitPublicAttendance'])->name('public.attendance.submit');

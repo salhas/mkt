@@ -278,6 +278,10 @@ class VolunteerController extends Controller
             'personnel_count' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
             'password' => 'nullable|string|min:6',
+            'terms_accepted' => 'required|accepted',
+        ], [
+            'terms_accepted.required' => 'Anda wajib menyetujui Syarat & Ketentuan Kemitraan dan Kolaborasi MKT Indonesia.',
+            'terms_accepted.accepted' => 'Anda wajib menyetujui Syarat & Ketentuan Kemitraan dan Kolaborasi MKT Indonesia.',
         ]);
 
         $prefix = match ($validated['category']) {
@@ -294,7 +298,7 @@ class VolunteerController extends Controller
         $code = $prefix . str_pad($nextId, 3, '0', STR_PAD_LEFT);
 
         $passwordInput = $validated['password'] ?? 'password123';
-        unset($validated['password']);
+        unset($validated['password'], $validated['terms_accepted']);
 
         $partner = Partner::create(array_merge($validated, [
             'code' => $code,
@@ -317,12 +321,12 @@ class VolunteerController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Pendaftaran Kemitraan Lembaga berhasil! Profil mitra dan akun sistem telah dibuat.',
+                'message' => 'Registrasi Kemitraan & Kolaborasi MKT berhasil! Profil mitra dan akun sistem telah dibuat.',
                 'partner' => $partner,
             ]);
         }
 
-        return redirect()->back()->with('success', 'Pendaftaran Kemitraan Lembaga berhasil!');
+        return redirect()->back()->with('success', 'Registrasi Kemitraan & Kolaborasi MKT berhasil!');
     }
 
     public function update(Request $request, Volunteer $volunteer)
