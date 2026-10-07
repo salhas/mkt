@@ -38,8 +38,9 @@ Route::get('/pilar-kebencanaan', function() {
 })->name('public.pillars');
 Route::get('/kontak', [PublicPageController::class, 'contact'])->name('public.contact');
 
-// Public Volunteer Registration Route (with Email Notification)
+// Public Volunteer & Partner Registration Routes (with Email Notification)
 Route::post('/register-volunteer', [VolunteerController::class, 'publicRegister'])->name('volunteers.public-register');
+Route::post('/register-partner', [VolunteerController::class, 'publicRegisterPartner'])->name('partners.public-register');
 
 // Public Self-Service Meeting Attendance (Presensi Mandiri Peserta/Tamu via QR Code)
 Route::get('/presensi/{token}', [MeetingAttendanceController::class, 'showPublicForm'])->name('public.attendance.show');
@@ -50,6 +51,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/weather', [DashboardController::class, 'getWeather'])->name('dashboard.weather');
     Route::get('/alerts/live-feed', [AlertApiController::class, 'getLiveAlerts'])->name('alerts.live');
+
+    // Panel Khusus Lembaga Mitra (Profil Lembaga, Pengurus & Anggota)
+    Route::get('/partner/profile', [\App\Http\Controllers\PartnerPanelController::class, 'profile'])->name('partner.profile');
+    Route::post('/partner/profile', [\App\Http\Controllers\PartnerPanelController::class, 'updateProfile'])->name('partner.profile.update');
+    Route::patch('/partner/profile', [\App\Http\Controllers\PartnerPanelController::class, 'updateProfile']);
+    Route::get('/partner/members', [\App\Http\Controllers\PartnerPanelController::class, 'members'])->name('partner.members');
+    Route::post('/partner/members', [\App\Http\Controllers\PartnerPanelController::class, 'storeMember'])->name('partner.members.store');
+    Route::patch('/partner/members/{volunteer}', [\App\Http\Controllers\PartnerPanelController::class, 'updateMember'])->name('partner.members.update');
+    Route::delete('/partner/members/{volunteer}', [\App\Http\Controllers\PartnerPanelController::class, 'destroyMember'])->name('partner.members.destroy');
 
     // News & Articles Management (Manajemen Berita & Artikel)
     Route::get('/news-management', [NewsController::class, 'index'])->name('news.index');

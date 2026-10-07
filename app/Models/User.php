@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'email', 'password', 'role', 'partner_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -22,6 +22,27 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function partner(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Partner::class);
+    }
+
+    public function getPartner(): ?Partner
+    {
+        if ($this->partner_id) {
+            return $this->partner;
+        }
+
+        return Partner::where('email', $this->email)
+            ->orWhere('pic_email', $this->email)
+            ->first();
+    }
+
+    public function isMitra(): bool
+    {
+        return $this->role === 'mitra';
     }
 
     /**

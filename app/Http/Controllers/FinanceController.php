@@ -19,9 +19,17 @@ class FinanceController extends Controller
         }
     }
 
+    private function checkMitraForbidden(Request $request)
+    {
+        if ($request->user() && $request->user()->role === 'mitra') {
+            abort(403, 'Akses modul keuangan dibatasi hanya untuk manajemen internal Yayasan MKT.');
+        }
+    }
+
     // --- CHART OF ACCOUNTS (COA) / PENGATURAN KODE AKUN ---
     public function indexCoa(Request $request)
     {
+        $this->checkMitraForbidden($request);
         $query = Account::withCount('journalItems');
 
         if ($request->filled('search')) {
@@ -117,6 +125,7 @@ class FinanceController extends Controller
     // --- JOURNAL ENTRIES (JURNAL UMUM) ---
     public function indexJournal(Request $request)
     {
+        $this->checkMitraForbidden($request);
         $query = JournalEntry::with(['items.account']);
 
         if ($request->filled('search')) {
@@ -257,6 +266,7 @@ class FinanceController extends Controller
     // --- BUKU BESAR (GENERAL LEDGER) ---
     public function indexLedger(Request $request)
     {
+        $this->checkMitraForbidden($request);
         // Get all accounts with balance and mutation count
         $allAccounts = Account::orderBy('code')->get();
         
@@ -334,6 +344,7 @@ class FinanceController extends Controller
     // --- NERACA (BALANCE SHEET) ---
     public function indexBalanceSheet(Request $request)
     {
+        $this->checkMitraForbidden($request);
         $asOfDate = $request->input('date', date('Y-m-d'));
         $accounts = Account::all();
 

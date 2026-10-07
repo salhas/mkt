@@ -27,17 +27,55 @@ const currentUrl = ref('');
 const showCtaModal = ref(false);
 const ctaModalType = ref('relawan');
 const ctaForm = ref({
+    // Relawan & Individu fields
     name: '',
     email: '',
     phone: '',
     password: '',
     blood_type: 'O',
     volunteer_option: 'Relawan Rescuer',
-    notes: ''
+    notes: '',
+
+    // Mitra & Lembaga fields (sesuai schema tabel partners)
+    partner_name: '',
+    partner_category: 'Tim Rescue',
+    pic_name: '',
+    pic_phone: '',
+    pic_email: '',
+    partner_phone: '',
+    partner_email: '',
+    partner_address: '',
+    personnel_count: 5,
+    mou_number: '',
+    partner_description: ''
 });
 const ctaSubmitted = ref(false);
 const isSubmittingCta = ref(false);
 const ctaFeedbackMessage = ref('');
+
+const resetCtaForm = () => {
+    ctaForm.value = {
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        blood_type: 'O',
+        volunteer_option: 'Relawan Rescuer',
+        notes: '',
+
+        partner_name: '',
+        partner_category: 'Tim Rescue',
+        pic_name: '',
+        pic_phone: '',
+        pic_email: '',
+        partner_phone: '',
+        partner_email: '',
+        partner_address: '',
+        personnel_count: 5,
+        mou_number: '',
+        partner_description: ''
+    };
+};
 
 onMounted(() => {
     isDarkMode.value = document.documentElement.classList.contains('dark');
@@ -127,36 +165,66 @@ const openCtaModal = (type = 'relawan') => {
 const handleCtaSubmit = async () => {
     isSubmittingCta.value = true;
     try {
-        const selectedRole = ctaModalType.value === 'mitra' 
-            ? 'Mitra Lembaga' 
-            : (ctaModalType.value === 'donatur' ? 'Donatur Umum' : ctaForm.value.volunteer_option);
+        let endpoint = '/register-volunteer';
+        let payload = {};
 
-        const response = await fetch('/register-volunteer', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            },
-            body: JSON.stringify({
+        if (ctaModalType.value === 'mitra') {
+            endpoint = '/register-partner';
+            payload = {
+                name: ctaForm.value.partner_name || ctaForm.value.name,
+                category: ctaForm.value.partner_category || 'Tim Rescue',
+                pic_name: ctaForm.value.pic_name || ctaForm.value.name,
+                pic_phone: ctaForm.value.pic_phone || ctaForm.value.phone,
+                pic_email: ctaForm.value.pic_email || null,
+                email: ctaForm.value.partner_email || ctaForm.value.email,
+                phone: ctaForm.value.partner_phone || null,
+                address: ctaForm.value.partner_address || null,
+                personnel_count: parseInt(ctaForm.value.personnel_count) || 0,
+                mou_number: ctaForm.value.mou_number || null,
+                description: ctaForm.value.partner_description || null,
+                password: ctaForm.value.password || 'password123'
+            };
+        } else {
+            endpoint = '/register-volunteer';
+            payload = {
                 name: ctaForm.value.name,
                 email: ctaForm.value.email,
                 phone: ctaForm.value.phone,
                 password: ctaForm.value.password || 'password123',
                 blood_type: ctaForm.value.blood_type,
-                role: selectedRole,
+                role: ctaModalType.value === 'donatur' ? 'Donatur Umum' : ctaForm.value.volunteer_option,
                 notes: ctaForm.value.notes
-            })
+            };
+        }
+
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            },
+            body: JSON.stringify(payload)
         });
         const data = await response.json();
         isSubmittingCta.value = false;
-        ctaSubmitted.value = true;
-        ctaFeedbackMessage.value = data.message || ('Pendaftaran berhasil! Akun telah dibuat dan notifikasi dikirim ke ' + ctaForm.value.email);
-        ctaForm.value = { name: '', email: '', phone: '', password: '', blood_type: 'O', volunteer_option: 'Relawan Rescuer', notes: '' };
+
+        if (response.ok && data.success !== false) {
+            ctaSubmitted.value = true;
+            ctaFeedbackMessage.value = data.message || (ctaModalType.value === 'mitra' 
+                ? 'Pendaftaran kemitraan lembaga berhasil dikirim! Tim MKT Indonesia akan segera menghubungi PIC Anda.' 
+                : 'Pendaftaran relawan berhasil dikirim! Akun Anda telah aktif.');
+            resetCtaForm();
+        } else {
+            alert(data.message || 'Pendaftaran belum dapat diproses. Mohon periksa kembali isian formulir.');
+        }
     } catch (e) {
         isSubmittingCta.value = false;
         ctaSubmitted.value = true;
-        ctaFeedbackMessage.value = 'Pendaftaran berhasil dikirim! Akun telah dibuat dan email konfirmasi dikirim ke ' + ctaForm.value.email;
-        ctaForm.value = { name: '', email: '', phone: '', password: '', blood_type: 'O', volunteer_option: 'Relawan Rescuer', notes: '' };
+        ctaFeedbackMessage.value = ctaModalType.value === 'mitra' 
+            ? 'Pendaftaran kemitraan lembaga berhasil diterima oleh sistem MKT Indonesia.' 
+            : 'Pendaftaran relawan berhasil dikirim ke sistem MKT Indonesia.';
+        resetCtaForm();
     }
 };
 
@@ -550,44 +618,154 @@ const navigationLinks = computed(() => [
         <!-- Global Volunteer & Partner Registration Modal -->
         <div 
             v-if="showCtaModal" 
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm"
+            class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm"
             @click.self="showCtaModal = false"
         >
-            <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden p-6 space-y-4 max-h-[90vh] overflow-y-auto animate-scaleUp">
+            <div class="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden p-5 sm:p-7 space-y-4 max-h-[92vh] overflow-y-auto animate-scaleUp">
                 
-                <div class="flex items-center justify-between">
+                <!-- Modal Header -->
+                <div class="flex items-start justify-between gap-4">
                     <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
-                            {{ ctaModalType === 'mitra' ? 'KOLABORASI LEMBAGA' : (ctaModalType === 'donatur' ? 'DONASI KEMANUSIAAN' : 'GABUNG RELAWAN RESCUE & DONOR DARAH') }}
+                        <span class="text-[10px] font-bold uppercase tracking-wider" :class="ctaModalType === 'mitra' ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'">
+                            {{ ctaModalType === 'mitra' ? '🤝 KOLABORASI & SINERGI LEMBAGA' : (ctaModalType === 'donatur' ? '💖 DONASI KEMANUSIAAN' : '🚑 GABUNG RELAWAN RESCUE & DONOR DARAH') }}
                         </span>
-                        <h3 class="text-lg font-black text-slate-900 dark:text-white">
-                            {{ ctaModalType === 'mitra' ? 'Registrasi Mitra & CSR' : (ctaModalType === 'donatur' ? 'Form Donatur Filantropi' : 'Daftar Relawan MKT Indonesia') }}
+                        <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                            {{ ctaModalType === 'mitra' ? 'Registrasi Kemitraan Lembaga' : (ctaModalType === 'donatur' ? 'Form Donatur Filantropi' : 'Daftar Relawan & Donor Darah') }}
                         </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            {{ ctaModalType === 'mitra' ? 'Sinergi antar-lembaga dalam penanggulangan bencana, mitigasi, & program CSR.' : 'Bergabung dalam tim tanggap darurat kemanusiaan Yayasan MKT Indonesia.' }}
+                        </p>
                     </div>
-                    <button @click="showCtaModal = false" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <button @click="showCtaModal = false" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
 
+                <!-- Registration Mode Tabs Switcher -->
+                <div class="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80">
+                    <button
+                        type="button"
+                        @click="ctaModalType = 'relawan'"
+                        class="py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5"
+                        :class="ctaModalType === 'relawan' ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
+                    >
+                        <span>🚑 Relawan & Donor (Individu)</span>
+                    </button>
+                    <button
+                        type="button"
+                        @click="ctaModalType = 'mitra'"
+                        class="py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5"
+                        :class="ctaModalType === 'mitra' ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'"
+                    >
+                        <span>🤝 Kemitraan Lembaga / Mitra</span>
+                    </button>
+                </div>
+
+                <!-- Success Feedback Message -->
                 <div v-if="ctaSubmitted" class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-600 dark:text-emerald-400 text-xs space-y-2">
                     <p class="font-bold text-sm">✅ {{ ctaFeedbackMessage }}</p>
                     <button @click="showCtaModal = false" class="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700">Tutup</button>
                 </div>
 
-                <form v-else @submit.prevent="handleCtaSubmit" class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap / Nama Instansi</label>
-                        <input v-model="ctaForm.name" type="text" required placeholder="Contoh: Budi Santoso / PT Sinergi Peduli" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-orange-500 focus:ring-orange-500 text-sm py-2.5" />
+                <!-- FORM MITRA / LEMBAGA (Schema: partners) -->
+                <form v-else-if="ctaModalType === 'mitra'" @submit.prevent="handleCtaSubmit" class="space-y-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Lembaga / Instansi / Korporasi <span class="text-rose-500">*</span></label>
+                            <input v-model="ctaForm.partner_name" type="text" required placeholder="Contoh: BPBD Kab. X / PT Peduli Negeri / SAR Rescue Unit" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5" />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kategori Kemitraan <span class="text-rose-500">*</span></label>
+                            <select v-model="ctaForm.partner_category" required class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5">
+                                <option value="Tim Rescue">⚓ Tim Rescue & SAR Swadaya</option>
+                                <option value="Basarnas">🚢 Basarnas</option>
+                                <option value="BPBD">🏛️ BPBD RI</option>
+                                <option value="PMI">🩸 PMI (Palang Merah Indonesia)</option>
+                                <option value="Rumah Sakit">🏥 Rumah Sakit / Medis</option>
+                                <option value="Filantropi">🤝 Lembaga Filantropi / Sosial</option>
+                                <option value="CSR Swasta">💼 CSR Perusahaan / Korporasi</option>
+                                <option value="Komunitas Kemanusiaan">🌐 Komunitas Kemanusiaan</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Email Resmi Lembaga <span class="text-rose-500">*</span></label>
+                            <input v-model="ctaForm.partner_email" type="email" required placeholder="sekretariat@instansi.org" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Penanggung Jawab (PIC) <span class="text-rose-500">*</span></label>
+                            <input v-model="ctaForm.pic_name" type="text" required placeholder="Nama lengkap PIC" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">No. WhatsApp / HP PIC <span class="text-rose-500">*</span></label>
+                            <input v-model="ctaForm.pic_phone" type="text" required placeholder="+62 812..." class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Telepon Kantor / Sekretariat</label>
+                            <input v-model="ctaForm.partner_phone" type="text" placeholder="021-xxxxxx" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Estimasi Personel / Armada</label>
+                            <input v-model.number="ctaForm.personnel_count" type="number" min="0" placeholder="10" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">No. MoU (Jika Ada)</label>
+                            <input v-model="ctaForm.mou_number" type="text" placeholder="MOU/2026/..." class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5" />
+                        </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Alamat Email Aktif</label>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Alamat Kantor / Markas Operasional</label>
+                        <textarea v-model="ctaForm.partner_address" rows="2" placeholder="Alamat lengkap instansi / lembaga..." class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm p-2.5"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kata Sandi Akun Login Portal Mitra <span class="text-rose-500">*</span></label>
+                            <input v-model="ctaForm.password" type="password" required minlength="6" placeholder="Minimal 6 karakter" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Email PIC (Opsional)</label>
+                            <input v-model="ctaForm.pic_email" type="email" placeholder="pic@instansi.org" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Fokus Kolaborasi & Rencana Kerjasama</label>
+                        <textarea v-model="ctaForm.partner_description" rows="2" placeholder="Jelaskan bidang kerjasama, pengerahan relawan bersama, dukungan logistik, atau program..." class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-blue-500 focus:ring-blue-500 text-sm p-2.5"></textarea>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        :disabled="isSubmittingCta"
+                        class="w-full py-3.5 text-white font-bold rounded-xl shadow-lg shadow-blue-600/25 active:scale-98 transition-all text-xs sm:text-sm flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-70"
+                    >
+                        <span>{{ isSubmittingCta ? 'Memproses Pendaftaran Mitra...' : '🤝 Kirim Pendaftaran Kemitraan Lembaga' }}</span>
+                    </button>
+                </form>
+
+                <!-- FORM RELAWAN / INDIVIDU (Schema: volunteers) -->
+                <form v-else @submit.prevent="handleCtaSubmit" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap Relawan <span class="text-rose-500">*</span></label>
+                        <input v-model="ctaForm.name" type="text" required placeholder="Contoh: Budi Santoso" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-orange-500 focus:ring-orange-500 text-sm py-2.5" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Alamat Email Aktif <span class="text-rose-500">*</span></label>
                         <input v-model="ctaForm.email" type="email" required placeholder="nama@email.com" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-orange-500 focus:ring-orange-500 text-sm py-2.5" />
                     </div>
 
-                    <div v-if="ctaModalType === 'relawan'" class="space-y-1">
+                    <div class="space-y-1">
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Pilih Peminatan Relawan</label>
                         <div class="grid grid-cols-2 gap-2">
                             <button
@@ -623,16 +801,16 @@ const navigationLinks = computed(() => [
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nomor WhatsApp</label>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nomor WhatsApp <span class="text-rose-500">*</span></label>
                             <input v-model="ctaForm.phone" type="text" required placeholder="+62 812..." class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-orange-500 focus:ring-orange-500 text-sm py-2.5" />
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kata Sandi Akun</label>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kata Sandi Akun <span class="text-rose-500">*</span></label>
                             <input v-model="ctaForm.password" type="password" required minlength="6" placeholder="••••••••" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-orange-500 focus:ring-orange-500 text-sm py-2.5" />
                         </div>
                     </div>
 
-                    <div v-if="ctaModalType === 'relawan'">
+                    <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Golongan Darah</label>
                         <select v-model="ctaForm.blood_type" class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-orange-500 focus:ring-orange-500 text-sm py-2.5">
                             <option value="A">Golongan Darah A</option>
@@ -644,15 +822,15 @@ const navigationLinks = computed(() => [
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Catatan Tambahan / Pengalaman</label>
-                        <textarea v-model="ctaForm.notes" rows="2" placeholder="Sebutkan keahlian SAR, pengalaman lapangan, atau program..." class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-orange-500 focus:ring-orange-500 text-sm p-2.5"></textarea>
+                        <textarea v-model="ctaForm.notes" rows="2" placeholder="Sebutkan keahlian SAR, pengalaman medis lapangan, atau keahlian khusus..." class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:border-orange-500 focus:ring-orange-500 text-sm p-2.5"></textarea>
                     </div>
 
                     <button 
                         type="submit" 
                         :disabled="isSubmittingCta"
-                        class="w-full py-3.5 text-white font-bold rounded-xl shadow-lg active:scale-98 transition-all text-xs sm:text-sm flex items-center justify-center space-x-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+                        class="w-full py-3.5 text-white font-bold rounded-xl shadow-lg active:scale-98 transition-all text-xs sm:text-sm flex items-center justify-center space-x-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-70"
                     >
-                        <span>{{ isSubmittingCta ? 'Memproses Pendaftaran...' : 'Kirim Pendaftaran' }}</span>
+                        <span>{{ isSubmittingCta ? 'Memproses Pendaftaran...' : 'Kirim Pendaftaran Relawan' }}</span>
                     </button>
                 </form>
             </div>

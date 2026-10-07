@@ -8,8 +8,12 @@ use Illuminate\Http\Request;
 
 class MktProfileController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        if ($request->user() && $request->user()->role === 'mitra') {
+            return redirect()->route('partner.profile');
+        }
+
         $profile = MktProfile::first();
         return Inertia::render('MktProfile/Index', [
             'profile' => $profile

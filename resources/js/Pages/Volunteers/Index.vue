@@ -1,8 +1,11 @@
 <script setup>
 import { ref, computed } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, usePage, Link } from '@inertiajs/vue3';
 import { showSuccessToast, showErrorToast } from '@/Utils/toast.js';
+
+const page = usePage();
+const isMitra = computed(() => page.props.auth.user?.role === 'mitra');
 
 const props = defineProps({
     partners: Array,
@@ -247,11 +250,11 @@ const getCategoryStyle = (category) => {
 </script>
 
 <template>
-    <Head title="Mitra & Relawan" />
+    <Head :title="isMitra ? 'Mitra Lembaga' : 'Mitra & Relawan'" />
 
     <AuthenticatedLayout>
         <template #header>
-            <span>Mitra & Relawan</span>
+            <span>{{ isMitra ? 'Mitra Lembaga' : 'Mitra & Relawan' }}</span>
         </template>
 
         <div class="max-w-7xl mx-auto space-y-6">
@@ -263,14 +266,16 @@ const getCategoryStyle = (category) => {
                         <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-md">
                             <span>🤝 Ekosistem Kolaborasi Kebencanaan</span>
                         </div>
-                        <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Mitra & Relawan Terpadu MKT</h1>
+                        <h1 class="text-2xl sm:text-3xl font-black tracking-tight">
+                            {{ isMitra ? 'Direktori Mitra Lembaga' : 'Mitra & Relawan Terpadu MKT' }}
+                        </h1>
                         <p class="text-xs sm:text-sm text-white/80 max-w-2xl">
                             Direktori resmi instansi mitra (PMI, Basarnas, BPBD, Rumah Sakit, Tim Rescue) serta manajemen anggota personel relawan bencana.
                         </p>
                     </div>
 
-                    <!-- Quick Add Action Buttons -->
-                    <div class="flex flex-wrap items-center gap-3 shrink-0">
+                    <!-- Quick Add Action Buttons (Hanya untuk non-mitra) -->
+                    <div v-if="!isMitra" class="flex flex-wrap items-center gap-3 shrink-0">
                         <button
                             @click="openAddPartnerModal"
                             class="px-4 py-2.5 bg-white text-brand-700 hover:bg-gray-50 text-xs font-bold rounded-xl shadow-lg transition-all flex items-center space-x-2"
@@ -285,6 +290,23 @@ const getCategoryStyle = (category) => {
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                             <span>+ Registrasi Anggota/Relawan</span>
                         </button>
+                    </div>
+
+                    <!-- Mode Read Only Badge untuk Mitra -->
+                    <div v-else class="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0">
+                        <div class="px-3.5 py-2 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-semibold flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-amber-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <span>Akses: <strong>Hanya Lihat (Read-Only)</strong></span>
+                        </div>
+                        <Link
+                            :href="route('partner.members')"
+                            class="px-3.5 py-2 rounded-xl bg-white text-brand-700 font-bold text-xs hover:bg-amber-50 transition shadow-md flex items-center space-x-1.5"
+                        >
+                            <span>Kelola Anggota Lembaga Anda →</span>
+                        </Link>
                     </div>
                 </div>
 
@@ -476,20 +498,22 @@ const getCategoryStyle = (category) => {
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </button>
-                                <button
-                                    @click="openEditPartnerModal(partner)"
-                                    class="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors"
-                                    title="Edit Mitra"
-                                >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                </button>
-                                <button
-                                    @click="deletePartner(partner)"
-                                    class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
-                                    title="Hapus Mitra"
-                                >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
+                                <template v-if="!isMitra">
+                                    <button
+                                        @click="openEditPartnerModal(partner)"
+                                        class="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors"
+                                        title="Edit Mitra"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    </button>
+                                    <button
+                                        @click="deletePartner(partner)"
+                                        class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                                        title="Hapus Mitra"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -648,12 +672,14 @@ const getCategoryStyle = (category) => {
                                             <button @click="openVolunteerDetail(v)" class="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="KTA Card Preview">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 012-2h2a2 2 0 012 2v1m-6 0h6"></path></svg>
                                             </button>
-                                            <button @click="openEditVolunteerModal(v)" class="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Edit Relawan">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                            </button>
-                                            <button @click="deleteVolunteer(v)" class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus Relawan">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                            </button>
+                                            <template v-if="!isMitra">
+                                                <button @click="openEditVolunteerModal(v)" class="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Edit Relawan">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                </button>
+                                                <button @click="deleteVolunteer(v)" class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus Relawan">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </template>
                                         </div>
                                     </td>
                                 </tr>

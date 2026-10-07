@@ -34,7 +34,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge($request->user()->toArray(), [
+                    'partner' => $request->user()->getPartner(),
+                ]) : null,
             ],
             'mktProfile' => function () {
                 return MktProfile::first();

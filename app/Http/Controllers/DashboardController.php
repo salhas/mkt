@@ -15,6 +15,45 @@ class DashboardController extends Controller
 {
     public function index(Request $request, BmkgWeatherService $weatherService)
     {
+        $user = $request->user();
+
+        // 0. KHUSUS ROLE MITRA: Tampilkan data eksklusif lembaga mitra sendiri (Tanpa data yayasan MKT / lembaga lain)
+        if ($user && $user->role === 'mitra') {
+            $partner = $user->getPartner();
+
+            $partnerMembers = $partner 
+                ? Volunteer::where('partner_id', $partner->id)->orderBy('id', 'desc')->get() 
+                : collect();
+
+            $partnerStats = [
+                'total' => $partner ? max($partnerMembers->count(), (int) $partner->personnel_count) : 0,
+                'registered' => $partnerMembers->count(),
+                'active' => $partnerMembers->where('status', 'Aktif')->count(),
+                'rescue' => $partnerMembers->filter(fn($v) => str_contains($v->role, 'Rescue'))->count(),
+                'donor' => $partnerMembers->filter(fn($v) => str_contains($v->role, 'Donor'))->count(),
+                'medis' => $partnerMembers->filter(fn($v) => str_contains($v->role, 'Medis') || str_contains($v->role, 'Kesehatan'))->count(),
+                'status' => $partner ? $partner->status : 'Aktif',
+            ];
+
+            $locationCode = $request->input('weather_loc', '73.71.01.1001');
+            $weatherData = $weatherService->getWeather($locationCode);
+
+            return Inertia::render('Dashboard', [
+                'isPartner' => true,
+                'partner' => $partner,
+                'partnerStats' => $partnerStats,
+                'recentPartnerMembers' => $partnerMembers->take(6)->values(),
+                'weatherData' => $weatherData,
+                'volunteerStats' => null,
+                'donationStats' => null,
+                'logisticStats' => null,
+                'financialStats' => null,
+                'recentDonations' => [],
+                'recentVolunteers' => [],
+                'recentLogistics' => [],
+            ]);
+        }
+
         // 1. Volunteer Stats
         $volunteerStats = [
             'total' => Volunteer::count(),

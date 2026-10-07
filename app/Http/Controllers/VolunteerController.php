@@ -89,9 +89,19 @@ class VolunteerController extends Controller
         ]);
     }
 
+    private function checkMitraReadOnly()
+    {
+        $user = auth()->user();
+        if ($user && $user->role === 'mitra') {
+            abort(403, 'Akses Ditolak: Akun mitra hanya memiliki izin melihat data (read-only) pada direktori ini. Silakan kelola personel lembaga Anda melalui menu Pengurus & Anggota.');
+        }
+    }
+
     // --- PARTNER (MITRA) CRUD ---
     public function storePartner(Request $request)
     {
+        $this->checkMitraReadOnly();
+
         $validated = $request->validate([
             'code' => 'nullable|string|max:100|unique:partners,code',
             'name' => 'required|string|max:255',
@@ -128,6 +138,8 @@ class VolunteerController extends Controller
 
     public function updatePartner(Request $request, Partner $partner)
     {
+        $this->checkMitraReadOnly();
+
         $validated = $request->validate([
             'code' => 'nullable|string|max:100|unique:partners,code,' . $partner->id,
             'name' => 'required|string|max:255',
@@ -151,6 +163,8 @@ class VolunteerController extends Controller
 
     public function destroyPartner(Partner $partner)
     {
+        $this->checkMitraReadOnly();
+
         $partner->delete();
         return redirect()->back()->with('success', 'Profil Mitra berhasil dihapus.');
     }
@@ -158,6 +172,7 @@ class VolunteerController extends Controller
     // --- VOLUNTEER (RELAWAN) CRUD ---
     public function store(Request $request)
     {
+        $this->checkMitraReadOnly();
         $validated = $request->validate([
             'partner_id' => 'nullable|exists:partners,id',
             'name' => 'required|string|max:255',
@@ -191,6 +206,10 @@ class VolunteerController extends Controller
 
     public function publicRegister(Request $request)
     {
+        if ($request->input('type') === 'mitra' || $request->has('category') || $request->input('role') === 'Mitra Lembaga') {
+            return $this->publicRegisterPartner($request);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
@@ -244,8 +263,72 @@ class VolunteerController extends Controller
         return redirect()->back()->with('success', 'Pendaftaran berhasil! Akun relawan telah dibuat.');
     }
 
+    public function publicRegisterPartner(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'pic_name' => 'required|string|max:255',
+            'pic_phone' => 'required|string|max:50',
+            'pic_email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'email' => 'required|email|max:255',
+            'address' => 'nullable|string',
+            'mou_number' => 'nullable|string|max:100',
+            'personnel_count' => 'nullable|integer|min:0',
+            'description' => 'nullable|string',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        $prefix = match ($validated['category']) {
+            'PMI' => 'MTR-PMI-',
+            'Basarnas' => 'MTR-BAS-',
+            'BPBD' => 'MTR-BPBD-',
+            'Rumah Sakit' => 'MTR-RS-',
+            'Tim Rescue' => 'MTR-RSC-',
+            'Filantropi' => 'MTR-FLT-',
+            'CSR Swasta', 'CSR' => 'MTR-CSR-',
+            default => 'MTR-GEN-',
+        };
+        $nextId = Partner::count() + 1;
+        $code = $prefix . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+
+        $passwordInput = $validated['password'] ?? 'password123';
+        unset($validated['password']);
+
+        $partner = Partner::create(array_merge($validated, [
+            'code' => $code,
+            'status' => 'Aktif',
+            'personnel_count' => (int) ($validated['personnel_count'] ?? 0),
+        ]));
+
+        \App\Models\User::updateOrCreate(
+            ['email' => $partner->email],
+            [
+                'name' => $partner->name . ($partner->pic_name ? ' (' . $partner->pic_name . ')' : ''),
+                'email' => $partner->email,
+                'password' => \Illuminate\Support\Facades\Hash::make($passwordInput),
+                'role' => 'mitra',
+                'partner_id' => $partner->id,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Pendaftaran Kemitraan Lembaga berhasil! Profil mitra dan akun sistem telah dibuat.',
+                'partner' => $partner,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Pendaftaran Kemitraan Lembaga berhasil!');
+    }
+
     public function update(Request $request, Volunteer $volunteer)
     {
+        $this->checkMitraReadOnly();
+
         $validated = $request->validate([
             'partner_id' => 'nullable|exists:partners,id',
             'name' => 'required|string|max:255',
@@ -267,6 +350,8 @@ class VolunteerController extends Controller
 
     public function destroy(Volunteer $volunteer)
     {
+        $this->checkMitraReadOnly();
+
         $volunteer->delete();
         return redirect()->back()->with('success', 'Data Relawan berhasil dihapus.');
     }

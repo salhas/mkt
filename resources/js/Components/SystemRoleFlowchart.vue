@@ -383,7 +383,7 @@ const rolesData = [
         cardBg: 'from-rose-500/10 to-transparent',
         icon: '⛑️',
         summary: 'Ujung tombak respon cepat bencana di lapangan. Memantau BMKG, mengoperasikan perahu karet/drone, melaksanakan evakuasi, dan pelaporan korban di Command Center.',
-        modules: ['Peta Bencana (/disaster-map)', 'Operasi & Siaga SAR (/sar-operations)', 'Command Center Pusdalops (/sar-operations/command-center)', 'Logistik Lapangan (/logistics)'],
+        modules: ['Peta Bencana (/disaster-map)', 'Operasi Kemanusiaan (/sar-operations)', 'Command Center Pusdalops (/sar-operations/command-center)', 'Logistik Lapangan (/logistics)'],
         steps: [
             {
                 id: 'res-1',
@@ -397,7 +397,7 @@ const rolesData = [
             },
             {
                 id: 'res-2',
-                title: '2. Pendaftaran Operasi & Siaga SAR Baru',
+                title: '2. Pendaftaran Operasi Kemanusiaan Baru',
                 desc: 'Menginput insiden darurat atau penetapan siaga pantai/sungai dengan kode registrasi resmi SAR-YYYYMM-XXX.',
                 input: 'Laporan warga/BPBD: jenis musibah (banjir, orang tenggelam, longsor), titik koordinat GPS.',
                 action: 'Input judul, status (Operasi Aktif / Siaga SAR), Danru/SMC, jumlah personel, dan peralatan (RIB, Alkon, Drone).',
@@ -541,7 +541,7 @@ const selectedRole = computed(() => {
 const accessMatrix = [
     { module: 'Dashboard & Cuaca BMKG', wm: 'Full CRUD', adm: 'Full CRUD', fin: 'Read Only', res: 'Read Only', mit: 'Read Only', med: 'Read Only', don: 'Read Only' },
     { module: 'Peta Operasi Bencana', wm: 'Full CRUD', adm: 'Full CRUD', fin: 'Read Only', res: 'Full CRUD', mit: 'Read Only', med: 'Read Only', don: 'Read Only' },
-    { module: 'Operasi & Siaga SAR', wm: 'Full CRUD', adm: 'Full CRUD', fin: 'Read Only', res: 'Full CRUD', mit: 'Partisipasi', med: 'Posko Medis', don: 'No Access' },
+    { module: 'Operasi Kemanusiaan', wm: 'Full CRUD', adm: 'Full CRUD', fin: 'Read Only', res: 'Full CRUD', mit: 'Partisipasi', med: 'Posko Medis', don: 'No Access' },
     { module: 'Command Center Pusdalops', wm: 'Full CRUD', adm: 'Full CRUD', fin: 'Read Only', res: 'Monitoring', mit: 'Monitoring', med: 'Monitoring', don: 'No Access' },
     { module: 'Mitra & Relawan', wm: 'Full CRUD', adm: 'Full CRUD', fin: 'Read Only', res: 'Read Only', mit: 'Self Profile', med: 'Data Donor', don: 'No Access' },
     { module: 'Logistik Darurat', wm: 'Full CRUD', adm: 'Full CRUD', fin: 'Audit Stok', res: 'Input Keluar', mit: 'Bantuan Masuk', med: 'Logistik Obat', don: 'No Access' },

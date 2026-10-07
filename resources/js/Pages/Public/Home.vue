@@ -104,20 +104,20 @@ const formatDate = (dateStr) => {
                             <!-- Hero Button Actions -->
                             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                                 <button
-                                    @click="openCtaModal('donatur')"
+                                    @click="openCtaModal('relawan')"
                                     class="px-7 py-4 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-black rounded-2xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/40 active:scale-95 transition-all text-center flex items-center justify-center space-x-2.5 text-sm sm:text-base border border-white/20"
                                 >
-                                    <span>💖 Salurkan Donasi Sekarang</span>
+                                    <span>🚑 Gabung Relawan & Donor</span>
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                                     </svg>
                                 </button>
-                                
+
                                 <button
-                                    @click="openCtaModal('relawan')"
-                                    class="px-7 py-4 bg-white/90 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 backdrop-blur-md border border-slate-300 dark:border-white/20 text-slate-800 dark:text-white hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-300 font-bold rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center space-x-2.5 text-sm sm:text-base"
+                                    @click="openCtaModal('mitra')"
+                                    class="px-7 py-4 bg-white/90 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 backdrop-blur-md border border-slate-300 dark:border-white/20 text-slate-800 dark:text-white hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-bold rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center space-x-2.5 text-sm sm:text-base"
                                 >
-                                    <span>🚑 Gabung Relawan & Donor</span>
+                                    <span>🤝 Kemitraan Lembaga</span>
                                 </button>
                             </div>
 

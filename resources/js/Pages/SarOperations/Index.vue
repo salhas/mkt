@@ -450,11 +450,11 @@ const formatDate = (dateStr) => {
 </script>
 
 <template>
-    <Head title="Operasi & Siaga SAR" />
+    <Head title="Operasi Kemanusiaan" />
 
     <AuthenticatedLayout>
         <template #header>
-            <span>Operasi & Siaga SAR</span>
+            <span>Operasi Kemanusiaan</span>
         </template>
 
         <!-- Header Section -->
@@ -467,7 +467,7 @@ const formatDate = (dateStr) => {
                 </div>
                 <div>
                     <div class="flex items-center space-x-2">
-                        <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Operasi & Siaga SAR</h1>
+                        <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Operasi Kemanusiaan</h1>
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-300">
                             Respon Cepat & Potensi SAR Real-Time
                         </span>
@@ -932,7 +932,7 @@ const formatDate = (dateStr) => {
                 </div>
 
                 <div v-if="operations.data.length === 0" class="col-span-2 text-center p-12 bg-white dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
-                    <p class="text-gray-400 italic">Belum ada data Operasi & Siaga SAR yang tercatat.</p>
+                    <p class="text-gray-400 italic">Belum ada data Operasi Kemanusiaan yang tercatat.</p>
                 </div>
             </div>
 

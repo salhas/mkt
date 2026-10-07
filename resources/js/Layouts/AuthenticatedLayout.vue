@@ -111,24 +111,32 @@ const toggleFinance = () => {
                 </button>
             </div>
 
-            <!-- MKT Organization Status Strip in Sidebar -->
-            <div v-if="isSidebarOpen" class="px-4 py-2 bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border-b border-orange-500/10 dark:border-orange-500/15 transition-all">
+            <!-- Organization Status Strip in Sidebar -->
+            <div v-if="isSidebarOpen" class="px-4 py-2 border-b transition-all"
+                :class="$page.props.auth.user.role === 'mitra' 
+                    ? 'bg-gradient-to-r from-indigo-500/10 via-blue-500/5 to-transparent border-indigo-500/15' 
+                    : 'bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border-orange-500/10 dark:border-orange-500/15'"
+            >
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-orange-700 dark:text-orange-300">
-                            Pusdalops MKT
+                    <div class="flex items-center space-x-1.5 truncate mr-1">
+                        <span class="w-2 h-2 rounded-full shrink-0" :class="$page.props.auth.user.role === 'mitra' ? 'bg-indigo-500' : 'bg-emerald-500 animate-pulse'"></span>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider truncate"
+                            :class="$page.props.auth.user.role === 'mitra' ? 'text-indigo-700 dark:text-indigo-300' : 'text-orange-700 dark:text-orange-300'"
+                        >
+                            {{ $page.props.auth.user.role === 'mitra' ? ($page.props.auth.user.partner?.name || 'PANEL MITRA') : 'Pusdalops MKT' }}
                         </span>
                     </div>
-                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-orange-500/15 text-orange-600 dark:text-orange-400">
-                        SIAGA 24/7
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md shrink-0"
+                        :class="$page.props.auth.user.role === 'mitra' ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' : 'bg-orange-500/15 text-orange-600 dark:text-orange-400'"
+                    >
+                        {{ $page.props.auth.user.role === 'mitra' ? 'LEMBAGA MITRA' : 'SIAGA 24/7' }}
                     </span>
                 </div>
             </div>
 
             <!-- Menus Section -->
             <nav class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
-                <!-- SECTION 1: UTAMA & OPERASI BENCANA -->
+                <!-- SECTION 1: UTAMA & OPERASI BENCANA (Dapat diakses oleh semua akun dan role user) -->
                 <div class="space-y-1">
                     <span v-if="isSidebarOpen" class="px-3 text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-1">
                         Utama & Kebencanaan
@@ -166,7 +174,7 @@ const toggleFinance = () => {
                         <span v-if="isSidebarOpen" class="text-sm">Peta Bencana</span>
                     </Link>
 
-                    <!-- Operasi & Siaga SAR -->
+                    <!-- Operasi Kemanusiaan -->
                     <Link
                         :href="route('sar-operations.index')"
                         :class="[
@@ -179,10 +187,10 @@ const toggleFinance = () => {
                         <svg class="w-5 h-5 text-rose-500 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
-                        <span v-if="isSidebarOpen" class="text-sm font-medium">Operasi & Siaga SAR</span>
+                        <span v-if="isSidebarOpen" class="text-sm font-medium">Operasi Kemanusiaan</span>
                     </Link>
 
-                    <!-- Command Center Pusdalops (MENU BARU) -->
+                    <!-- Command Center Pusdalops -->
                     <Link
                         :href="route('sar-operations.command-center')"
                         :class="[
@@ -198,7 +206,7 @@ const toggleFinance = () => {
                         <span v-if="isSidebarOpen" class="text-sm font-medium">Command Center Pusdalops</span>
                     </Link>
 
-                    <!-- Mitra & Relawan -->
+                    <!-- Mitra & Relawan / Mitra Lembaga -->
                     <Link
                         :href="route('volunteers.index')"
                         :class="[
@@ -211,7 +219,9 @@ const toggleFinance = () => {
                         <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
-                        <span v-if="isSidebarOpen" class="text-sm">Mitra & Relawan</span>
+                        <span v-if="isSidebarOpen" class="text-sm">
+                            {{ $page.props.auth.user.role === 'mitra' ? 'Mitra Lembaga' : 'Mitra & Relawan' }}
+                        </span>
                     </Link>
 
                     <!-- Logistik Darurat -->
@@ -231,131 +241,18 @@ const toggleFinance = () => {
                     </Link>
                 </div>
 
-                <!-- SECTION 2: FILANTROPI & KEUANGAN -->
-                <div class="space-y-1 pt-2 border-t border-gray-100 dark:border-gray-800/60">
-                    <span v-if="isSidebarOpen" class="px-3 text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-1">
-                        Filantropi & Keuangan
+                <!-- KHUSUS ROLE MITRA: Panel Lembaga Mitra Sendiri -->
+                <div v-if="$page.props.auth.user.role === 'mitra'" class="space-y-1 pt-2 border-t border-gray-100 dark:border-gray-800/60">
+                    <span v-if="isSidebarOpen" class="px-3 text-[10px] font-black uppercase tracking-wider text-indigo-500 dark:text-indigo-400 block mb-1">
+                        Panel Lembaga Mitra
                     </span>
 
-                    <!-- Donatur & Donasi -->
+                    <!-- Profil Lembaga -->
                     <Link
-                        :href="route('donors.index')"
+                        :href="route('partner.profile')"
                         :class="[
-                            route().current('donors.index')
-                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
-                                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
-                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
-                        ]"
-                    >
-                        <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span v-if="isSidebarOpen" class="text-sm">Donatur & Donasi</span>
-                    </Link>
-
-                    <!-- Finance (Collapse Group) -->
-                    <div>
-                        <button
-                            type="button"
-                            @click="toggleFinance"
-                            :class="[
-                                route().current('finance.*')
-                                    ? 'text-brand-600 dark:text-brand-400 font-semibold bg-brand-50/30 dark:bg-brand-950/10'
-                                    : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
-                                'flex items-center justify-between w-full px-3 py-2 rounded-xl transition-all duration-150 group'
-                            ]"
-                        >
-                            <div class="flex items-center space-x-3">
-                                <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                </svg>
-                                <span v-if="isSidebarOpen" class="text-sm">Keuangan & Laporan</span>
-                            </div>
-                            <svg
-                                v-if="isSidebarOpen"
-                                :class="[
-                                    isFinanceOpen ? 'rotate-180' : 'rotate-0',
-                                    'w-4 h-4 transition-transform duration-200 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200'
-                                ]"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-
-                        <!-- Submenus (Hanya Tampil Jika Aktif / Dibuka) -->
-                        <transition
-                            enter-active-class="transition-all duration-200 ease-out"
-                            enter-from-class="opacity-0 -translate-y-1 max-h-0 overflow-hidden"
-                            enter-to-class="opacity-100 translate-y-0 max-h-60"
-                            leave-active-class="transition-all duration-150 ease-in"
-                            leave-from-class="opacity-100 translate-y-0 max-h-60"
-                            leave-to-class="opacity-0 -translate-y-1 max-h-0 overflow-hidden"
-                        >
-                            <div v-show="isFinanceOpen && isSidebarOpen" class="pl-8 mt-1 space-y-1">
-                                <Link
-                                    :href="route('finance.coa.index')"
-                                    :class="[
-                                        route().current('finance.coa.index')
-                                            ? 'text-brand-600 dark:text-brand-400 font-semibold'
-                                            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
-                                        'block py-1.5 text-xs transition-all duration-150'
-                                    ]"
-                                >
-                                    • Daftar COA (Kode Akun)
-                                </Link>
-                                <Link
-                                    :href="route('finance.journal.index')"
-                                    :class="[
-                                        route().current('finance.journal.index')
-                                            ? 'text-brand-600 dark:text-brand-400 font-semibold'
-                                            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
-                                        'block py-1.5 text-xs transition-all duration-150'
-                                    ]"
-                                >
-                                    • Jurnal Umum
-                                </Link>
-                                <Link
-                                    :href="route('finance.ledger.index')"
-                                    :class="[
-                                        route().current('finance.ledger.index')
-                                            ? 'text-brand-600 dark:text-brand-400 font-semibold'
-                                            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
-                                        'block py-1.5 text-xs transition-all duration-150'
-                                    ]"
-                                >
-                                    • Buku Besar (Ledger)
-                                </Link>
-                                <Link
-                                    :href="route('finance.balance-sheet.index')"
-                                    :class="[
-                                        route().current('finance.balance-sheet.index')
-                                            ? 'text-brand-600 dark:text-brand-400 font-semibold'
-                                            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
-                                        'block py-1.5 text-xs transition-all duration-150'
-                                    ]"
-                                >
-                                    • Neraca Keuangan
-                                </Link>
-                            </div>
-                        </transition>
-                    </div>
-                </div>
-
-                <!-- SECTION 3: YAYASAN & MANAJEMEN -->
-                <div class="space-y-1 pt-2 border-t border-gray-100 dark:border-gray-800/60">
-                    <span v-if="isSidebarOpen" class="px-3 text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-1">
-                        Yayasan & Manajemen
-                    </span>
-
-                    <!-- Profil MKT -->
-                    <Link
-                        :href="route('mkt-profile.index')"
-                        :class="[
-                            route().current('mkt-profile.index')
-                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
+                            route().current('partner.profile')
+                                ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400 font-semibold'
                                 : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
                             'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
                         ]"
@@ -363,15 +260,15 @@ const toggleFinance = () => {
                         <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         </svg>
-                        <span v-if="isSidebarOpen" class="text-sm">Profil MKT</span>
+                        <span v-if="isSidebarOpen" class="text-sm">Profil Lembaga</span>
                     </Link>
 
-                    <!-- Pengurus & Struktur Organisasi MKT -->
+                    <!-- Pengurus & Anggota Lembaga -->
                     <Link
-                        :href="route('management.index')"
+                        :href="route('partner.members')"
                         :class="[
-                            route().current('management.index')
-                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
+                            route().current('partner.members')
+                                ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400 font-semibold'
                                 : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
                             'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
                         ]"
@@ -381,74 +278,229 @@ const toggleFinance = () => {
                         </svg>
                         <span v-if="isSidebarOpen" class="text-sm">Pengurus & Anggota</span>
                     </Link>
-
-                    <!-- Berita & Publikasi Artikel MKT -->
-                    <Link
-                        v-if="['webmaster', 'administrator', 'staff'].includes($page.props.auth.user.role)"
-                        :href="route('news.index')"
-                        :class="[
-                            route().current('news.*')
-                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
-                                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
-                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
-                        ]"
-                    >
-                        <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
-                        </svg>
-                        <span v-if="isSidebarOpen" class="text-sm">Berita & Artikel</span>
-                    </Link>
-
-                    <!-- Agenda & Arsip Rapat -->
-                    <Link
-                        :href="route('meetings.index')"
-                        :class="[
-                            route().current('meetings.*')
-                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
-                                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
-                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
-                        ]"
-                    >
-                        <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zM9 14h2v2H9v-2zm4 0h2v2h-2v-2z"></path>
-                        </svg>
-                        <span v-if="isSidebarOpen" class="text-sm">Agenda & Arsip Rapat</span>
-                    </Link>
-
-                    <!-- Manajemen User (Pengguna) -->
-                    <Link
-                        v-if="['webmaster', 'administrator'].includes($page.props.auth.user.role)"
-                        :href="route('users.index')"
-                        :class="[
-                            route().current('users.index')
-                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
-                                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
-                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
-                        ]"
-                    >
-                        <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                        <span v-if="isSidebarOpen" class="text-sm">Manajemen User</span>
-                    </Link>
-
-                    <!-- Alur & Flowchart Sistem (Khusus Webmaster & Administrator) -->
-                    <Link
-                        v-if="['webmaster', 'administrator'].includes($page.props.auth.user.role)"
-                        :href="route('dashboard', { tab: 'alur' })"
-                        :class="[
-                            route().current('dashboard') && ($page.url.includes('tab=alur') || $page.url.includes('tab=flowchart'))
-                                ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400 font-semibold'
-                                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
-                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
-                        ]"
-                    >
-                        <svg class="w-5 h-5 text-amber-500 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                        <span v-if="isSidebarOpen" class="text-sm">Alur Sistem (Flowchart)</span>
-                    </Link>
                 </div>
+
+                <!-- MENU INTERNAL YAYASAN MKT (Hanya untuk Pengurus / Internal Non-Mitra) -->
+                <template v-if="$page.props.auth.user.role !== 'mitra'">
+                    <!-- SECTION 2: FILANTROPI & KEUANGAN -->
+                    <div class="space-y-1 pt-2 border-t border-gray-100 dark:border-gray-800/60">
+                        <span v-if="isSidebarOpen" class="px-3 text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-1">
+                            Filantropi & Keuangan
+                        </span>
+
+                        <!-- Donatur & Donasi -->
+                        <Link
+                            :href="route('donors.index')"
+                            :class="[
+                                route().current('donors.index')
+                                    ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
+                                    : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                            ]"
+                        >
+                            <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span v-if="isSidebarOpen" class="text-sm">Donatur & Donasi</span>
+                        </Link>
+
+                        <!-- Finance (Collapse Group) -->
+                        <div>
+                            <button
+                                type="button"
+                                @click="toggleFinance"
+                                :class="[
+                                    route().current('finance.*')
+                                        ? 'text-brand-600 dark:text-brand-400 font-semibold bg-brand-50/30 dark:bg-brand-950/10'
+                                        : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                                    'flex items-center justify-between w-full px-3 py-2 rounded-xl transition-all duration-150 group'
+                                ]"
+                            >
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span v-if="isSidebarOpen" class="text-sm">Keuangan & Laporan</span>
+                                </div>
+                                <svg
+                                    v-if="isSidebarOpen"
+                                    :class="[
+                                        isFinanceOpen ? 'rotate-180' : 'rotate-0',
+                                        'w-4 h-4 transition-transform duration-200 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200'
+                                    ]"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+
+                            <!-- Submenus (Hanya Tampil Jika Aktif / Dibuka) -->
+                            <transition
+                                enter-active-class="transition-all duration-200 ease-out"
+                                enter-from-class="opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                                enter-to-class="opacity-100 translate-y-0 max-h-60"
+                                leave-active-class="transition-all duration-150 ease-in"
+                                leave-from-class="opacity-100 translate-y-0 max-h-60"
+                                leave-to-class="opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                            >
+                                <div v-show="isFinanceOpen && isSidebarOpen" class="pl-8 mt-1 space-y-1">
+                                    <Link
+                                        :href="route('finance.coa.index')"
+                                        :class="[
+                                            route().current('finance.coa.index')
+                                                ? 'text-brand-600 dark:text-brand-400 font-semibold'
+                                                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
+                                            'block py-1.5 text-xs transition-all duration-150'
+                                        ]"
+                                    >
+                                        • Daftar COA (Kode Akun)
+                                    </Link>
+                                    <Link
+                                        :href="route('finance.journal.index')"
+                                        :class="[
+                                            route().current('finance.journal.index')
+                                                ? 'text-brand-600 dark:text-brand-400 font-semibold'
+                                                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
+                                            'block py-1.5 text-xs transition-all duration-150'
+                                        ]"
+                                    >
+                                        • Jurnal Umum
+                                    </Link>
+                                    <Link
+                                        :href="route('finance.ledger.index')"
+                                        :class="[
+                                            route().current('finance.ledger.index')
+                                                ? 'text-brand-600 dark:text-brand-400 font-semibold'
+                                                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
+                                            'block py-1.5 text-xs transition-all duration-150'
+                                        ]"
+                                    >
+                                        • Buku Besar (Ledger)
+                                    </Link>
+                                    <Link
+                                        :href="route('finance.balance-sheet.index')"
+                                        :class="[
+                                            route().current('finance.balance-sheet.index')
+                                                ? 'text-brand-600 dark:text-brand-400 font-semibold'
+                                                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
+                                            'block py-1.5 text-xs transition-all duration-150'
+                                        ]"
+                                    >
+                                        • Neraca Keuangan
+                                    </Link>
+                                </div>
+                            </transition>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 3: YAYASAN & MANAJEMEN -->
+                    <div class="space-y-1 pt-2 border-t border-gray-100 dark:border-gray-800/60">
+                        <span v-if="isSidebarOpen" class="px-3 text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-1">
+                            Yayasan & Manajemen
+                        </span>
+
+                        <!-- Profil MKT -->
+                        <Link
+                            :href="route('mkt-profile.index')"
+                            :class="[
+                                route().current('mkt-profile.index')
+                                    ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
+                                    : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                                'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                            ]"
+                        >
+                            <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <span v-if="isSidebarOpen" class="text-sm">Profil MKT</span>
+                        </Link>
+
+                        <!-- Pengurus & Struktur Organisasi MKT -->
+                        <Link
+                            :href="route('management.index')"
+                            :class="[
+                                route().current('management.index')
+                                    ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
+                                    : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                                'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                            ]"
+                        >
+                            <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                            <span v-if="isSidebarOpen" class="text-sm">Pengurus & Anggota</span>
+                        </Link>
+
+                        <!-- Berita & Publikasi Artikel MKT -->
+                        <Link
+                            v-if="['webmaster', 'administrator', 'staff'].includes($page.props.auth.user.role)"
+                            :href="route('news.index')"
+                            :class="[
+                                route().current('news.*')
+                                    ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
+                                    : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                                'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                            ]"
+                        >
+                            <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                            </svg>
+                            <span v-if="isSidebarOpen" class="text-sm">Berita & Artikel</span>
+                        </Link>
+
+                        <!-- Agenda & Arsip Rapat -->
+                        <Link
+                            :href="route('meetings.index')"
+                            :class="[
+                                route().current('meetings.*')
+                                    ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
+                                    : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                                'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                            ]"
+                        >
+                            <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zM9 14h2v2H9v-2zm4 0h2v2h-2v-2z"></path>
+                            </svg>
+                            <span v-if="isSidebarOpen" class="text-sm">Agenda & Arsip Rapat</span>
+                        </Link>
+
+                        <!-- Manajemen User (Pengguna) -->
+                        <Link
+                            v-if="['webmaster', 'administrator'].includes($page.props.auth.user.role)"
+                            :href="route('users.index')"
+                            :class="[
+                                route().current('users.index')
+                                    ? 'bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-400 font-semibold'
+                                    : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                                'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                            ]"
+                        >
+                            <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            <span v-if="isSidebarOpen" class="text-sm">Manajemen User</span>
+                        </Link>
+
+                        <!-- Alur & Flowchart Sistem (Khusus Webmaster & Administrator) -->
+                        <Link
+                            v-if="['webmaster', 'administrator'].includes($page.props.auth.user.role)"
+                            :href="route('dashboard', { tab: 'alur' })"
+                            :class="[
+                                route().current('dashboard') && ($page.url.includes('tab=alur') || $page.url.includes('tab=flowchart'))
+                                    ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400 font-semibold'
+                                    : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                                'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                            ]"
+                        >
+                            <svg class="w-5 h-5 text-amber-500 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span v-if="isSidebarOpen" class="text-sm">Alur Sistem (Flowchart)</span>
+                        </Link>
+                    </div>
+                </template>
             </nav>
 
             <!-- Bottom Panel / User Profile Info -->

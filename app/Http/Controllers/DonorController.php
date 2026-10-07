@@ -11,6 +11,10 @@ class DonorController extends Controller
 {
     public function index(Request $request)
     {
+        if ($request->user() && $request->user()->role === 'mitra') {
+            return redirect()->route('dashboard')->with('error', 'Akses modul donatur hanya untuk manajemen internal Yayasan MKT.');
+        }
+
         $query = Donor::query()->withCount(['donations' => function($q) {
             $q->where('status', 'Sukses');
         }])->withSum(['donations' => function($q) {

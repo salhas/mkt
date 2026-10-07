@@ -11,6 +11,10 @@ class OrganizationMemberController extends Controller
 {
     public function index(Request $request)
     {
+        if ($request->user() && $request->user()->role === 'mitra') {
+            return redirect()->route('partner.members');
+        }
+
         $query = OrganizationMember::query();
 
         // Search filter
