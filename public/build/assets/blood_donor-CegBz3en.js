@@ -1,0 +1,1 @@
+var e=`/build/assets/blood_donor-BqLmw1s5.jpg`;export{e as t};

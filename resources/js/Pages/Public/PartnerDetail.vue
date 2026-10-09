@@ -2,6 +2,10 @@
 import { ref, computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import heroRescueImg from '../../../images/hero_rescue.jpg';
+import bloodDonorImg from '../../../images/blood_donor.jpg';
+import pillarPreImg from '../../../images/pillar_pre.jpg';
+import pillarDuringImg from '../../../images/pillar_during.jpg';
 
 const props = defineProps({
     partner: {
@@ -148,6 +152,24 @@ const categoryMeta = computed(() => {
     }
 });
 
+const heroBackgroundImage = computed(() => {
+    if (props.partner.banner_path) {
+        return props.partner.banner_path;
+    }
+    switch (props.partner.category) {
+        case 'PMI':
+            return bloodDonorImg;
+        case 'BPBD':
+            return pillarPreImg;
+        case 'Rumah Sakit':
+            return pillarDuringImg;
+        case 'Basarnas':
+        case 'Tim Rescue':
+        default:
+            return heroRescueImg;
+    }
+});
+
 const formatDate = (dateStr) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
@@ -171,25 +193,21 @@ const formatDate = (dateStr) => {
                 <!-- ========================================== -->
                 <!-- 1. HERO SECTION (id="home") -->
                 <!-- ========================================== -->
-                <section id="home" class="relative overflow-hidden bg-slate-950 text-white min-h-[600px] sm:min-h-[660px] flex items-center pt-8 pb-16">
+                <section id="home" class="relative overflow-hidden bg-slate-950 text-white min-h-[620px] sm:min-h-[680px] flex items-center pt-8 pb-16">
                     
-                    <!-- Hero Background (Custom Banner or Dynamic Gradient) -->
-                    <div class="absolute inset-0 z-0">
-                        <template v-if="partner.banner_path">
-                            <img 
-                                :src="partner.banner_path" 
-                                :alt="partner.name" 
-                                class="w-full h-full object-cover opacity-35 filter brightness-75 scale-105 transform animate-pulse duration-10000"
-                            />
-                        </template>
-                        <template v-else>
-                            <div :class="['w-full h-full bg-gradient-to-br', categoryMeta.gradient, 'relative']">
-                                <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"></div>
-                                <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-orange-500/20 blur-3xl"></div>
-                                <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl"></div>
-                            </div>
-                        </template>
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent"></div>
+                    <!-- Hero Background Image with Aesthetic Cinematic Overlays -->
+                    <div class="absolute inset-0 z-0 overflow-hidden">
+                        <img 
+                            :src="heroBackgroundImage" 
+                            :alt="partner.name" 
+                            class="w-full h-full object-cover object-center filter brightness-90 contrast-105 scale-105 transform animate-pulse duration-10000 opacity-40 dark:opacity-35"
+                        />
+                        <!-- Dynamic Color Tint Matching Category -->
+                        <div :class="['absolute inset-0 bg-gradient-to-br', categoryMeta.gradient, 'opacity-65 mix-blend-multiply']"></div>
+                        <!-- High Contrast Gradients for Text Readability -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/50"></div>
+                        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-transparent"></div>
+                        <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"></div>
                     </div>
 
                     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 space-y-8">
