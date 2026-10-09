@@ -97,6 +97,17 @@ class PublicPageController extends Controller
         // Riwayat Operasi SAR / Misi Kemanusiaan
         $sarMissions = $partner->getSarParticipations();
 
+        // Berita & Artikel terkait mitra atau terbitan kebencanaan
+        $partnerNews = News::where(function ($q) use ($partner) {
+            $q->where('title', 'like', "%{$partner->name}%")
+              ->orWhere('content', 'like', "%{$partner->name}%")
+              ->orWhere('category', $partner->category);
+        })->orderBy('id', 'desc')->take(3)->get();
+
+        if ($partnerNews->isEmpty()) {
+            $partnerNews = News::orderBy('id', 'desc')->take(3)->get();
+        }
+
         // Mitra Terkait Lainnya untuk rekomendasi
         $otherPartners = Partner::where('id', '!=', $partner->id)
             ->where('status', 'Aktif')
@@ -109,6 +120,7 @@ class PublicPageController extends Controller
             'members' => $members,
             'totalMembersCount' => $totalMembersCount,
             'sarMissions' => $sarMissions,
+            'partnerNews' => $partnerNews,
             'otherPartners' => $otherPartners,
             'mktProfile' => MktProfile::first(),
         ]);

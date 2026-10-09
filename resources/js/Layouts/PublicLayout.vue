@@ -12,6 +12,14 @@ const props = defineProps({
     description: {
         type: String,
         default: 'Ekosistem penanggulangan bencana terpadu, relawan donor darah siaga 24/7, tim rescue SAR lapangan, dan transparansi donasi kemanusiaan.'
+    },
+    partner: {
+        type: Object,
+        default: null
+    },
+    customNavigation: {
+        type: Array,
+        default: null
     }
 });
 
@@ -238,14 +246,27 @@ const handleCtaSubmit = async () => {
     }
 };
 
-const navigationLinks = computed(() => [
-    { name: 'Home', nameEn: 'Home', href: route('home'), active: route().current('home'), icon: '🏠' },
-    { name: 'Profil', nameEn: 'Profile', href: route('public.profile'), active: route().current('public.profile') || route().current('public.about'), icon: '🏢' },
-    { name: 'Layanan', nameEn: 'Services', href: route('public.services'), active: route().current('public.services'), icon: '⚡' },
-    { name: 'Berita dan Artikel', nameEn: 'News & Articles', href: route('public.news'), active: route().current('public.news*'), icon: '📰' },
-    { name: 'Mitra', nameEn: 'Partners', href: route('public.partners'), active: route().current('public.partners') || route().current('public.pillars'), icon: '🤝' },
-    { name: 'Kontak', nameEn: 'Contact', href: route('public.contact'), active: route().current('public.contact'), icon: '📍' },
-]);
+const navigationLinks = computed(() => {
+    if (props.customNavigation) {
+        return props.customNavigation;
+    }
+    if (props.partner) {
+        return [
+            { name: 'Home', nameEn: 'Home', href: '#home', active: false, icon: '🏠' },
+            { name: 'Profil', nameEn: 'Profile', href: '#profil', active: false, icon: '🏢' },
+            { name: 'Berita & Artikel', nameEn: 'News & Articles', href: '#berita', active: false, icon: '📰' },
+            { name: 'Kontak', nameEn: 'Contact', href: '#kontak', active: false, icon: '📍' },
+        ];
+    }
+    return [
+        { name: 'Home', nameEn: 'Home', href: route('home'), active: route().current('home'), icon: '🏠' },
+        { name: 'Profil', nameEn: 'Profile', href: route('public.profile'), active: route().current('public.profile') || route().current('public.about'), icon: '🏢' },
+        { name: 'Layanan', nameEn: 'Services', href: route('public.services'), active: route().current('public.services'), icon: '⚡' },
+        { name: 'Berita dan Artikel', nameEn: 'News & Articles', href: route('public.news'), active: route().current('public.news*'), icon: '📰' },
+        { name: 'Mitra', nameEn: 'Partners', href: route('public.partners'), active: route().current('public.partners') || route().current('public.pillars'), icon: '🤝' },
+        { name: 'Kontak', nameEn: 'Contact', href: route('public.contact'), active: route().current('public.contact'), icon: '📍' },
+    ];
+});
 </script>
 
 <template>
@@ -264,14 +285,15 @@ const navigationLinks = computed(() => [
                         <span>SIAGA 24/7</span>
                     </span>
                     <p class="truncate text-slate-300 font-medium">
-                        Pusat Komando Bencana & Relawan Donor Darah &bull; Yayasan MKT Indonesia
+                        <span v-if="partner">Kemitraan Resmi &bull; {{ partner.name }} &bull; Yayasan MKT Indonesia</span>
+                        <span v-else>Pusat Komando Bencana & Relawan Donor Darah &bull; Yayasan MKT Indonesia</span>
                     </p>
                 </div>
                 <div class="flex items-center space-x-3 shrink-0 text-slate-300">
-                    <a href="tel:+6281234567890" class="flex items-center space-x-1 hover:text-orange-400 font-bold transition">
+                    <a :href="`tel:${partner?.pic_phone || partner?.phone || '+6281234567890'}`" class="flex items-center space-x-1 hover:text-orange-400 font-bold transition">
                         <span>📞</span>
                         <span class="hidden sm:inline">Hotline:</span>
-                        <span>0812-3456-7890</span>
+                        <span>{{ partner?.pic_phone || partner?.phone || '0812-3456-7890' }}</span>
                     </a>
                 </div>
             </div>
@@ -282,14 +304,40 @@ const navigationLinks = computed(() => [
             <div class="max-w-7xl mx-auto backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800/90 shadow-xl shadow-slate-200/40 dark:shadow-slate-950/60 px-3 sm:px-5 py-2.5 sm:py-3 transition-all duration-300">
                 <div class="flex items-center justify-between">
                     
-                    <!-- Brand Logo -->
-                    <Link :href="route('home')" class="flex items-center shrink-0 min-w-0 pr-2">
-                        <MktLogo variant="full" icon-size="w-9 h-9 sm:w-11 sm:h-11" text-size="text-sm sm:text-lg lg:text-xl" :show-subtitle="true" />
-                    </Link>
+                    <!-- Brand Logo: Mitra vs Yayasan MKT -->
+                    <template v-if="partner">
+                        <a href="#home" class="flex items-center space-x-2.5 shrink-0 min-w-0 pr-2 group">
+                            <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-white dark:bg-slate-800 p-1 shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
+                                <img 
+                                    v-if="partner.logo_path" 
+                                    :src="partner.logo_path" 
+                                    :alt="partner.name" 
+                                    class="w-full h-full object-contain"
+                                />
+                                <span v-else class="text-xl">
+                                    {{ partner.category === 'Basarnas' ? '⚓' : (partner.category === 'BPBD' ? '🏛️' : (partner.category === 'PMI' ? '🩸' : (partner.category === 'Rumah Sakit' ? '🏥' : '🚨'))) }}
+                                </span>
+                            </div>
+                            <div class="min-w-0 flex flex-col text-left">
+                                <span class="font-black text-sm sm:text-base text-slate-900 dark:text-white truncate max-w-[140px] sm:max-w-[200px] lg:max-w-[260px] group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                                    {{ partner.name }}
+                                </span>
+                                <span class="text-[9px] sm:text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider truncate">
+                                    Mitra Resmi Yayasan MKT
+                                </span>
+                            </div>
+                        </a>
+                    </template>
+                    <template v-else>
+                        <Link :href="route('home')" class="flex items-center shrink-0 min-w-0 pr-2">
+                            <MktLogo variant="full" icon-size="w-9 h-9 sm:w-11 sm:h-11" text-size="text-sm sm:text-lg lg:text-xl" :show-subtitle="true" />
+                        </Link>
+                    </template>
 
                     <!-- Desktop Main Navigation Menu Links -->
                     <nav class="hidden lg:flex items-center space-x-1 xl:space-x-1.5">
-                        <Link
+                        <component
+                            :is="link.href.startsWith('#') ? 'a' : Link"
                             v-for="link in navigationLinks"
                             :key="link.name"
                             :href="link.href"
@@ -302,6 +350,15 @@ const navigationLinks = computed(() => [
                         >
                             <span class="text-xs">{{ link.icon }}</span>
                             <span>{{ currentLang === 'id' ? link.name : link.nameEn }}</span>
+                        </component>
+
+                        <Link 
+                            v-if="partner"
+                            :href="route('home')"
+                            class="px-2.5 py-1.5 rounded-xl text-xs text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 font-bold border border-dashed border-slate-300 dark:border-slate-700 hover:border-orange-500 transition ml-1"
+                            title="Kembali ke Portal Pusat Yayasan MKT"
+                        >
+                            <span>🌐 Portal MKT</span>
                         </Link>
                     </nav>
 
@@ -378,7 +435,8 @@ const navigationLinks = computed(() => [
                     v-if="mobileMenuOpen" 
                     class="lg:hidden mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800 space-y-1 animate-fadeIn"
                 >
-                    <Link
+                    <component
+                        :is="link.href.startsWith('#') ? 'a' : Link"
                         v-for="link in navigationLinks"
                         :key="link.name"
                         :href="link.href"
@@ -392,6 +450,16 @@ const navigationLinks = computed(() => [
                     >
                         <span class="text-base">{{ link.icon }}</span>
                         <span>{{ currentLang === 'id' ? link.name : link.nameEn }}</span>
+                    </component>
+
+                    <Link
+                        v-if="partner"
+                        :href="route('home')"
+                        @click="mobileMenuOpen = false"
+                        class="flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl text-xs text-orange-600 dark:text-orange-400 font-bold border-t border-slate-100 dark:border-slate-800"
+                    >
+                        <span>🌐</span>
+                        <span>Portal Pusat Yayasan MKT</span>
                     </Link>
 
                     <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">

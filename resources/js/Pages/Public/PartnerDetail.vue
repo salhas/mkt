@@ -20,6 +20,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    partnerNews: {
+        type: Array,
+        default: () => [],
+    },
     otherPartners: {
         type: Array,
         default: () => [],
@@ -29,9 +33,6 @@ const props = defineProps({
         default: null,
     },
 });
-
-// Tab state
-const activeTab = ref('profil'); // 'profil', 'pilar', 'personel', 'misi'
 
 // Modal Registrasi Khusus Mitra Ini
 const showRegisterModal = ref(false);
@@ -94,7 +95,8 @@ const categoryMeta = computed(() => {
                 icon: '⚓',
                 badgeBg: 'bg-blue-600',
                 badgeText: 'text-white',
-                gradient: 'from-blue-900 via-indigo-900 to-slate-950',
+                gradient: 'from-blue-950 via-slate-900 to-indigo-950',
+                accentColor: 'text-blue-500',
                 label: 'Operasi SAR & Evakuasi',
             };
         case 'BPBD':
@@ -102,7 +104,8 @@ const categoryMeta = computed(() => {
                 icon: '🏛️',
                 badgeBg: 'bg-amber-600',
                 badgeText: 'text-white',
-                gradient: 'from-amber-900 via-orange-950 to-slate-950',
+                gradient: 'from-amber-950 via-slate-900 to-orange-950',
+                accentColor: 'text-amber-500',
                 label: 'Komando Darurat & Mitigasi',
             };
         case 'PMI':
@@ -110,7 +113,8 @@ const categoryMeta = computed(() => {
                 icon: '🩸',
                 badgeBg: 'bg-rose-600',
                 badgeText: 'text-white',
-                gradient: 'from-rose-950 via-red-950 to-slate-950',
+                gradient: 'from-rose-950 via-slate-900 to-red-950',
+                accentColor: 'text-rose-500',
                 label: 'Donor Darah & Pelayanan Medis',
             };
         case 'Rumah Sakit':
@@ -118,7 +122,8 @@ const categoryMeta = computed(() => {
                 icon: '🏥',
                 badgeBg: 'bg-teal-600',
                 badgeText: 'text-white',
-                gradient: 'from-teal-950 via-cyan-950 to-slate-950',
+                gradient: 'from-teal-950 via-slate-900 to-cyan-950',
+                accentColor: 'text-teal-500',
                 label: 'Fasilitas Medis Rujukan',
             };
         case 'Filantropi':
@@ -126,7 +131,8 @@ const categoryMeta = computed(() => {
                 icon: '🤝',
                 badgeBg: 'bg-emerald-600',
                 badgeText: 'text-white',
-                gradient: 'from-emerald-950 via-teal-950 to-slate-950',
+                gradient: 'from-emerald-950 via-slate-900 to-teal-950',
+                accentColor: 'text-emerald-500',
                 label: 'Penyalur Donasi & Program CSR',
             };
         case 'Tim Rescue':
@@ -135,549 +141,571 @@ const categoryMeta = computed(() => {
                 icon: '🚨',
                 badgeBg: 'bg-orange-600',
                 badgeText: 'text-white',
-                gradient: 'from-orange-950 via-amber-950 to-slate-950',
-                label: 'Unit Potensi SAR & Rescue',
+                gradient: 'from-orange-950 via-slate-900 to-amber-950',
+                accentColor: 'text-orange-500',
+                label: 'Unit Potensi SAR & Rescue Lapangan',
             };
     }
 });
+
+const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+};
 </script>
 
 <template>
     <PublicLayout 
         :title="`${partner.name} - Mitra Resmi Yayasan MKT Indonesia`"
         :description="partner.description || `Profil resmi kemitraan dan kolaborasi ${partner.name} bersama Yayasan MKT Indonesia.`"
+        :partner="partner"
     >
         <template #default="{ openCtaModal }">
-            <div class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen">
+            <div class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen scroll-smooth">
                 
-                <!-- BREADCRUMB NAVIGATION -->
-                <div class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 py-3">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <nav class="flex items-center space-x-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                            <Link :href="route('home')" class="hover:text-orange-600 dark:hover:text-orange-400 transition">
-                                Beranda
-                            </Link>
-                            <span>/</span>
-                            <Link :href="route('public.partners')" class="hover:text-orange-600 dark:hover:text-orange-400 transition">
-                                Mitra Resmi
-                            </Link>
-                            <span>/</span>
-                            <span class="text-slate-900 dark:text-white font-bold truncate max-w-xs sm:max-w-md">
-                                {{ partner.name }}
-                            </span>
-                        </nav>
-                    </div>
-                </div>
-
-                <!-- HERO BANNER SECTION -->
-                <section class="relative overflow-hidden">
-                    <!-- Background Cover (Uploaded Banner or Rich Dynamic Gradient) -->
-                    <div class="h-64 sm:h-80 md:h-96 w-full relative bg-slate-900">
+                <!-- ========================================== -->
+                <!-- 1. HERO SECTION (id="home") -->
+                <!-- ========================================== -->
+                <section id="home" class="relative overflow-hidden bg-slate-950 text-white min-h-[600px] sm:min-h-[660px] flex items-center pt-8 pb-16">
+                    
+                    <!-- Hero Background (Custom Banner or Dynamic Gradient) -->
+                    <div class="absolute inset-0 z-0">
                         <template v-if="partner.banner_path">
                             <img 
                                 :src="partner.banner_path" 
                                 :alt="partner.name" 
-                                class="w-full h-full object-cover"
+                                class="w-full h-full object-cover opacity-35 filter brightness-75 scale-105 transform animate-pulse duration-10000"
                             />
                         </template>
                         <template v-else>
-                            <div :class="['w-full h-full bg-gradient-to-r', categoryMeta.gradient, 'relative overflow-hidden']">
-                                <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                                <div class="absolute -right-10 -bottom-10 w-96 h-96 rounded-full bg-orange-500/10 blur-3xl"></div>
+                            <div :class="['w-full h-full bg-gradient-to-br', categoryMeta.gradient, 'relative']">
+                                <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"></div>
+                                <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-orange-500/20 blur-3xl"></div>
+                                <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl"></div>
                             </div>
                         </template>
-                        
-                        <!-- Overlay Darkening Gradient for Text Contrast -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent"></div>
                     </div>
 
-                    <!-- Main Hero Info Card (Overlapping Cover) -->
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-28 sm:-mt-36 relative z-10 pb-8">
-                        <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 md:p-10 shadow-2xl border border-slate-200/80 dark:border-slate-800">
+                    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 space-y-8">
+                        
+                        <!-- Top Breadcrumb & Status Pill -->
+                        <div class="flex flex-wrap items-center gap-3">
+                            <Link 
+                                :href="route('public.partners')" 
+                                class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-slate-200 border border-white/10 transition"
+                            >
+                                <span>← Direktori Mitra</span>
+                            </Link>
+
+                            <span class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                                <span>🤝 MITRA RESMI YAYASAN MKT</span>
+                            </span>
+
+                            <span 
+                                v-if="partner.status === 'Aktif' || partner.status === 'Siaga Bencana'"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                            >
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>{{ partner.status }}</span>
+                            </span>
+                        </div>
+
+                        <!-- Main Hero Grid: Logo + Partner Title & Motto -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                             
-                            <div class="flex flex-col md:flex-row md:items-start gap-6 sm:gap-8">
-                                <!-- Logo Box -->
-                                <div class="relative shrink-0 flex justify-center md:justify-start">
-                                    <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-white dark:bg-slate-950 p-3 shadow-xl border-2 border-slate-100 dark:border-slate-800 flex items-center justify-center overflow-hidden">
+                            <div class="lg:col-span-8 space-y-6">
+                                
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+                                    <!-- Partner Logo Frame -->
+                                    <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white dark:bg-slate-900 p-2.5 shadow-2xl border-2 border-white/20 shrink-0 flex items-center justify-center overflow-hidden">
                                         <img 
                                             v-if="partner.logo_path" 
                                             :src="partner.logo_path" 
                                             :alt="partner.name" 
                                             class="w-full h-full object-contain"
                                         />
-                                        <div v-else class="text-4xl sm:text-5xl flex items-center justify-center w-full h-full bg-slate-100 dark:bg-slate-800 rounded-2xl">
+                                        <div v-else class="text-4xl">
                                             {{ categoryMeta.icon }}
                                         </div>
                                     </div>
-                                    <span 
-                                        v-if="partner.status === 'Aktif' || partner.status === 'Siaga Bencana'" 
-                                        class="absolute -bottom-2 sm:-bottom-3 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-0 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black bg-emerald-500 text-white shadow-md flex items-center space-x-1"
+
+                                    <div class="space-y-1">
+                                        <span :class="['px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider inline-block', categoryMeta.badgeBg, categoryMeta.badgeText]">
+                                            {{ categoryMeta.icon }} {{ partner.category }} &bull; ID: {{ partner.code || 'MTR-MKT' }}
+                                        </span>
+                                        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+                                            {{ partner.name }}
+                                        </h1>
+                                    </div>
+                                </div>
+
+                                <!-- Partner Motto / Tagline Description -->
+                                <p class="text-sm sm:text-base md:text-lg text-slate-300 max-w-3xl leading-relaxed">
+                                    {{ partner.description || 'Unit potensi kemanusiaan dan penanggulangan bencana yang terintegrasi secara resmi dalam jaringan koordinasi tanggap darurat Yayasan MKT Indonesia.' }}
+                                </p>
+
+                                <!-- Hero Action Buttons -->
+                                <div class="pt-2 flex flex-wrap items-center gap-3.5">
+                                    <button 
+                                        @click="showRegisterModal = true"
+                                        class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-orange-500/25 active:scale-95 transition flex items-center space-x-2"
                                     >
-                                        <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                                        <span>{{ partner.status }}</span>
-                                    </span>
+                                        <span>🤝</span>
+                                        <span>Gabung Relawan / Anggota Mitra</span>
+                                    </button>
+
+                                    <a 
+                                        v-if="whatsappUrl" 
+                                        :href="whatsappUrl" 
+                                        target="_blank" 
+                                        rel="noopener"
+                                        class="px-5 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-lg active:scale-95 transition flex items-center space-x-2"
+                                    >
+                                        <span>💬 Hubungi Narahubung WhatsApp</span>
+                                    </a>
+
+                                    <a 
+                                        href="#profil" 
+                                        class="px-5 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/20 backdrop-blur-md transition flex items-center space-x-1.5"
+                                    >
+                                        <span>Pelajari Profil Lembaga ↓</span>
+                                    </a>
                                 </div>
 
-                                <!-- Partner Information Summary -->
-                                <div class="flex-1 text-center md:text-left space-y-3">
-                                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                                        <span :class="['px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider', categoryMeta.badgeBg, categoryMeta.badgeText]">
-                                            {{ categoryMeta.icon }} {{ partner.category }}
-                                        </span>
-                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                            ID: {{ partner.code || 'MTR-MKT' }}
-                                        </span>
-                                        <span v-if="partner.mou_number && partner.mou_number !== '-'" class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                                            MoU: {{ partner.mou_number }}
-                                        </span>
-                                    </div>
-
-                                    <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-                                        {{ partner.name }}
-                                    </h1>
-
-                                    <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
-                                        {{ partner.description || 'Mitra strategis resmi yang berkolaborasi dalam jejaring kemanusiaan, penanggulangan bencana, dan kesiapsiagaan darurat bersama Yayasan MKT Indonesia.' }}
-                                    </p>
-
-                                    <!-- Quick Contact and Action Row -->
-                                    <div class="pt-4 flex flex-wrap items-center justify-center md:justify-start gap-3">
-                                        <!-- Gabung Relawan Mitra CTA -->
-                                        <button 
-                                            @click="showRegisterModal = true"
-                                            class="px-5 py-3 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-black text-xs sm:text-sm shadow-lg shadow-orange-500/25 active:scale-95 transition flex items-center space-x-2"
-                                        >
-                                            <span>🤝</span>
-                                            <span>Gabung Relawan / Anggota Mitra</span>
-                                        </button>
-
-                                        <!-- Direct WhatsApp PIC -->
-                                        <a 
-                                            v-if="whatsappUrl" 
-                                            :href="whatsappUrl" 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            class="px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition flex items-center space-x-2"
-                                        >
-                                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.087-.179.182-.077.357.101.174.449.741.963 1.2 0.662.592 1.22.776 1.393.863.174.087.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.144.39-.087s1.011.477 1.184.564.289.13.332.202c.044.073.044.42-.1 1.225z"/>
-                                            </svg>
-                                            <span>Hubungi Narahubung</span>
-                                        </a>
-
-                                        <!-- Salin Tautan / Share -->
-                                        <button 
-                                            @click="copyCurrentUrl"
-                                            class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm border border-slate-200 dark:border-slate-700 transition flex items-center space-x-1.5"
-                                        >
-                                            <span v-if="copied">✅ Berhasil Disalin!</span>
-                                            <span v-else>🔗 Bagikan Halaman</span>
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
 
-                            <!-- Highlights Key Metrics -->
-                            <div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800">
-                                    <span class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Total Personel</span>
-                                    <span class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 block">
-                                        {{ totalMembersCount }} Personel
-                                    </span>
-                                </div>
-                                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800">
-                                    <span class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Kategori Lembaga</span>
-                                    <span class="text-xl sm:text-2xl font-black text-orange-600 dark:text-orange-400 mt-0.5 block truncate">
-                                        {{ partner.category }}
-                                    </span>
-                                </div>
-                                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800">
-                                    <span class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Status Kolaborasi</span>
-                                    <span class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                                        {{ partner.status }}
-                                    </span>
-                                </div>
-                                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800">
-                                    <span class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Kerjasama MKT</span>
-                                    <span class="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 mt-0.5 block">
-                                        Resmi
-                                    </span>
+                            <!-- Right Column: Quick Stats Card -->
+                            <div class="lg:col-span-4">
+                                <div class="bg-white/10 backdrop-blur-xl border border-white/15 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5">
+                                    <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                                        <div>
+                                            <span class="text-[11px] font-bold uppercase tracking-wider text-orange-400 block">Status Kolaborasi</span>
+                                            <span class="text-lg font-black text-white">Kerjasama Resmi MKT</span>
+                                        </div>
+                                        <span class="text-3xl">🛡️</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Kekuatan Personel</span>
+                                            <span class="text-2xl font-black text-white mt-0.5 block">
+                                                {{ totalMembersCount }}
+                                            </span>
+                                            <span class="text-[10px] text-slate-400">Personel Siaga</span>
+                                        </div>
+
+                                        <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Misi Operasi SAR</span>
+                                            <span class="text-2xl font-black text-orange-400 mt-0.5 block">
+                                                {{ sarMissions.length }}
+                                            </span>
+                                            <span class="text-[10px] text-slate-400">Aksi Lapangan</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2 text-xs pt-1">
+                                        <div class="flex justify-between py-1 border-b border-white/5">
+                                            <span class="text-slate-400">Dokumen MoU:</span>
+                                            <span class="font-mono font-bold text-slate-200">{{ partner.mou_number || 'Tervalidasi' }}</span>
+                                        </div>
+                                        <div class="flex justify-between py-1 border-b border-white/5">
+                                            <span class="text-slate-400">Kesiapsiagaan:</span>
+                                            <span class="font-bold text-emerald-400">Siaga Operasi 24/7</span>
+                                        </div>
+                                        <div class="flex justify-between py-1">
+                                            <span class="text-slate-400">Koordinator PIC:</span>
+                                            <span class="font-semibold text-slate-200">{{ partner.pic_name || 'Sekretariat' }}</span>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
 
                         </div>
+
                     </div>
                 </section>
 
-                <!-- NAVIGATION TABS -->
-                <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-6">
-                    <div class="flex items-center space-x-2 overflow-x-auto pb-2 border-b border-slate-200 dark:border-slate-800">
-                        <button
-                            @click="activeTab = 'profil'"
-                            :class="[
-                                activeTab === 'profil'
-                                    ? 'bg-orange-600 text-white shadow-md font-bold'
-                                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium',
-                                'px-5 py-2.5 rounded-2xl text-xs sm:text-sm shrink-0 transition-all flex items-center space-x-2'
-                            ]"
-                        >
-                            <span>🏢</span>
-                            <span>Profil & Visi Misi</span>
-                        </button>
-
-                        <button
-                            @click="activeTab = 'pilar'"
-                            :class="[
-                                activeTab === 'pilar'
-                                    ? 'bg-orange-600 text-white shadow-md font-bold'
-                                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium',
-                                'px-5 py-2.5 rounded-2xl text-xs sm:text-sm shrink-0 transition-all flex items-center space-x-2'
-                            ]"
-                        >
-                            <span>🛡️</span>
-                            <span>Peran 3 Pilar Bencana</span>
-                        </button>
-
-                        <button
-                            @click="activeTab = 'personel'"
-                            :class="[
-                                activeTab === 'personel'
-                                    ? 'bg-orange-600 text-white shadow-md font-bold'
-                                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium',
-                                'px-5 py-2.5 rounded-2xl text-xs sm:text-sm shrink-0 transition-all flex items-center space-x-2'
-                            ]"
-                        >
-                            <span>👥</span>
-                            <span>Personel & Relawan ({{ totalMembersCount }})</span>
-                        </button>
-
-                        <button
-                            @click="activeTab = 'misi'"
-                            :class="[
-                                activeTab === 'misi'
-                                    ? 'bg-orange-600 text-white shadow-md font-bold'
-                                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium',
-                                'px-5 py-2.5 rounded-2xl text-xs sm:text-sm shrink-0 transition-all flex items-center space-x-2'
-                            ]"
-                        >
-                            <span>🚨</span>
-                            <span>Aksi & Operasi SAR ({{ sarMissions.length }})</span>
-                        </button>
-                    </div>
-                </section>
-
-                <!-- TAB CONTENT AREA -->
-                <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 space-y-12">
-                    
-                    <!-- TAB 1: PROFIL & VISI MISI -->
-                    <div v-if="activeTab === 'profil'" class="space-y-8 animate-fadeIn">
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            
-                            <!-- Main Text Details -->
-                            <div class="lg:col-span-8 space-y-8">
-                                <!-- Deskripsi Lengkap -->
-                                <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-                                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center space-x-2.5">
-                                        <span class="p-2 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 text-lg">📖</span>
-                                        <span>Tentang {{ partner.name }}</span>
-                                    </h2>
-                                    <div class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line space-y-3">
-                                        <p>{{ partner.description || 'Lembaga ini berdedikasi dalam penanganan kemanusiaan, respon kebencanaan, serta pembinaan relawan dalam bingkai koordinasi terpadu Yayasan MKT Indonesia.' }}</p>
-                                    </div>
-                                </div>
-
-                                <!-- Visi & Misi -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
-                                        <span class="px-3 py-1 rounded-full text-xs font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-                                            🎯 VISI
-                                        </span>
-                                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Arah & Komitmen</h3>
-                                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-                                            {{ partner.vision || 'Mewujudkan kesiapsiagaan masyarakat dan kapasitas penyelamatan yang tangguh, profesional, serta berjiwa kemanusiaan tinggi.' }}
-                                        </p>
-                                    </div>
-
-                                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
-                                        <span class="px-3 py-1 rounded-full text-xs font-black bg-orange-500/10 text-orange-600 dark:text-orange-400 uppercase tracking-wider">
-                                            🚀 MISI
-                                        </span>
-                                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Langkah Nyata</h3>
-                                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-                                            {{ partner.mission || '1. Membina relawan rescuer berkompetensi tinggi.\n2. Siaga merespon situasi darurat kemanusiaan.\n3. Mempererat koordinasi dan pertukaran informasi kebencanaan terpadu.' }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Side Contact & Office Card -->
-                            <div class="lg:col-span-4 space-y-6">
-                                <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
-                                    <h3 class="text-lg font-black text-slate-900 dark:text-white flex items-center space-x-2">
-                                        <span>📍</span>
-                                        <span>Markas & Narahubung</span>
-                                    </h3>
-
-                                    <div class="space-y-4 text-xs sm:text-sm">
-                                        <!-- Alamat -->
-                                        <div class="space-y-1">
-                                            <span class="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Alamat Posko / Markas</span>
-                                            <p class="font-semibold text-slate-800 dark:text-slate-200">
-                                                {{ partner.address || 'Kota Makassar, Sulawesi Selatan' }}
-                                            </p>
-                                        </div>
-
-                                        <!-- Narahubung -->
-                                        <div class="space-y-1">
-                                            <span class="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Koordinator / PIC</span>
-                                            <p class="font-semibold text-slate-800 dark:text-slate-200">
-                                                {{ partner.pic_name || 'Sekretariat Mitra' }}
-                                            </p>
-                                        </div>
-
-                                        <!-- Kontak Telepon / WA -->
-                                        <div class="space-y-1">
-                                            <span class="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Nomor Kontak Darurat</span>
-                                            <p class="font-mono font-bold text-slate-800 dark:text-slate-200">
-                                                {{ partner.pic_phone || partner.phone || '0812-xxxx-xxxx' }}
-                                            </p>
-                                        </div>
-
-                                        <!-- Email -->
-                                        <div class="space-y-1">
-                                            <span class="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Surat Elektronik (Email)</span>
-                                            <p class="font-mono text-slate-800 dark:text-slate-200 break-all">
-                                                {{ partner.email || 'info@mitra.org' }}
-                                            </p>
-                                        </div>
-
-                                        <!-- Website / Sosmed -->
-                                        <div v-if="partner.website || partner.instagram" class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                                            <span class="text-slate-400 text-[11px] font-bold uppercase tracking-wider block">Media Resmi</span>
-                                            <div class="flex flex-wrap gap-2">
-                                                <a 
-                                                    v-if="partner.website" 
-                                                    :href="partner.website" 
-                                                    target="_blank" 
-                                                    rel="noopener"
-                                                    class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/10 hover:text-orange-600 text-xs font-semibold transition"
-                                                >
-                                                    🌐 Website Resmi
-                                                </a>
-                                                <a 
-                                                    v-if="partner.instagram" 
-                                                    :href="partner.instagram" 
-                                                    target="_blank" 
-                                                    rel="noopener"
-                                                    class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-pink-500/10 hover:text-pink-600 text-xs font-semibold transition"
-                                                >
-                                                    📸 Instagram
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Tombol Kolaborasi -->
-                                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
-                                        <button 
-                                            @click="openCtaModal('mitra')"
-                                            class="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition"
-                                        >
-                                            Ajukan Kolaborasi Bersama MKT
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- TAB 2: PERAN DALAM 3 PILAR SIKLUS KEBENCANAAN -->
-                    <div v-if="activeTab === 'pilar'" class="space-y-6 animate-fadeIn">
+                <!-- ========================================== -->
+                <!-- 2. PROFIL, VISI MISI & 3 PILAR (id="profil") -->
+                <!-- ========================================== -->
+                <section id="profil" class="py-16 sm:py-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 scroll-mt-24">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                        
+                        <!-- Header Section -->
                         <div class="text-center max-w-2xl mx-auto space-y-2">
                             <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 uppercase tracking-wider">
-                                🛡️ TATA KELOLA KEMITRAAN TERPADU
+                                🏢 PROFIL RESMI LEMBAGA
                             </span>
-                            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                                Integrasi {{ partner.name }} di 3 Pilar Bencana
+                            <h2 class="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white">
+                                Mengenal Lebih Dekat {{ partner.name }}
                             </h2>
                             <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                                Kolaborasi berkesinambungan sebelum musibah, saat penanganan darurat, hingga tahap rehabilitasi pasca-bencana.
+                                Sinergi dedikasi, integritas, dan keahlian spesifik dalam jejaring aksi kemanusiaan.
                             </p>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                            <!-- Pra-Bencana -->
-                            <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 hover:border-blue-500/40 transition">
-                                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-2xl">
-                                    🗺️
+                        <!-- Profil & Visi Misi Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                            
+                            <!-- Left: Detail Cerita Profil -->
+                            <div class="lg:col-span-7 space-y-6">
+                                <div class="bg-slate-50 dark:bg-slate-950 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4">
+                                    <h3 class="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                                        <span>📖</span>
+                                        <span>Latar Belakang & Peran Strategis</span>
+                                    </h3>
+                                    <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                                        {{ partner.description || 'Lembaga ini merupakan bagian integral dari potensi Search and Rescue serta aksi kemanusiaan yang terkoordinasi bersama Yayasan MKT Indonesia, Basarnas, dan BPBD.' }}
+                                    </p>
                                 </div>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-600 text-white uppercase">
-                                    Fase 1: Pra-Bencana
-                                </span>
-                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Mitigasi & Kesiapsiagaan</h3>
-                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                                    Pelatihan bersama personel rescuer, pemetaan jalur evakuasi, penyusunan database pendonor darah darurat, dan perawatan peralatan teknis penyelamatan di markas posko.
-                                </p>
+
+                                <!-- Visi & Misi Cards -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="bg-slate-50 dark:bg-slate-950 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+                                        <span class="px-3 py-1 rounded-full text-[10px] font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                                            🎯 VISI LEMBAGA
+                                        </span>
+                                        <h4 class="text-base font-bold text-slate-900 dark:text-white">Arah & Komitmen</h4>
+                                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                                            {{ partner.vision || 'Menjadi unit penanggulangan bencana dan kemanusiaan yang tangguh, profesional, serta responsif demi kemaslahatan masyarakat luas.' }}
+                                        </p>
+                                    </div>
+
+                                    <div class="bg-slate-50 dark:bg-slate-950 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+                                        <span class="px-3 py-1 rounded-full text-[10px] font-black bg-orange-500/10 text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+                                            🚀 MISI UTAMA
+                                        </span>
+                                        <h4 class="text-base font-bold text-slate-900 dark:text-white">Aksi Nyata</h4>
+                                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                                            {{ partner.mission || '1. Membina relawan rescuer berkompetensi tinggi.\n2. Memberikan respon cepat dalam situasi darurat bencana.\n3. Membangun koordinasi erat bersama Pusdalops MKT.' }}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Saat Bencana -->
-                            <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 hover:border-rose-500/40 transition">
-                                <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-2xl">
-                                    🚨
+                            <!-- Right: Personel & Keahlian Inti -->
+                            <div class="lg:col-span-5 space-y-6">
+                                <div class="bg-slate-50 dark:bg-slate-950 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-6">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-lg font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                                            <span>👥</span>
+                                            <span>Personel & Potensi Tim</span>
+                                        </h3>
+                                        <span class="text-xs font-bold text-orange-600 dark:text-orange-400">
+                                            {{ totalMembersCount }} Anggota
+                                        </span>
+                                    </div>
+
+                                    <!-- Sample Member List -->
+                                    <div v-if="members.length > 0" class="space-y-3">
+                                        <div 
+                                            v-for="m in members.slice(0, 5)" 
+                                            :key="m.id"
+                                            class="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between"
+                                        >
+                                            <div class="flex items-center space-x-3 min-w-0">
+                                                <div class="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center font-black text-xs shrink-0">
+                                                    {{ m.name.charAt(0) }}
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ m.name }}</h5>
+                                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ m.role }}</span>
+                                                </div>
+                                            </div>
+                                            <span v-if="m.blood_type" class="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0">
+                                                Gol: {{ m.blood_type }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div v-else class="text-center py-6 text-slate-400 text-xs">
+                                        Daftar personel aktif terpusat pada basis data Pusdalops.
+                                    </div>
+
+                                    <div class="pt-2">
+                                        <button 
+                                            @click="showRegisterModal = true"
+                                            class="w-full py-3 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition"
+                                        >
+                                            + Bergabung Bersama Tim Ini
+                                        </button>
+                                    </div>
                                 </div>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white uppercase">
-                                    Fase 2: Saat Bencana
-                                </span>
-                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Tanggap Darurat & SAR</h3>
-                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                                    Pengerahan cepat personel SAR ke titik koordinat terdampak, evakuasi warga dan korban, pendirian posko medis lapangan, serta koordinasi frekuensi radio bersama Pusat Komando MKT.
-                                </p>
                             </div>
 
-                            <!-- Pasca-Bencana -->
-                            <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 hover:border-emerald-500/40 transition">
-                                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl">
-                                    🌱
+                        </div>
+
+                        <!-- 3 PILAR KEBENCANAAN SINERGI -->
+                        <div class="pt-8 border-t border-slate-100 dark:border-slate-800 space-y-6">
+                            <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white text-center">
+                                Peran {{ partner.name }} di 3 Pilar Siklus Kebencanaan
+                            </h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-3">
+                                    <span class="text-2xl p-2 rounded-xl bg-blue-500/10 inline-block">🗺️</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white uppercase block w-max">
+                                        1. Pra-Bencana (Mitigasi)
+                                    </span>
+                                    <h4 class="font-bold text-base text-slate-900 dark:text-white">Kesiapsiagaan & Latihan</h4>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        Penyegaran teknik water rescue, jungle rescue, pemetaan rute evakuasi, dan pemeliharaan alat pelampung serta perahu karet di markas posko.
+                                    </p>
                                 </div>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white uppercase">
-                                    Fase 3: Pasca-Bencana
-                                </span>
-                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Pemulihan & Trauma Healing</h3>
-                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                                    Pendampingan psikososial keluarga terdampak, distribusi logistik pemulihan, perbaikan fasilitas air bersih dan sanitasi, serta evaluasi menyeluruh operasi bersama tim gabungan.
-                                </p>
+
+                                <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-3">
+                                    <span class="text-2xl p-2 rounded-xl bg-rose-500/10 inline-block">🚨</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white uppercase block w-max">
+                                        2. Saat Bencana (Darurat)
+                                    </span>
+                                    <h4 class="font-bold text-base text-slate-900 dark:text-white">Respon Cepat & Evakuasi</h4>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        Mobilisasi tim rescue dan rescuer ke lokasi terdampak, pencarian korban musibah, dan pendirian posko darurat bersama tim gabungan SAR.
+                                    </p>
+                                </div>
+
+                                <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-3">
+                                    <span class="text-2xl p-2 rounded-xl bg-emerald-500/10 inline-block">🌱</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white uppercase block w-max">
+                                        3. Pasca-Bencana (Pemulihan)
+                                    </span>
+                                    <h4 class="font-bold text-base text-slate-900 dark:text-white">Rehabilitasi & Evaluasi</h4>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        Distribusi bantuan penyintas, pemulihan sarana air bersih dan fasilitas ibadah, serta pelaporan evaluasi operasi kepada komando MKT.
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- TAB 3: PERSONEL & RELAWAN -->
-                    <div v-if="activeTab === 'personel'" class="space-y-6 animate-fadeIn">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                                    Personel & Potensi SAR Terdaftar
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- 3. BERITA & ARTIKEL TERKINI (id="berita") -->
+                <!-- ========================================== -->
+                <section id="berita" class="py-16 sm:py-20 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 scroll-mt-24">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+                        
+                        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                            <div class="space-y-2">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                                    📰 INFORMASI & PUBLIKASI
+                                </span>
+                                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white">
+                                    Berita & Dokumentasi Lapangan
                                 </h2>
                                 <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                                    Total {{ totalMembersCount }} personel siap bertugas di bawah naungan {{ partner.name }}.
+                                    Aksi kemanusiaan, sosialisasi, dan kabar terkini penanggulangan bencana.
                                 </p>
                             </div>
-                            <button 
-                                @click="showRegisterModal = true"
-                                class="px-5 py-2.5 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition self-start sm:self-auto"
-                            >
-                                + Gabung Sebagai Personel
-                            </button>
+                            <Link :href="route('public.news')" class="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline">
+                                Lihat Semua Berita &bull; Portal MKT →
+                            </Link>
                         </div>
 
-                        <div v-if="members.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div 
-                                v-for="m in members" 
-                                :key="m.id"
-                                class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3"
+                        <!-- News Grid -->
+                        <div v-if="partnerNews.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                            <article 
+                                v-for="news in partnerNews" 
+                                :key="news.id"
+                                class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl hover:border-orange-500/40 transition-all flex flex-col justify-between group"
                             >
-                                <div class="flex items-center justify-between">
-                                    <div class="w-10 h-10 rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center font-black text-sm">
-                                        {{ m.name.charAt(0) }}
+                                <div class="space-y-4">
+                                    <!-- Image Thumbnail -->
+                                    <div class="h-48 w-full bg-slate-800 relative overflow-hidden">
+                                        <img 
+                                            v-if="news.image_path" 
+                                            :src="news.image_path" 
+                                            :alt="news.title" 
+                                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <div v-else class="w-full h-full flex items-center justify-center bg-slate-800 text-slate-500">
+                                            📰 Dokumentasi MKT
+                                        </div>
+                                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-600 text-white shadow-md">
+                                            {{ news.category || 'Kemanusiaan' }}
+                                        </span>
                                     </div>
-                                    <span v-if="m.blood_type" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                                        Gol: {{ m.blood_type }}
-                                    </span>
+
+                                    <!-- Content -->
+                                    <div class="px-6 space-y-2">
+                                        <span class="text-[11px] font-medium text-slate-400 block">
+                                            📅 {{ formatDate(news.created_at) }}
+                                        </span>
+                                        <h3 class="text-base font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2">
+                                            {{ news.title }}
+                                        </h3>
+                                        <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed">
+                                            {{ news.content ? news.content.replace(/<[^>]*>/g, '') : '' }}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-sm text-slate-900 dark:text-white truncate">{{ m.name }}</h4>
-                                    <p class="text-xs text-orange-600 dark:text-orange-400 font-medium">{{ m.role }}</p>
+
+                                <div class="p-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                    <Link 
+                                        :href="route('public.news.show', news.slug || news.id)"
+                                        class="inline-flex items-center space-x-1.5 text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline"
+                                    >
+                                        <span>Baca Selengkapnya</span>
+                                        <span>→</span>
+                                    </Link>
                                 </div>
-                                <div v-if="m.certifications" class="pt-2 border-t border-slate-100 dark:border-slate-800">
-                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate">
-                                        Sertifikasi: {{ m.certifications }}
-                                    </span>
-                                </div>
-                            </div>
+                            </article>
                         </div>
 
-                        <div v-else class="bg-white dark:bg-slate-900 rounded-3xl p-10 text-center border border-slate-200/80 dark:border-slate-800 space-y-3">
-                            <span class="text-4xl">👥</span>
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Data Personel Terpusat</h3>
-                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                                Personel terdaftar saat ini tercatat sebanyak {{ totalMembersCount }} personel di basis data internal komando.
+                        <div v-else class="bg-white dark:bg-slate-900 rounded-3xl p-10 text-center border border-slate-200/80 dark:border-slate-800 space-y-2">
+                            <span class="text-3xl">📰</span>
+                            <h4 class="font-bold text-base text-slate-900 dark:text-white">Publikasi Belum Tersedia</h4>
+                            <p class="text-xs text-slate-400">Liputan kegiatan terbaru akan dipublikasikan secara berkala.</p>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- 4. KONTAK & POSKO OPERASI (id="kontak") -->
+                <!-- ========================================== -->
+                <section id="kontak" class="py-16 sm:py-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 scroll-mt-24">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                        
+                        <div class="text-center max-w-2xl mx-auto space-y-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+                                📍 NARAHUBUNG & MARKAS
+                            </span>
+                            <h2 class="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white">
+                                Hubungi {{ partner.name }}
+                            </h2>
+                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                                Terbuka untuk koordinasi misi kemanusiaan, respon darurat, dan registrasi relawan.
                             </p>
-                            <div class="pt-2">
-                                <button @click="showRegisterModal = true" class="px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs shadow-md">
-                                    Daftarkan Diri Anda ke Lembaga Ini
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB 4: AKSI & OPERASI SAR -->
-                    <div v-if="activeTab === 'misi'" class="space-y-6 animate-fadeIn">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                                    Aksi Lapangan & Partisipasi Operasi SAR
-                                </h2>
-                                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                                    Rekam jejak keterlibatan personel {{ partner.name }} dalam penanganan bencana dan musibah darurat.
-                                </p>
-                            </div>
                         </div>
 
-                        <div v-if="sarMissions.length > 0" class="space-y-4">
-                            <div 
-                                v-for="mission in sarMissions" 
-                                :key="mission.id"
-                                class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-orange-500/40 transition"
-                            >
-                                <div class="space-y-1.5 flex-1">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white uppercase">
-                                            {{ mission.status }}
-                                        </span>
-                                        <span v-if="mission.operation" class="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                                            {{ mission.operation.title }}
-                                        </span>
-                                    </div>
-                                    <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                                        {{ mission.organization_name }}
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                            
+                            <!-- Contact Cards Grid -->
+                            <div class="lg:col-span-6 space-y-4">
+                                <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-2">
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Markas / Alamat Posko Operasi</span>
+                                    <h4 class="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                                        <span>📍</span>
+                                        <span>{{ partner.address || 'Kota Makassar, Sulawesi Selatan' }}</span>
                                     </h4>
-                                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                                        Komandan Tim: <strong class="text-slate-900 dark:text-white">{{ mission.commander_name }}</strong> • Kekuatan: <strong class="text-orange-600 dark:text-orange-400">{{ mission.personnel_count }} Personel</strong>
-                                    </p>
-                                    <p v-if="mission.resources_deployed" class="text-xs text-slate-500 dark:text-slate-400">
-                                        Alat Diterjunkan: {{ mission.resources_deployed }}
-                                    </p>
+                                    <p class="text-xs text-slate-500">Pusat koordinasi penugasan relawan dan logistik penyelamatan.</p>
                                 </div>
-                                <div class="shrink-0 flex items-center">
-                                    <span class="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                                        Posko: {{ mission.departure_location || 'Makassar' }}
-                                    </span>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-2">
+                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Koordinator PIC</span>
+                                        <h4 class="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                                            <span>👤</span>
+                                            <span>{{ partner.pic_name || 'Narahubung Mitra' }}</span>
+                                        </h4>
+                                        <p class="text-xs text-slate-500">Penanggung jawab operasional.</p>
+                                    </div>
+
+                                    <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-2">
+                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kontak WhatsApp / Telp</span>
+                                        <h4 class="text-base font-mono font-bold text-orange-600 dark:text-orange-400 flex items-center space-x-2">
+                                            <span>📞</span>
+                                            <span>{{ partner.pic_phone || partner.phone || '0812-xxxx-xxxx' }}</span>
+                                        </h4>
+                                        <p class="text-xs text-slate-500">Saluran darurat aktif.</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-2">
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Surat Elektronik & Media Resmi</span>
+                                    <p class="text-sm font-mono text-slate-900 dark:text-white">
+                                        ✉️ {{ partner.email || 'info@mitra.org' }}
+                                    </p>
+                                    <div class="pt-2 flex flex-wrap gap-2">
+                                        <a 
+                                            v-if="partner.website" 
+                                            :href="partner.website" 
+                                            target="_blank" 
+                                            rel="noopener"
+                                            class="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-orange-600 transition"
+                                        >
+                                            🌐 Website
+                                        </a>
+                                        <a 
+                                            v-if="partner.instagram" 
+                                            :href="partner.instagram" 
+                                            target="_blank" 
+                                            rel="noopener"
+                                            class="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border text-xs font-bold text-pink-600 transition"
+                                        >
+                                            📸 Instagram
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
+
+                            <!-- Right: Quick Connect Form -->
+                            <div class="lg:col-span-6 bg-gradient-to-br from-slate-950 to-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-2xl border border-slate-800 space-y-6">
+                                <div class="space-y-2">
+                                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500 text-white">
+                                        SIAP BERSINERGI
+                                    </span>
+                                    <h3 class="text-2xl font-black tracking-tight">
+                                        Tertarik Bergabung atau Kolaborasi Lapangan?
+                                    </h3>
+                                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                        Daftarkan diri Anda sebagai relawan atau kirimkan pesan langsung kepada tim {{ partner.name }}.
+                                    </p>
+                                </div>
+
+                                <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                                    <button 
+                                        @click="showRegisterModal = true"
+                                        class="px-6 py-4 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-black text-xs sm:text-sm shadow-xl active:scale-95 transition text-center"
+                                    >
+                                        🤝 Isi Formulir Pendaftaran Relawan
+                                    </button>
+
+                                    <a 
+                                        v-if="whatsappUrl" 
+                                        :href="whatsappUrl" 
+                                        target="_blank" 
+                                        rel="noopener"
+                                        class="px-6 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-xl active:scale-95 transition text-center"
+                                    >
+                                        💬 WhatsApp Koordinator
+                                    </a>
+                                </div>
+
+                                <div class="pt-4 border-t border-slate-800 text-[11px] text-slate-400">
+                                    Terdaftar secara resmi dalam Sistem Manajemen Yayasan MKT Indonesia (Nomor Kode: <strong class="text-white">{{ partner.code }}</strong>).
+                                </div>
+                            </div>
+
                         </div>
 
-                        <div v-else class="bg-white dark:bg-slate-900 rounded-3xl p-10 text-center border border-slate-200/80 dark:border-slate-800 space-y-3">
-                            <span class="text-4xl">🚨</span>
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Kesiapsiagaan Posko Siaga</h3>
-                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                                {{ partner.name }} berada dalam status kesiapsiagaan penuh on-call untuk mobilisasi pengerahan personel SAR saat status darurat kebencanaan diaktifkan.
-                            </p>
-                        </div>
                     </div>
+                </section>
 
-                    <!-- SECTION: MITRA STRATEGIS LAINNYA -->
-                    <section v-if="otherPartners.length > 0" class="pt-8 border-t border-slate-200 dark:border-slate-800 space-y-6">
+                <!-- ========================================== -->
+                <!-- 5. MITRA STRATEGIS LAINNYA -->
+                <!-- ========================================== -->
+                <section v-if="otherPartners.length > 0" class="py-16 bg-slate-50 dark:bg-slate-950">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                                <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                                     Jelajahi Mitra Resmi Lainnya
                                 </h3>
                                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                                    Jaringan kolaborasi tanggap darurat dan potensi SAR Yayasan MKT.
+                                    Potensi kemanusiaan terpadu di bawah naungan Yayasan MKT.
                                 </p>
                             </div>
                             <Link :href="route('public.partners')" class="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline">
-                                Lihat Semua Mitra →
+                                Semua Mitra →
                             </Link>
                         </div>
 
@@ -686,7 +714,7 @@ const categoryMeta = computed(() => {
                                 v-for="op in otherPartners" 
                                 :key="op.id"
                                 :href="route('public.partner.show', op.slug || op.id)"
-                                class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-orange-500/40 hover:shadow-lg transition-all group space-y-3 flex flex-col justify-between"
+                                class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-orange-500/40 hover:shadow-lg transition-all group flex flex-col justify-between space-y-3"
                             >
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between">
@@ -710,15 +738,13 @@ const categoryMeta = computed(() => {
                                 </div>
                             </Link>
                         </div>
-                    </section>
+                    </div>
+                </section>
 
-                </main>
-
-                <!-- MODAL: DAFTAR RELAWAN DI BAWAH MITRA INI -->
+                <!-- MODAL REGISTRASI RELAWAN MITRA -->
                 <div v-if="showRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn">
                     <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6 relative max-h-[90vh] overflow-y-auto">
                         
-                        <!-- Close button -->
                         <button 
                             @click="showRegisterModal = false"
                             class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center text-sm font-bold transition"
@@ -738,7 +764,6 @@ const categoryMeta = computed(() => {
                             </p>
                         </div>
 
-                        <!-- Success Alert -->
                         <div v-if="registerSuccess" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm font-semibold space-y-1">
                             <p class="font-bold">🎉 Pendaftaran Berhasil!</p>
                             <p>Data Anda telah terdaftar sebagai relawan/personel {{ partner.name }}. Kami telah mengirimkan detail akses ke email Anda.</p>
@@ -826,8 +851,8 @@ const categoryMeta = computed(() => {
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Catatan / Keterangan Keahlian</label>
                                 <textarea 
                                     v-model="registerForm.notes" 
-                                    rows="2"
-                                    placeholder="Contoh: Sertifikasi Water Rescue, Pengalaman Evakuasi, dll."
+                                    rows="2" 
+                                    placeholder="Contoh: Pengalaman Water Rescue, Sertifikasi Basarnas, dll."
                                     class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-orange-500"
                                 ></textarea>
                             </div>
