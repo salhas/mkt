@@ -193,43 +193,43 @@ const formatDate = (dateStr) => {
                 <!-- ========================================== -->
                 <!-- 1. HERO SECTION (id="home") -->
                 <!-- ========================================== -->
-                <section id="home" class="relative overflow-hidden bg-slate-950 text-white min-h-[620px] sm:min-h-[680px] flex items-center pt-8 pb-16">
+                <section id="home" class="relative overflow-hidden bg-slate-950 text-white min-h-[640px] sm:min-h-[720px] flex items-center pt-8 pb-20">
                     
-                    <!-- Hero Background Image with Aesthetic Cinematic Overlays -->
+                    <!-- Hero Background Image (Sangat Nampak, Tajam & Sinematik) -->
                     <div class="absolute inset-0 z-0 overflow-hidden">
                         <img 
                             :src="heroBackgroundImage" 
                             :alt="partner.name" 
-                            class="w-full h-full object-cover object-center filter brightness-90 contrast-105 scale-105 transform animate-pulse duration-10000 opacity-40 dark:opacity-35"
+                            class="w-full h-full object-cover object-center filter brightness-95 contrast-105 scale-100 opacity-90 transition-opacity duration-700"
                         />
-                        <!-- Dynamic Color Tint Matching Category -->
-                        <div :class="['absolute inset-0 bg-gradient-to-br', categoryMeta.gradient, 'opacity-65 mix-blend-multiply']"></div>
-                        <!-- High Contrast Gradients for Text Readability -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/50"></div>
-                        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-transparent"></div>
-                        <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"></div>
+                        <!-- Soft Ambient Tint: Sangat tipis agar visual foto tetap cerah dan nyata -->
+                        <div class="absolute inset-0 bg-slate-950/30"></div>
+                        <!-- Gradient halus di bagian bawah untuk transisi mulus ke section berikutnya -->
+                        <div class="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
+                        <!-- Gradient lembut di bagian atas untuk kontras navbar -->
+                        <div class="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-slate-950/70 to-transparent"></div>
                     </div>
 
-                    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 space-y-8">
+                    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 space-y-6">
                         
                         <!-- Top Breadcrumb & Status Pill -->
                         <div class="flex flex-wrap items-center gap-3">
                             <Link 
                                 :href="route('public.partners')" 
-                                class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-slate-200 border border-white/10 transition"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-950/60 hover:bg-slate-950/80 text-slate-200 border border-white/20 backdrop-blur-md transition shadow-md"
                             >
                                 <span>← Direktori Mitra</span>
                             </Link>
 
-                            <span class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                            <span class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-600/80 text-white border border-orange-400/40 backdrop-blur-md shadow-md">
                                 <span>🤝 MITRA RESMI YAYASAN MKT</span>
                             </span>
 
                             <span 
                                 v-if="partner.status === 'Aktif' || partner.status === 'Siaga Bencana'"
-                                class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-600/80 text-white border border-emerald-400/40 backdrop-blur-md shadow-md"
                             >
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                                 <span>{{ partner.status }}</span>
                             </span>
                         </div>
@@ -237,11 +237,11 @@ const formatDate = (dateStr) => {
                         <!-- Main Hero Grid: Logo + Partner Title & Motto -->
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                             
-                            <div class="lg:col-span-8 space-y-6">
+                            <div class="lg:col-span-8 space-y-6 bg-slate-950/65 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/15 shadow-2xl">
                                 
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-5">
                                     <!-- Partner Logo Frame -->
-                                    <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white dark:bg-slate-900 p-2.5 shadow-2xl border-2 border-white/20 shrink-0 flex items-center justify-center overflow-hidden">
+                                    <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white dark:bg-slate-900 p-2.5 shadow-2xl border-2 border-white/30 shrink-0 flex items-center justify-center overflow-hidden">
                                         <img 
                                             v-if="partner.logo_path" 
                                             :src="partner.logo_path" 
@@ -254,17 +254,17 @@ const formatDate = (dateStr) => {
                                     </div>
 
                                     <div class="space-y-1">
-                                        <span :class="['px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider inline-block', categoryMeta.badgeBg, categoryMeta.badgeText]">
+                                        <span :class="['px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider inline-block shadow-sm', categoryMeta.badgeBg, categoryMeta.badgeText]">
                                             {{ categoryMeta.icon }} {{ partner.category }} &bull; ID: {{ partner.code || 'MTR-MKT' }}
                                         </span>
-                                        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+                                        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-md">
                                             {{ partner.name }}
                                         </h1>
                                     </div>
                                 </div>
 
                                 <!-- Partner Motto / Tagline Description -->
-                                <p class="text-sm sm:text-base md:text-lg text-slate-300 max-w-3xl leading-relaxed">
+                                <p class="text-sm sm:text-base md:text-lg text-slate-200 max-w-3xl leading-relaxed drop-shadow-sm">
                                     {{ partner.description || 'Unit potensi kemanusiaan dan penanggulangan bencana yang terintegrasi secara resmi dalam jaringan koordinasi tanggap darurat Yayasan MKT Indonesia.' }}
                                 </p>
 
@@ -272,7 +272,7 @@ const formatDate = (dateStr) => {
                                 <div class="pt-2 flex flex-wrap items-center gap-3.5">
                                     <button 
                                         @click="showRegisterModal = true"
-                                        class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-orange-500/25 active:scale-95 transition flex items-center space-x-2"
+                                        class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-orange-500/30 active:scale-95 transition flex items-center space-x-2 border border-orange-400/30"
                                     >
                                         <span>🤝</span>
                                         <span>Gabung Relawan / Anggota Mitra</span>
@@ -283,14 +283,14 @@ const formatDate = (dateStr) => {
                                         :href="whatsappUrl" 
                                         target="_blank" 
                                         rel="noopener"
-                                        class="px-5 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-lg active:scale-95 transition flex items-center space-x-2"
+                                        class="px-5 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-lg active:scale-95 transition flex items-center space-x-2 border border-emerald-400/30"
                                     >
                                         <span>💬 Hubungi Narahubung WhatsApp</span>
                                     </a>
 
                                     <a 
                                         href="#profil" 
-                                        class="px-5 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/20 backdrop-blur-md transition flex items-center space-x-1.5"
+                                        class="px-5 py-3.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm border border-white/25 backdrop-blur-md transition flex items-center space-x-1.5 shadow-md"
                                     >
                                         <span>Pelajari Profil Lembaga ↓</span>
                                     </a>
@@ -300,8 +300,8 @@ const formatDate = (dateStr) => {
 
                             <!-- Right Column: Quick Stats Card -->
                             <div class="lg:col-span-4">
-                                <div class="bg-white/10 backdrop-blur-xl border border-white/15 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5">
-                                    <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                                <div class="bg-slate-950/65 backdrop-blur-md border border-white/20 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5">
+                                    <div class="flex items-center justify-between border-b border-white/15 pb-4">
                                         <div>
                                             <span class="text-[11px] font-bold uppercase tracking-wider text-orange-400 block">Status Kolaborasi</span>
                                             <span class="text-lg font-black text-white">Kerjasama Resmi MKT</span>
@@ -310,35 +310,35 @@ const formatDate = (dateStr) => {
                                     </div>
 
                                     <div class="grid grid-cols-2 gap-4">
-                                        <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-                                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Kekuatan Personel</span>
+                                        <div class="p-3.5 rounded-2xl bg-white/10 border border-white/15">
+                                            <span class="text-[10px] uppercase font-bold text-slate-300 block">Kekuatan Personel</span>
                                             <span class="text-2xl font-black text-white mt-0.5 block">
                                                 {{ totalMembersCount }}
                                             </span>
-                                            <span class="text-[10px] text-slate-400">Personel Siaga</span>
+                                            <span class="text-[10px] text-slate-300">Personel Siaga</span>
                                         </div>
 
-                                        <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-                                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Misi Operasi SAR</span>
+                                        <div class="p-3.5 rounded-2xl bg-white/10 border border-white/15">
+                                            <span class="text-[10px] uppercase font-bold text-slate-300 block">Misi Operasi SAR</span>
                                             <span class="text-2xl font-black text-orange-400 mt-0.5 block">
                                                 {{ sarMissions.length }}
                                             </span>
-                                            <span class="text-[10px] text-slate-400">Aksi Lapangan</span>
+                                            <span class="text-[10px] text-slate-300">Aksi Lapangan</span>
                                         </div>
                                     </div>
 
                                     <div class="space-y-2 text-xs pt-1">
-                                        <div class="flex justify-between py-1 border-b border-white/5">
-                                            <span class="text-slate-400">Dokumen MoU:</span>
-                                            <span class="font-mono font-bold text-slate-200">{{ partner.mou_number || 'Tervalidasi' }}</span>
+                                        <div class="flex justify-between py-1 border-b border-white/10">
+                                            <span class="text-slate-300">Dokumen MoU:</span>
+                                            <span class="font-mono font-bold text-white">{{ partner.mou_number || 'Tervalidasi' }}</span>
                                         </div>
-                                        <div class="flex justify-between py-1 border-b border-white/5">
-                                            <span class="text-slate-400">Kesiapsiagaan:</span>
+                                        <div class="flex justify-between py-1 border-b border-white/10">
+                                            <span class="text-slate-300">Kesiapsiagaan:</span>
                                             <span class="font-bold text-emerald-400">Siaga Operasi 24/7</span>
                                         </div>
                                         <div class="flex justify-between py-1">
-                                            <span class="text-slate-400">Koordinator PIC:</span>
-                                            <span class="font-semibold text-slate-200">{{ partner.pic_name || 'Sekretariat' }}</span>
+                                            <span class="text-slate-300">Koordinator PIC:</span>
+                                            <span class="font-semibold text-white">{{ partner.pic_name || 'Sekretariat' }}</span>
                                         </div>
                                     </div>
 
