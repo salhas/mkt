@@ -33,6 +33,7 @@ Route::get('/layanan', [PublicPageController::class, 'services'])->name('public.
 Route::get('/berita', [PublicPageController::class, 'news'])->name('public.news');
 Route::get('/berita/{slug}', [PublicPageController::class, 'newsDetail'])->name('public.news.show');
 Route::get('/mitra', [PublicPageController::class, 'partners'])->name('public.partners');
+Route::get('/mitra/{slug}', [PublicPageController::class, 'partnerDetail'])->name('public.partner.show');
 Route::get('/pilar-kebencanaan', function() {
     return redirect()->route('public.partners');
 })->name('public.pillars');

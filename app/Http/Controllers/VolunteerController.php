@@ -211,6 +211,7 @@ class VolunteerController extends Controller
         }
 
         $validated = $request->validate([
+            'partner_id' => 'nullable|exists:partners,id',
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:50',

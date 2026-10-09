@@ -66,9 +66,51 @@ class PublicPageController extends Controller
      */
     public function partners()
     {
-        $partners = Partner::orderBy('id', 'asc')->get();
+        $partners = Partner::withCount('volunteers')->orderBy('id', 'asc')->get();
         return Inertia::render('Public/Partners', [
             'partners' => $partners
+        ]);
+    }
+
+    /**
+     * Landing Page Khusus Mitra Resmi (Single Partner Landing Page via Slug / Code / ID)
+     */
+    public function partnerDetail($slug)
+    {
+        $partner = Partner::where('slug', $slug)
+            ->orWhere('code', $slug)
+            ->orWhere('id', $slug)
+            ->firstOrFail();
+
+        // Ambil data personel relawan yang terdaftar di bawah mitra ini
+        $members = Volunteer::where('partner_id', $partner->id)
+            ->where('status', 'Aktif')
+            ->orderBy('id', 'desc')
+            ->take(8)
+            ->get(['id', 'name', 'role', 'blood_type', 'certifications']);
+
+        $totalMembersCount = max(
+            Volunteer::where('partner_id', $partner->id)->count(),
+            (int) $partner->personnel_count
+        );
+
+        // Riwayat Operasi SAR / Misi Kemanusiaan
+        $sarMissions = $partner->getSarParticipations();
+
+        // Mitra Terkait Lainnya untuk rekomendasi
+        $otherPartners = Partner::where('id', '!=', $partner->id)
+            ->where('status', 'Aktif')
+            ->orderBy('id', 'asc')
+            ->take(4)
+            ->get();
+
+        return Inertia::render('Public/PartnerDetail', [
+            'partner' => $partner,
+            'members' => $members,
+            'totalMembersCount' => $totalMembersCount,
+            'sarMissions' => $sarMissions,
+            'otherPartners' => $otherPartners,
+            'mktProfile' => MktProfile::first(),
         ]);
     }
 

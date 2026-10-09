@@ -41,18 +41,26 @@ class PartnerPanelController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:partners,slug,' . $partner->id,
             'category' => 'required|string|max:100',
             'pic_name' => 'required|string|max:255',
             'pic_phone' => 'required|string|max:50',
             'pic_email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'email' => 'required|email|max:255',
+            'website' => 'nullable|string|max:255',
+            'instagram' => 'nullable|string|max:255',
+            'facebook' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'mou_number' => 'nullable|string|max:100',
             'personnel_count' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
+            'vision' => 'nullable|string',
+            'mission' => 'nullable|string',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
             'remove_logo' => 'nullable|boolean',
+            'banner' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'remove_banner' => 'nullable|boolean',
         ]);
 
         // Tangani opsi penghapusan logo
@@ -74,7 +82,26 @@ class PartnerPanelController extends Controller
             $validated['logo_path'] = '/storage/' . $path;
         }
 
-        unset($validated['logo'], $validated['remove_logo']);
+        // Tangani opsi penghapusan banner
+        if ($request->boolean('remove_banner')) {
+            if ($partner->banner_path && str_starts_with($partner->banner_path, '/storage/')) {
+                $oldBanner = str_replace('/storage/', '', $partner->banner_path);
+                Storage::disk('public')->delete($oldBanner);
+            }
+            $validated['banner_path'] = null;
+        }
+
+        // Tangani upload berkas banner baru
+        if ($request->hasFile('banner')) {
+            if ($partner->banner_path && str_starts_with($partner->banner_path, '/storage/')) {
+                $oldBanner = str_replace('/storage/', '', $partner->banner_path);
+                Storage::disk('public')->delete($oldBanner);
+            }
+            $path = $request->file('banner')->store('partners/banners', 'public');
+            $validated['banner_path'] = '/storage/' . $path;
+        }
+
+        unset($validated['logo'], $validated['remove_logo'], $validated['banner'], $validated['remove_banner']);
 
         $partner->update($validated);
 

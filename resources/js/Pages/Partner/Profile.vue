@@ -9,19 +9,27 @@ const props = defineProps({
 
 const form = useForm({
     name: props.partner?.name || '',
+    slug: props.partner?.slug || '',
     category: props.partner?.category || 'Tim Rescue',
     pic_name: props.partner?.pic_name || '',
     pic_phone: props.partner?.pic_phone || '',
     pic_email: props.partner?.pic_email || '',
     phone: props.partner?.phone || '',
     email: props.partner?.email || '',
+    website: props.partner?.website || '',
+    instagram: props.partner?.instagram || '',
+    facebook: props.partner?.facebook || '',
     address: props.partner?.address || '',
     mou_number: props.partner?.mou_number || '',
     personnel_count: props.partner?.personnel_count || 0,
     description: props.partner?.description || '',
+    vision: props.partner?.vision || '',
+    mission: props.partner?.mission || '',
     status: props.partner?.status || 'Aktif',
     logo: null,
     remove_logo: false,
+    banner: null,
+    remove_banner: false,
 });
 
 const logoPreview = ref(props.partner?.logo_path || null);
@@ -356,9 +364,52 @@ const submit = () => {
                         </div>
 
                         <!-- Domisili & Lingkup Kerjasama -->
-                        <div class="space-y-3">
-                            <h3 class="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">3. Domisili & Lingkup Kolaborasi</h3>
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">3. Domisili, Media & Landing Page Publik</h3>
                             
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                    Slug URL Landing Page Publik (cth: sar-unhas)
+                                </label>
+                                <div class="flex rounded-2xl shadow-xs">
+                                    <span class="inline-flex items-center px-4 rounded-l-2xl border border-r-0 border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 text-gray-500 text-xs font-mono">
+                                        /mitra/
+                                    </span>
+                                    <input 
+                                        v-model="form.slug"
+                                        type="text" 
+                                        placeholder="nama-singkat-mitra"
+                                        class="w-full rounded-r-2xl border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5 px-3.5 font-mono"
+                                    />
+                                </div>
+                                <span v-if="form.errors.slug" class="text-xs text-rose-500 mt-1 block">{{ form.errors.slug }}</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                        Website Resmi (Opsional)
+                                    </label>
+                                    <input 
+                                        v-model="form.website" 
+                                        type="url" 
+                                        placeholder="https://lembaga.org"
+                                        class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5 px-3.5"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                        Instagram (Opsional)
+                                    </label>
+                                    <input 
+                                        v-model="form.instagram" 
+                                        type="text" 
+                                        placeholder="https://instagram.com/username"
+                                        class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 focus:border-blue-500 focus:ring-blue-500 text-sm py-2.5 px-3.5"
+                                    />
+                                </div>
+                            </div>
+
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
                                     Alamat Lengkap Markas / Kantor Lembaga
@@ -381,6 +432,31 @@ const submit = () => {
                                     class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 focus:border-blue-500 focus:ring-blue-500 text-sm p-3"
                                 ></textarea>
                             </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                        Visi Lembaga
+                                    </label>
+                                    <textarea 
+                                        v-model="form.vision" 
+                                        rows="2" 
+                                        placeholder="Visi kemanusiaan lembaga..."
+                                        class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 focus:border-blue-500 focus:ring-blue-500 text-sm p-3"
+                                    ></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                        Misi Lembaga
+                                    </label>
+                                    <textarea 
+                                        v-model="form.mission" 
+                                        rows="2" 
+                                        placeholder="Misi dan fokus kerja lapangan..."
+                                        class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 focus:border-blue-500 focus:ring-blue-500 text-sm p-3"
+                                    ></textarea>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Tombol Submit -->
@@ -402,6 +478,29 @@ const submit = () => {
 
                 <!-- RIGHT SIDE INFO CARDS (Right 4 cols) -->
                 <div class="lg:col-span-4 space-y-6">
+                    <!-- Kartu Landing Page Publik -->
+                    <div class="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-slate-900 dark:to-orange-950/40 border border-orange-200 dark:border-orange-900/50 rounded-3xl p-6 shadow-sm space-y-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-2xl">🌐</span>
+                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Landing Page Publik Anda</h4>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Lembaga Anda memiliki halaman landing page resmi yang dapat diakses publik untuk sosialisasi profil dan pendaftaran relawan.
+                        </p>
+                        <div class="p-2.5 rounded-xl bg-white/90 dark:bg-slate-950/90 border border-orange-200 dark:border-orange-800 text-[11px] font-mono break-all text-orange-700 dark:text-orange-400">
+                            /mitra/{{ partner?.slug || partner?.id }}
+                        </div>
+                        <div class="pt-1 flex flex-wrap gap-2">
+                            <a 
+                                :href="route('public.partner.show', partner?.slug || partner?.id)" 
+                                target="_blank"
+                                class="inline-flex items-center px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-md transition"
+                            >
+                                <span>Buka Halaman Publik ↗</span>
+                            </a>
+                        </div>
+                    </div>
+
                     <!-- Kartu Ringkasan Kemitraan -->
                     <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-sm space-y-4">
                         <div class="flex items-center space-x-3">

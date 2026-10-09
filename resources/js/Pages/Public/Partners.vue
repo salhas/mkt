@@ -1,12 +1,39 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import pillarPreImg from '../../../images/pillar_pre.jpg';
 import pillarDuringImg from '../../../images/pillar_during.jpg';
 import pillarPostImg from '../../../images/pillar_post.jpg';
 
 const props = defineProps({
-    partners: Array,
+    partners: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const selectedCategory = ref('Semua');
+const partnerCategories = ['Semua', 'Tim Rescue', 'Basarnas', 'BPBD', 'PMI', 'Rumah Sakit', 'Filantropi'];
+
+const getCategoryIcon = (category) => {
+    switch (category) {
+        case 'Basarnas': return '⚓';
+        case 'BPBD': return '🏛️';
+        case 'PMI': return '🩸';
+        case 'Rumah Sakit': return '🏥';
+        case 'Filantropi': return '🤝';
+        case 'Tim Rescue':
+        default: return '🚨';
+    }
+};
+
+const displayPartners = computed(() => {
+    let list = props.partners && props.partners.length > 0 ? props.partners : defaultPartners;
+    if (selectedCategory.value !== 'Semua') {
+        list = list.filter(p => p.category === selectedCategory.value);
+    }
+    return list;
 });
 
 const activePillar = ref('during');
@@ -218,7 +245,7 @@ const synergyBenefits = [
 
             <!-- SECTION: MITRA LEMBAGA -->
             <section class="py-16 sm:py-20 bg-slate-50 dark:bg-slate-950 transition-colors border-b border-slate-100 dark:border-slate-800">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
                     <div class="text-center space-y-2 max-w-2xl mx-auto">
                         <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                             🏛️ JARINGAN MITRA RESMI
@@ -226,34 +253,82 @@ const synergyBenefits = [
                         <h2 class="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white">
                             Instansi & Mitra Kerjasama Terpadu
                         </h2>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                            Kolaborasi resmi dengan Basarnas, BPBD, PMI, RS Rujukan, Tim Rescue Mahasiswa & Potensi SAR daerah.
+                        </p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Category Filter Tabs -->
+                    <div class="flex items-center justify-center space-x-2 overflow-x-auto pb-1">
+                        <button
+                            v-for="cat in partnerCategories"
+                            :key="cat"
+                            @click="selectedCategory = cat"
+                            :class="[
+                                selectedCategory === cat
+                                    ? 'bg-blue-600 text-white shadow-md font-bold'
+                                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 font-medium',
+                                'px-4 py-2 rounded-2xl border text-xs shrink-0 transition-all'
+                            ]"
+                        >
+                            {{ cat }}
+                        </button>
+                    </div>
+
+                    <!-- Partners Cards Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                         <div
-                            v-for="p in defaultPartners"
-                            :key="p.name"
-                            class="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between space-y-6 group"
+                            v-for="p in displayPartners"
+                            :key="p.id || p.name"
+                            class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between space-y-6 group"
                         >
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-4xl p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl shadow-xs border border-slate-200/80 dark:border-slate-800 group-hover:scale-110 transition-transform">
-                                        {{ p.icon }}
-                                    </span>
+                                    <div class="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-950 p-2 shadow-xs border border-slate-200/80 dark:border-slate-800 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
+                                        <img 
+                                            v-if="p.logo_path" 
+                                            :src="p.logo_path" 
+                                            :alt="p.name" 
+                                            class="w-full h-full object-contain"
+                                        />
+                                        <span v-else class="text-2xl">
+                                            {{ p.icon || getCategoryIcon(p.category) }}
+                                        </span>
+                                    </div>
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                                         {{ p.category }}
                                     </span>
                                 </div>
-                                <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                    {{ p.name }}
-                                </h3>
-                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    {{ p.desc }}
+
+                                <div class="space-y-1">
+                                    <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                        {{ p.name }}
+                                    </h3>
+                                    <span v-if="p.code" class="text-[11px] font-mono text-slate-400 block">
+                                        {{ p.code }}
+                                    </span>
+                                </div>
+
+                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">
+                                    {{ p.description || p.desc || 'Mitra strategis kemanusiaan dan penanggulangan bencana resmi Yayasan MKT.' }}
                                 </p>
                             </div>
 
-                            <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
-                                <span class="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center space-x-1">
-                                    <span>🛡️ Peran: {{ p.role }}</span>
+                            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                    👥 {{ p.volunteers_count || p.personnel_count || 0 }} Personel
+                                </span>
+                                
+                                <Link 
+                                    v-if="p.slug || p.id"
+                                    :href="route('public.partner.show', p.slug || p.id)"
+                                    class="px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 font-bold text-xs transition flex items-center space-x-1"
+                                >
+                                    <span>Landing Page</span>
+                                    <span>→</span>
+                                </Link>
+                                <span v-else class="text-xs font-bold text-blue-600 dark:text-blue-400">
+                                    🛡️ {{ p.role || 'Mitra Utama' }}
                                 </span>
                             </div>
                         </div>
