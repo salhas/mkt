@@ -294,6 +294,22 @@ const toggleFinance = () => {
                         </svg>
                         <span v-if="isSidebarOpen" class="text-sm">Pengurus & Anggota</span>
                     </Link>
+
+                    <!-- Peralatan & Perlengkapan Lembaga -->
+                    <Link
+                        :href="route('partner.equipments')"
+                        :class="[
+                            route().current('partner.equipments*')
+                                ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400 font-semibold'
+                                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                        ]"
+                    >
+                        <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        <span v-if="isSidebarOpen" class="text-sm">Peralatan & Perlengkapan</span>
+                    </Link>
                 </div>
 
                 <!-- MENU INTERNAL YAYASAN MKT (Hanya untuk Pengurus / Internal Non-Mitra) -->

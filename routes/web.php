@@ -72,6 +72,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/partner/members', [\App\Http\Controllers\PartnerPanelController::class, 'storeMember'])->name('partner.members.store');
     Route::patch('/partner/members/{volunteer}', [\App\Http\Controllers\PartnerPanelController::class, 'updateMember'])->name('partner.members.update');
     Route::delete('/partner/members/{volunteer}', [\App\Http\Controllers\PartnerPanelController::class, 'destroyMember'])->name('partner.members.destroy');
+    Route::get('/partner/equipments', [\App\Http\Controllers\PartnerPanelController::class, 'equipments'])->name('partner.equipments');
+    Route::post('/partner/equipments', [\App\Http\Controllers\PartnerPanelController::class, 'storeEquipment'])->name('partner.equipments.store');
+    Route::post('/partner/equipments/{equipment}', [\App\Http\Controllers\PartnerPanelController::class, 'updateEquipment'])->name('partner.equipments.update');
+    Route::patch('/partner/equipments/{equipment}', [\App\Http\Controllers\PartnerPanelController::class, 'updateEquipment']);
+    Route::delete('/partner/equipments/{equipment}', [\App\Http\Controllers\PartnerPanelController::class, 'destroyEquipment'])->name('partner.equipments.destroy');
 
     // News & Articles Management (Manajemen Berita & Artikel)
     Route::get('/news-management', [NewsController::class, 'index'])->name('news.index');

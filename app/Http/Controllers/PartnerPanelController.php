@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\News;
 use App\Models\Partner;
+use App\Models\PartnerEquipment;
 use App\Models\Volunteer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -492,5 +493,278 @@ class PartnerPanelController extends Controller
         $volunteer->delete();
 
         return redirect()->back()->with('success', 'Anggota lembaga berhasil dihapus.');
+    }
+
+    /**
+     * Tampilkan Halaman Inventaris Peralatan & Perlengkapan Lembaga Mitra
+     */
+    public function equipments(Request $request)
+    {
+        $user = $request->user();
+        $partner = $user->getPartner();
+
+        if (!$partner && ($user->isAdmin() || $user->isWebmaster())) {
+            $partner = Partner::first();
+        }
+
+        if (!$partner) {
+            return redirect()->route('dashboard')->with('error', 'Data lembaga mitra belum terdaftar.');
+        }
+
+        $query = $partner->equipments();
+
+        // Pencarian teks
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('item_code', 'like', "%{$search}%")
+                  ->orWhere('storage_location', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter Kategori
+        if ($request->filled('category') && $request->input('category') !== 'Semua') {
+            $query->where('category', $request->input('category'));
+        }
+
+        // Filter Kondisi
+        if ($request->filled('condition') && $request->input('condition') !== 'Semua') {
+            $query->where('condition', $request->input('condition'));
+        }
+
+        // Filter Status Operasional
+        if ($request->filled('status') && $request->input('status') !== 'Semua') {
+            $query->where('status', $request->input('status'));
+        }
+
+        $equipments = $query->orderBy('id', 'desc')->paginate(12)->withQueryString();
+
+        // Ringkasan Statistik Peralatan
+        $allEquipments = $partner->equipments()->get();
+        $stats = [
+            'total_items' => $allEquipments->count(),
+            'total_quantity' => (int) $allEquipments->sum('quantity'),
+            'ready_count' => $allEquipments->whereIn('condition', ['Siap Pakai', 'Baik'])->count(),
+            'in_use_count' => $allEquipments->where('status', 'Sedang Digunakan')->count(),
+            'maintenance_count' => $allEquipments->filter(fn($e) => in_array($e->condition, ['Rusak Ringan', 'Rusak Berat', 'Dalam Perawatan']) || $e->status === 'Maintenance')->count(),
+            'water_vertical' => $allEquipments->whereIn('category', ['Water Rescue', 'Vertical Rescue'])->count(),
+            'medical_shelter' => $allEquipments->whereIn('category', ['Medis & Evakuasi', 'Shelter & Tenda'])->count(),
+        ];
+
+        $categories = [
+            'Water Rescue',
+            'Vertical Rescue',
+            'Medis & Evakuasi',
+            'Komunikasi & Navigasi',
+            'Penerangan & Kelistrikan',
+            'Shelter & Tenda',
+            'Dapur Umum & Logistik',
+            'APD & Perlengkapan Pribadi',
+            'Kendaraan & Alut',
+            'Peralatan Ekstrikasi',
+            'Lainnya',
+        ];
+
+        $conditions = [
+            'Siap Pakai',
+            'Baik',
+            'Rusak Ringan',
+            'Rusak Berat',
+            'Dalam Perawatan',
+        ];
+
+        $statuses = [
+            'Tersedia',
+            'Sedang Digunakan',
+            'Maintenance',
+            'Tidak Aktif',
+        ];
+
+        $units = [
+            'Unit',
+            'Set',
+            'Pcs',
+            'Box',
+            'Roll',
+            'Paket',
+            'Lembar',
+        ];
+
+        $ownershipStatuses = [
+            'Milik Sendiri',
+            'Pinjam Pakai',
+            'Hibah / Bantuan',
+            'Sewa',
+        ];
+
+        return Inertia::render('Partner/Equipments', [
+            'partner' => $partner,
+            'equipments' => $equipments,
+            'stats' => $stats,
+            'categories' => $categories,
+            'conditions' => $conditions,
+            'statuses' => $statuses,
+            'units' => $units,
+            'ownershipStatuses' => $ownershipStatuses,
+            'filters' => $request->only(['search', 'category', 'condition', 'status']),
+        ]);
+    }
+
+    /**
+     * Tambah Peralatan / Perlengkapan Baru Lembaga Mitra
+     */
+    public function storeEquipment(Request $request)
+    {
+        $user = $request->user();
+        $partner = $user->getPartner();
+
+        if (!$partner && ($user->isAdmin() || $user->isWebmaster())) {
+            $partner = Partner::first();
+        }
+
+        if (!$partner) {
+            return redirect()->back()->with('error', 'Lembaga mitra tidak valid.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'item_code' => 'nullable|string|max:100',
+            'category' => 'required|string|max:100',
+            'quantity' => 'required|integer|min:0',
+            'unit' => 'required|string|max:50',
+            'condition' => 'required|string|max:50',
+            'storage_location' => 'nullable|string|max:255',
+            'ownership_status' => 'required|string|max:50',
+            'status' => 'required|string|max:50',
+            'notes' => 'nullable|string',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+        ], [
+            'name.required' => 'Nama peralatan / perlengkapan wajib diisi.',
+            'category.required' => 'Kategori wajib dipilih.',
+            'quantity.required' => 'Jumlah unit wajib diisi.',
+            'quantity.min' => 'Jumlah unit minimal 0.',
+            'unit.required' => 'Satuan wajib dipilih.',
+            'condition.required' => 'Kondisi barang wajib dipilih.',
+            'status.required' => 'Status operasional wajib dipilih.',
+            'photo.image' => 'Berkas harus berupa gambar (JPEG, PNG, WebP).',
+            'photo.max' => 'Ukuran gambar maksimal 3MB.',
+        ]);
+
+        if (empty($validated['item_code'])) {
+            $maxId = ($partner->equipments()->max('id') ?? 0) + 1;
+            $validated['item_code'] = 'EQ-' . str_pad($partner->id, 2, '0', STR_PAD_LEFT) . '-' . str_pad($maxId, 3, '0', STR_PAD_LEFT);
+        } else {
+            $validated['item_code'] = strtoupper(trim($validated['item_code']));
+        }
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('partners/equipments', 'public');
+            $validated['photo_path'] = '/storage/' . $path;
+        }
+
+        $validated['partner_id'] = $partner->id;
+
+        PartnerEquipment::create($validated);
+
+        return redirect()->back()->with('success', 'Peralatan/perlengkapan berhasil ditambahkan ke inventaris.');
+    }
+
+    /**
+     * Perbarui Data Peralatan / Perlengkapan Lembaga Mitra
+     */
+    public function updateEquipment(Request $request, PartnerEquipment $equipment)
+    {
+        $user = $request->user();
+        $partner = $user->getPartner();
+
+        if (!$partner && ($user->isAdmin() || $user->isWebmaster())) {
+            $partner = Partner::first();
+        }
+
+        // Security check: Pastikan peralatan ini milik lembaga yang sedang login
+        if (!$partner || $equipment->partner_id !== $partner->id) {
+            abort(403, 'Anda tidak memiliki hak akses mengubah peralatan lembaga lain.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'item_code' => 'nullable|string|max:100',
+            'category' => 'required|string|max:100',
+            'quantity' => 'required|integer|min:0',
+            'unit' => 'required|string|max:50',
+            'condition' => 'required|string|max:50',
+            'storage_location' => 'nullable|string|max:255',
+            'ownership_status' => 'required|string|max:50',
+            'status' => 'required|string|max:50',
+            'notes' => 'nullable|string',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'remove_photo' => 'nullable|boolean',
+        ], [
+            'name.required' => 'Nama peralatan / perlengkapan wajib diisi.',
+            'category.required' => 'Kategori wajib dipilih.',
+            'quantity.required' => 'Jumlah unit wajib diisi.',
+            'quantity.min' => 'Jumlah unit minimal 0.',
+            'unit.required' => 'Satuan wajib dipilih.',
+            'condition.required' => 'Kondisi barang wajib dipilih.',
+            'status.required' => 'Status operasional wajib dipilih.',
+            'photo.image' => 'Berkas harus berupa gambar (JPEG, PNG, WebP).',
+            'photo.max' => 'Ukuran gambar maksimal 3MB.',
+        ]);
+
+        if (!empty($validated['item_code'])) {
+            $validated['item_code'] = strtoupper(trim($validated['item_code']));
+        }
+
+        // Opsi penghapusan foto
+        if ($request->boolean('remove_photo')) {
+            if ($equipment->photo_path && str_starts_with($equipment->photo_path, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $equipment->photo_path);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $validated['photo_path'] = null;
+        }
+
+        // Unggah foto baru
+        if ($request->hasFile('photo')) {
+            if ($equipment->photo_path && str_starts_with($equipment->photo_path, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $equipment->photo_path);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('photo')->store('partners/equipments', 'public');
+            $validated['photo_path'] = '/storage/' . $path;
+        }
+
+        $equipment->update($validated);
+
+        return redirect()->back()->with('success', 'Data peralatan/perlengkapan berhasil diperbarui.');
+    }
+
+    /**
+     * Hapus Peralatan / Perlengkapan Lembaga Mitra
+     */
+    public function destroyEquipment(Request $request, PartnerEquipment $equipment)
+    {
+        $user = $request->user();
+        $partner = $user->getPartner();
+
+        if (!$partner && ($user->isAdmin() || $user->isWebmaster())) {
+            $partner = Partner::first();
+        }
+
+        // Security check: Pastikan peralatan ini milik lembaga yang sedang login
+        if (!$partner || $equipment->partner_id !== $partner->id) {
+            abort(403, 'Anda tidak memiliki hak akses menghapus peralatan lembaga lain.');
+        }
+
+        if ($equipment->photo_path && str_starts_with($equipment->photo_path, '/storage/')) {
+            $oldPath = str_replace('/storage/', '', $equipment->photo_path);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $equipment->delete();
+
+        return redirect()->back()->with('success', 'Peralatan berhasil dihapus dari inventaris.');
     }
 }
