@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Volunteer;
 use App\Models\Partner;
+use App\Models\Ecosystem;
 use App\Mail\VolunteerRegisteredMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +17,7 @@ class VolunteerController extends Controller
     public function index(Request $request)
     {
         // 1. Query Partners (Mitra Lembaga)
-        $partnerQuery = Partner::withCount('volunteers');
+        $partnerQuery = Partner::with(['ecosystem'])->withCount('volunteers');
 
         if ($request->filled('search_partner')) {
             $s = $request->input('search_partner');
@@ -24,12 +25,24 @@ class VolunteerController extends Controller
                 $q->where('name', 'like', "%{$s}%")
                   ->orWhere('code', 'like', "%{$s}%")
                   ->orWhere('pic_name', 'like', "%{$s}%")
-                  ->orWhere('category', 'like', "%{$s}%");
+                  ->orWhere('category', 'like', "%{$s}%")
+                  ->orWhereHas('ecosystem', function ($eq) use ($s) {
+                      $eq->where('name', 'like', "%{$s}%")
+                         ->orWhere('region', 'like', "%{$s}%");
+                  });
             });
         }
 
         if ($request->filled('category') && $request->input('category') !== 'Semua') {
             $partnerQuery->where('category', $request->input('category'));
+        }
+
+        if ($request->filled('ecosystem_id') && $request->input('ecosystem_id') !== 'Semua') {
+            if ($request->input('ecosystem_id') === 'mandiri') {
+                $partnerQuery->whereNull('ecosystem_id');
+            } else {
+                $partnerQuery->where('ecosystem_id', $request->input('ecosystem_id'));
+            }
         }
 
         $partners = $partnerQuery->orderBy('id', 'asc')->get();
@@ -66,10 +79,19 @@ class VolunteerController extends Controller
 
         $volunteers = $volunteerQuery->orderBy('created_at', 'desc')->paginate(12)->withQueryString();
 
-        // 3. Stats summary for Mitra & Relawan Ekosistem
+        // 3. Query Ecosystems (Ekosistem Kemanusiaan)
+        $ecosystems = Ecosystem::withCount('partners')
+            ->with(['partners' => function ($pq) {
+                $pq->select('id', 'name', 'category', 'ecosystem_id', 'status', 'pic_name', 'address');
+            }])
+            ->orderBy('id', 'asc')
+            ->get();
+
+        // 4. Stats summary for Mitra & Relawan Ekosistem
         $stats = [
             'total_partners' => Partner::count(),
             'total_volunteers' => Volunteer::count(),
+            'total_ecosystems' => Ecosystem::count(),
             'total_rescue' => Volunteer::where('role', 'like', '%Rescue%')->count(),
             'total_medis' => Volunteer::where('role', 'like', '%Medis%')->orWhere('role', 'like', '%Dokter%')->count(),
             'total_donor' => Volunteer::where('role', 'like', '%Donor%')->count(),
@@ -82,10 +104,11 @@ class VolunteerController extends Controller
         return Inertia::render('Volunteers/Index', [
             'partners' => $partners,
             'volunteers' => $volunteers,
+            'ecosystems' => $ecosystems,
             'stats' => $stats,
             'categories' => $categories,
             'roles' => $roles,
-            'filters' => $request->only(['search', 'search_partner', 'category', 'role', 'status', 'blood_type', 'partner_id'])
+            'filters' => $request->only(['search', 'search_partner', 'category', 'role', 'status', 'blood_type', 'partner_id', 'ecosystem_id'])
         ]);
     }
 
@@ -97,12 +120,70 @@ class VolunteerController extends Controller
         }
     }
 
+    // --- ECOSYSTEM (EKOSISTEM KEMANUSIAAN) CRUD ---
+    public function storeEcosystem(Request $request)
+    {
+        $this->checkMitraReadOnly();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:50|unique:ecosystems,code',
+            'region' => 'nullable|string|max:255',
+            'lead_institution' => 'nullable|string|max:255',
+            'pic_name' => 'nullable|string|max:255',
+            'pic_phone' => 'nullable|string|max:50',
+            'pic_email' => 'nullable|email|max:255',
+            'description' => 'nullable|string',
+            'status' => 'required|string|max:50',
+        ]);
+
+        if (empty($validated['code'])) {
+            $nextId = Ecosystem::count() + 1;
+            $validated['code'] = 'EKO-' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+        }
+
+        Ecosystem::create($validated);
+
+        return redirect()->back()->with('success', 'Ekosistem Kemanusiaan berhasil ditambahkan.');
+    }
+
+    public function updateEcosystem(Request $request, Ecosystem $ecosystem)
+    {
+        $this->checkMitraReadOnly();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:50|unique:ecosystems,code,' . $ecosystem->id,
+            'region' => 'nullable|string|max:255',
+            'lead_institution' => 'nullable|string|max:255',
+            'pic_name' => 'nullable|string|max:255',
+            'pic_phone' => 'nullable|string|max:50',
+            'pic_email' => 'nullable|email|max:255',
+            'description' => 'nullable|string',
+            'status' => 'required|string|max:50',
+        ]);
+
+        $ecosystem->update($validated);
+
+        return redirect()->back()->with('success', 'Data Ekosistem berhasil diperbarui.');
+    }
+
+    public function destroyEcosystem(Ecosystem $ecosystem)
+    {
+        $this->checkMitraReadOnly();
+
+        $ecosystem->delete();
+
+        return redirect()->back()->with('success', 'Ekosistem berhasil dihapus.');
+    }
+
     // --- PARTNER (MITRA) CRUD ---
     public function storePartner(Request $request)
     {
         $this->checkMitraReadOnly();
 
         $validated = $request->validate([
+            'ecosystem_id' => 'nullable|exists:ecosystems,id',
             'code' => 'nullable|string|max:100|unique:partners,code',
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:100',
@@ -141,6 +222,7 @@ class VolunteerController extends Controller
         $this->checkMitraReadOnly();
 
         $validated = $request->validate([
+            'ecosystem_id' => 'nullable|exists:ecosystems,id',
             'code' => 'nullable|string|max:100|unique:partners,code,' . $partner->id,
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:100',

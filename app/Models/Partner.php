@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 class Partner extends Model
 {
     protected $fillable = [
+        'ecosystem_id',
         'code',
         'name',
         'slug',
@@ -66,6 +68,11 @@ class Partner extends Model
                 $partner->slug = $slug;
             }
         });
+    }
+
+    public function ecosystem(): BelongsTo
+    {
+        return $this->belongsTo(Ecosystem::class, 'ecosystem_id');
     }
 
     public function volunteers(): HasMany

@@ -111,7 +111,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/meetings/attendances/{attendance}', [MeetingAttendanceController::class, 'destroyAttendance'])->name('meetings.attendances.destroy');
     Route::get('/meetings/{meeting}/export-attendances', [MeetingAttendanceController::class, 'exportAttendances'])->name('meetings.attendances.export');
 
-    // Mitra & Relawan (PMI, Rumah Sakit, Basarnas, BPBD, Rescue, Relawan)
+    // Mitra & Relawan (PMI, Rumah Sakit, Basarnas, BPBD, Rescue, Relawan, Ekosistem)
     Route::get('/volunteers', [VolunteerController::class, 'index'])->name('volunteers.index');
     Route::post('/volunteers', [VolunteerController::class, 'store'])->name('volunteers.store');
     Route::patch('/volunteers/{volunteer}', [VolunteerController::class, 'update'])->name('volunteers.update');
@@ -119,6 +119,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/partners', [VolunteerController::class, 'storePartner'])->name('partners.store');
     Route::patch('/partners/{partner}', [VolunteerController::class, 'updatePartner'])->name('partners.update');
     Route::delete('/partners/{partner}', [VolunteerController::class, 'destroyPartner'])->name('partners.destroy');
+    Route::post('/ecosystems', [VolunteerController::class, 'storeEcosystem'])->name('ecosystems.store');
+    Route::patch('/ecosystems/{ecosystem}', [VolunteerController::class, 'updateEcosystem'])->name('ecosystems.update');
+    Route::delete('/ecosystems/{ecosystem}', [VolunteerController::class, 'destroyEcosystem'])->name('ecosystems.destroy');
 
     // Donors (Donatur) & Donations (Donasi)
     Route::get('/donors', [DonorController::class, 'index'])->name('donors.index');

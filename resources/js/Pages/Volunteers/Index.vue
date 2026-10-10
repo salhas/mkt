@@ -10,18 +10,23 @@ const isMitra = computed(() => page.props.auth.user?.role === 'mitra');
 const props = defineProps({
     partners: Array,
     volunteers: Object,
+    ecosystems: {
+        type: Array,
+        default: () => [],
+    },
     stats: Object,
     categories: Array,
     roles: Array,
     filters: Object,
 });
 
-// Active Main Tab: 'partners' | 'volunteers' | 'management'
+// Active Main Tab: 'partners' | 'volunteers' | 'ecosystems' | 'management'
 const activeTab = ref('partners');
 
 // Filter state
 const searchPartner = ref(props.filters.search_partner || '');
 const selectedCategory = ref(props.filters.category || 'Semua');
+const selectedEcosystemId = ref(props.filters.ecosystem_id || 'Semua');
 
 const searchVolunteer = ref(props.filters.search || '');
 const selectedRole = ref(props.filters.role || 'Semua');
@@ -33,6 +38,7 @@ const handlePartnerFilter = () => {
     router.get(route('volunteers.index'), {
         search_partner: searchPartner.value,
         category: selectedCategory.value,
+        ecosystem_id: selectedEcosystemId.value,
         search: searchVolunteer.value,
         role: selectedRole.value,
         status: selectedStatus.value,
@@ -45,6 +51,7 @@ const handleVolunteerFilter = () => {
     router.get(route('volunteers.index'), {
         search_partner: searchPartner.value,
         category: selectedCategory.value,
+        ecosystem_id: selectedEcosystemId.value,
         search: searchVolunteer.value,
         role: selectedRole.value,
         status: selectedStatus.value,
@@ -70,6 +77,7 @@ const activePartnerDetail = ref(null);
 
 const partnerForm = useForm({
     id: null,
+    ecosystem_id: null,
     code: '',
     name: '',
     category: 'PMI',
@@ -89,6 +97,7 @@ const openAddPartnerModal = () => {
     editingPartner.value = null;
     partnerForm.reset();
     partnerForm.clearErrors();
+    partnerForm.ecosystem_id = null;
     partnerForm.category = 'PMI';
     partnerForm.status = 'Aktif';
     isPartnerModalOpen.value = true;
@@ -98,6 +107,7 @@ const openEditPartnerModal = (p) => {
     editingPartner.value = p;
     partnerForm.clearErrors();
     partnerForm.id = p.id;
+    partnerForm.ecosystem_id = p.ecosystem_id || null;
     partnerForm.code = p.code || '';
     partnerForm.name = p.name || '';
     partnerForm.category = p.category || 'PMI';
@@ -112,6 +122,86 @@ const openEditPartnerModal = (p) => {
     partnerForm.personnel_count = p.personnel_count || 0;
     partnerForm.description = p.description || '';
     isPartnerModalOpen.value = true;
+};
+
+// --- ECOSYSTEM MODAL & CRUD CONTROL ---
+const isEcosystemModalOpen = ref(false);
+const editingEcosystem = ref(null);
+
+const ecosystemForm = useForm({
+    id: null,
+    name: '',
+    code: '',
+    region: '',
+    lead_institution: '',
+    pic_name: '',
+    pic_phone: '',
+    pic_email: '',
+    description: '',
+    status: 'Aktif',
+});
+
+const openAddEcosystemModal = () => {
+    editingEcosystem.value = null;
+    ecosystemForm.reset();
+    ecosystemForm.clearErrors();
+    ecosystemForm.status = 'Aktif';
+    isEcosystemModalOpen.value = true;
+};
+
+const openEditEcosystemModal = (eco) => {
+    editingEcosystem.value = eco;
+    ecosystemForm.clearErrors();
+    ecosystemForm.id = eco.id;
+    ecosystemForm.name = eco.name || '';
+    ecosystemForm.code = eco.code || '';
+    ecosystemForm.region = eco.region || '';
+    ecosystemForm.lead_institution = eco.lead_institution || '';
+    ecosystemForm.pic_name = eco.pic_name || '';
+    ecosystemForm.pic_phone = eco.pic_phone || '';
+    ecosystemForm.pic_email = eco.pic_email || '';
+    ecosystemForm.description = eco.description || '';
+    ecosystemForm.status = eco.status || 'Aktif';
+    isEcosystemModalOpen.value = true;
+};
+
+const submitEcosystemForm = () => {
+    if (editingEcosystem.value) {
+        ecosystemForm.patch(route('ecosystems.update', editingEcosystem.value.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                isEcosystemModalOpen.value = false;
+                showSuccessToast('Ekosistem Kemanusiaan berhasil diperbarui!');
+            },
+            onError: () => showErrorToast('Gagal memperbarui data ekosistem.')
+        });
+    } else {
+        ecosystemForm.post(route('ecosystems.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                isEcosystemModalOpen.value = false;
+                ecosystemForm.reset();
+                showSuccessToast('Ekosistem Kemanusiaan berhasil ditambahkan!');
+            },
+            onError: () => showErrorToast('Gagal menambahkan ekosistem baru.')
+        });
+    }
+};
+
+const deleteEcosystem = (eco) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus "${eco.name}"? Mitra yang terafiliasi akan menjadi mandiri.`)) {
+        router.delete(route('ecosystems.destroy', eco.id), {
+            preserveScroll: true,
+            onSuccess: () => showSuccessToast('Ekosistem berhasil dihapus.'),
+            onError: () => showErrorToast('Gagal menghapus ekosistem.')
+        });
+    }
+};
+
+const filterPartnersByEcosystem = (ecoId) => {
+    selectedEcosystemId.value = ecoId;
+    activeTab.value = 'partners';
+    handlePartnerFilter();
 };
 
 const openPartnerDetail = (p) => {
@@ -277,6 +367,13 @@ const getCategoryStyle = (category) => {
                     <!-- Quick Add Action Buttons (Hanya untuk non-mitra) -->
                     <div v-if="!isMitra" class="flex flex-wrap items-center gap-3 shrink-0">
                         <button
+                            @click="openAddEcosystemModal"
+                            class="px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold rounded-xl shadow-lg transition-all flex items-center space-x-2"
+                        >
+                            <span>🌐</span>
+                            <span>+ Tambah Ekosistem</span>
+                        </button>
+                        <button
                             @click="openAddPartnerModal"
                             class="px-4 py-2.5 bg-white text-brand-700 hover:bg-gray-50 text-xs font-bold rounded-xl shadow-lg transition-all flex items-center space-x-2"
                         >
@@ -311,10 +408,14 @@ const getCategoryStyle = (category) => {
                 </div>
 
                 <!-- Overall Stats Bar -->
-                <div class="mt-6 pt-6 border-t border-white/20 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="mt-6 pt-6 border-t border-white/20 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                     <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 text-center">
                         <span class="text-[10px] text-amber-100 uppercase tracking-wider block font-semibold">Total Mitra</span>
                         <span class="text-xl font-black text-white">{{ stats.total_partners || 0 }}</span>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 text-center">
+                        <span class="text-[10px] text-amber-100 uppercase tracking-wider block font-semibold">Ekosistem</span>
+                        <span class="text-xl font-black text-amber-200">{{ stats.total_ecosystems || (ecosystems ? ecosystems.length : 0) }}</span>
                     </div>
                     <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 text-center">
                         <span class="text-[10px] text-amber-100 uppercase tracking-wider block font-semibold">Anggota/Relawan</span>
@@ -359,6 +460,23 @@ const getCategoryStyle = (category) => {
                 </button>
 
                 <button
+                    @click="activeTab = 'ecosystems'"
+                    type="button"
+                    :class="[
+                        activeTab === 'ecosystems'
+                            ? 'bg-white dark:bg-gray-900 text-brand-600 dark:text-brand-400 shadow-md font-bold'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50 font-medium',
+                        'px-5 py-2.5 rounded-xl text-xs sm:text-sm transition-all duration-200 whitespace-nowrap flex items-center space-x-2 shrink-0'
+                    ]"
+                >
+                    <span class="text-base">🌐</span>
+                    <span>Ekosistem Kemanusiaan (U-Humanity, dll)</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 font-bold ml-1">
+                        {{ ecosystems ? ecosystems.length : 0 }}
+                    </span>
+                </button>
+
+                <button
                     @click="activeTab = 'volunteers'"
                     type="button"
                     :class="[
@@ -394,9 +512,9 @@ const getCategoryStyle = (category) => {
             <div v-show="activeTab === 'partners'" class="space-y-6">
                 <!-- Search & Category Filter Bar -->
                 <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center space-x-3 w-full md:w-auto">
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
                         <!-- Category Select Buttons -->
-                        <div class="flex items-center space-x-1 overflow-x-auto scrollbar-thin py-1 w-full md:w-auto">
+                        <div class="flex items-center space-x-1 overflow-x-auto scrollbar-thin py-1">
                             <button
                                 v-for="cat in categories"
                                 :key="cat"
@@ -411,6 +529,21 @@ const getCategoryStyle = (category) => {
                                 {{ cat }}
                             </button>
                         </div>
+
+                        <!-- Ecosystem Dropdown Filter -->
+                        <div class="flex items-center space-x-1.5 shrink-0">
+                            <select
+                                v-model="selectedEcosystemId"
+                                @change="handlePartnerFilter"
+                                class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300 focus:border-brand-500 focus:outline-none"
+                            >
+                                <option value="Semua">🌐 Semua Ekosistem</option>
+                                <option v-for="eco in ecosystems" :key="eco.id" :value="eco.id">
+                                    {{ eco.name }} ({{ eco.region || 'Nasional' }})
+                                </option>
+                                <option value="mandiri">Mitra Mandiri (Tanpa Ekosistem)</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Search Input -->
@@ -419,7 +552,7 @@ const getCategoryStyle = (category) => {
                             v-model="searchPartner"
                             @keyup.enter="handlePartnerFilter"
                             type="text"
-                            placeholder="Cari mitra / PIC / MoU..."
+                            placeholder="Cari mitra / PIC / MoU / wilayah..."
                             class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-9 pr-4 py-2 text-xs focus:border-brand-500 focus:outline-none"
                         />
                         <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -451,6 +584,21 @@ const getCategoryStyle = (category) => {
                                 </div>
                                 <span :class="['px-2.5 py-1 rounded-full text-[10px] font-bold border shrink-0', getCategoryStyle(partner.category)]">
                                     {{ partner.category }}
+                                </span>
+                            </div>
+
+                            <!-- Ecosystem & Region Pill Badge -->
+                            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                <span v-if="partner.ecosystem" class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center space-x-1" :title="partner.ecosystem.name">
+                                    <span>🌐</span>
+                                    <span class="truncate max-w-[170px]">{{ partner.ecosystem.name }}</span>
+                                </span>
+                                <span v-else class="px-2 py-0.5 rounded-lg text-[10px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                                    Mitra Mandiri
+                                </span>
+                                <span v-if="partner.ecosystem?.region || partner.address" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60 flex items-center space-x-1">
+                                    <span>📍</span>
+                                    <span class="truncate max-w-[150px]">{{ partner.ecosystem?.region || partner.address }}</span>
                                 </span>
                             </div>
 
@@ -806,6 +954,169 @@ const getCategoryStyle = (category) => {
                     </div>
                 </div>
             </div>
+
+            <!-- TAB 4: EKOSISTEM KEMANUSIAAN -->
+            <div v-show="activeTab === 'ecosystems'" class="space-y-6">
+                <!-- Header Ekosistem Bar -->
+                <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 sm:p-7 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="p-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-lg">🌐</span>
+                            <h3 class="text-base font-black text-gray-900 dark:text-white">
+                                Ekosistem Kemanusiaan & Aliansi Kebencanaan
+                            </h3>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 max-w-2xl leading-relaxed">
+                            Pengelompokan payung kemanusiaan terpadu berbasis kampus/wilayah (seperti <strong>Ekosistem Lembaga Kemanusiaan Unhas / U-Humanity</strong>) untuk memudahkan identifikasi asal unit lembaga, sebaran cakupan wilayah, dan kekuatan sinergi operasi.
+                        </p>
+                    </div>
+
+                    <button
+                        v-if="!isMitra"
+                        @click="openAddEcosystemModal"
+                        type="button"
+                        class="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs rounded-2xl shadow-md shadow-indigo-500/20 active:scale-95 transition flex items-center space-x-2 shrink-0 self-start md:self-auto"
+                    >
+                        <span>➕</span>
+                        <span>Tambah Ekosistem Baru</span>
+                    </button>
+                </div>
+
+                <!-- Empty State Ekosistem -->
+                <div v-if="!ecosystems || ecosystems.length === 0" class="bg-white dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-800 rounded-3xl p-12 text-center space-y-3">
+                    <span class="text-4xl block">🌐</span>
+                    <h4 class="text-base font-bold text-gray-900 dark:text-white">Belum Ada Ekosistem Terdaftar</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                        Daftarkan ekosistem baru untuk mengelompokkan lembaga-lembaga kemanusiaan dan mempermudah identifikasi wilayah tugas.
+                    </p>
+                    <button
+                        v-if="!isMitra"
+                        @click="openAddEcosystemModal"
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition inline-flex items-center space-x-2"
+                    >
+                        <span>➕</span>
+                        <span>Tambah Ekosistem Pertama</span>
+                    </button>
+                </div>
+
+                <!-- Ecosystems Grid Cards -->
+                <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div
+                        v-for="eco in ecosystems"
+                        :key="eco.id"
+                        class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 sm:p-7 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between space-y-5 group"
+                    >
+                        <div class="space-y-4">
+                            <!-- Card Header: Code, Badges, Title -->
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="space-y-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono">
+                                            {{ eco.code || 'EKOSISTEM' }}
+                                        </span>
+                                        <span :class="[
+                                            'px-2.5 py-0.5 rounded-full text-[10px] font-bold',
+                                            eco.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                                        ]">
+                                            ● {{ eco.status }}
+                                        </span>
+                                    </div>
+                                    <h4 class="text-base sm:text-lg font-black text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-snug">
+                                        {{ eco.name }}
+                                    </h4>
+                                </div>
+
+                                <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
+                                    🌐
+                                </div>
+                            </div>
+
+                            <!-- Meta Grid (Wilayah, Kampus/Induk, PIC) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3.5 rounded-2xl bg-gray-50/80 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800 text-xs">
+                                <div class="space-y-0.5">
+                                    <span class="text-[10px] font-bold text-gray-400 block uppercase">📍 Wilayah Cakupan</span>
+                                    <span class="font-bold text-gray-900 dark:text-white">{{ eco.region || 'Nasional' }}</span>
+                                </div>
+                                <div class="space-y-0.5">
+                                    <span class="text-[10px] font-bold text-gray-400 block uppercase">🏛️ Lembaga Induk / Universitas</span>
+                                    <span class="font-bold text-gray-900 dark:text-white">{{ eco.lead_institution || '-' }}</span>
+                                </div>
+                                <div class="space-y-0.5">
+                                    <span class="text-[10px] font-bold text-gray-400 block uppercase">👤 Koordinator PIC</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white">{{ eco.pic_name || '-' }}</span>
+                                </div>
+                                <div class="space-y-0.5">
+                                    <span class="text-[10px] font-bold text-gray-400 block uppercase">📞 Kontak PIC</span>
+                                    <span class="font-semibold text-amber-600 dark:text-amber-400">{{ eco.pic_phone || '-' }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Deskripsi Ekosistem -->
+                            <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-2">
+                                {{ eco.description || 'Wadah koordinasi terpadu unit dan relawan kemanusiaan di wilayah terkait.' }}
+                            </p>
+
+                            <!-- Unit Lembaga Terintegrasi Box -->
+                            <div class="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center space-x-1.5">
+                                        <span>🤝</span>
+                                        <span>Lembaga Mitra Tergabung:</span>
+                                    </span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 font-mono">
+                                        {{ eco.partners ? eco.partners.length : (eco.partners_count || 0) }} Lembaga
+                                    </span>
+                                </div>
+
+                                <div v-if="eco.partners && eco.partners.length > 0" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto scrollbar-thin">
+                                    <span
+                                        v-for="p in eco.partners"
+                                        :key="p.id"
+                                        class="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700 shadow-2xs flex items-center space-x-1"
+                                    >
+                                        <span class="text-[10px] text-gray-400">•</span>
+                                        <span>{{ p.name }}</span>
+                                    </span>
+                                </div>
+                                <div v-else class="text-[11px] text-gray-400 italic">
+                                    Belum ada lembaga mitra yang dihubungkan ke ekosistem ini.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer Actions -->
+                        <div class="pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                            <button
+                                type="button"
+                                @click="filterPartnersByEcosystem(eco.id)"
+                                class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center space-x-1"
+                            >
+                                <span>Lihat Mitra di Tab 1</span>
+                                <span>→</span>
+                            </button>
+
+                            <div v-if="!isMitra" class="flex items-center space-x-2">
+                                <button
+                                    type="button"
+                                    @click="openEditEcosystemModal(eco)"
+                                    class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl transition"
+                                    title="Edit Ekosistem"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="deleteEcosystem(eco)"
+                                    class="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition"
+                                    title="Hapus Ekosistem"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- --- MODAL 1: FORM TAMBAH / EDIT MITRA LEMBAGA --- -->
@@ -836,6 +1147,21 @@ const getCategoryStyle = (category) => {
                                 <option value="Filantropi">Lembaga Filantropi / Donatur</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                            Ekosistem Kemanusiaan (Induk Jaringan)
+                        </label>
+                        <select v-model="partnerForm.ecosystem_id" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-brand-500 focus:outline-none">
+                            <option :value="null">-- Mitra Mandiri (Tanpa Ekosistem Khusus) --</option>
+                            <option v-for="eco in ecosystems" :key="eco.id" :value="eco.id">
+                                {{ eco.name }} (Wilayah: {{ eco.region || 'Nasional' }})
+                            </option>
+                        </select>
+                        <p class="text-[10px] text-gray-400 mt-1">
+                            Pilih ekosistem (contoh: Ekosistem Lembaga Kemanusiaan Unhas / U-Humanity) untuk identifikasi wilayah dan aliansi lembaga.
+                        </p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -950,6 +1276,140 @@ const getCategoryStyle = (category) => {
                     <div class="pt-4 flex justify-end space-x-3">
                         <button type="button" @click="isVolunteerModalOpen = false" class="px-4 py-2 border rounded-xl text-gray-600 dark:text-gray-300">Batal</button>
                         <button type="submit" class="px-5 py-2 bg-amber-400 text-gray-900 font-bold rounded-xl shadow-md">Simpan Anggota</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- --- MODAL 3: FORM TAMBAH / EDIT EKOSISTEM KEMANUSIAAN --- -->
+        <div v-if="isEcosystemModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+            <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl max-w-xl w-full p-6 sm:p-8 space-y-6 shadow-2xl my-8">
+                <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center space-x-2">
+                        <span class="p-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-xl text-base">🌐</span>
+                        <span>{{ editingEcosystem ? 'Edit Data Ekosistem' : 'Tambah Ekosistem Baru' }}</span>
+                    </h3>
+                    <button @click="isEcosystemModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl font-bold transition">&times;</button>
+                </div>
+
+                <form @submit.prevent="submitEcosystemForm" class="space-y-4 text-xs">
+                    <div>
+                        <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Nama Ekosistem <span class="text-red-500">*</span></label>
+                        <input
+                            v-model="ecosystemForm.name"
+                            type="text"
+                            placeholder="Contoh: Ekosistem Lembaga Kemanusiaan Unhas (U-Humanity)"
+                            class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                            required
+                        />
+                        <p v-if="ecosystemForm.errors.name" class="mt-1 text-red-500 text-[11px]">{{ ecosystemForm.errors.name }}</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Kode / Singkatan</label>
+                            <input
+                                v-model="ecosystemForm.code"
+                                type="text"
+                                placeholder="Contoh: U-HUMANITY"
+                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none uppercase dark:text-white"
+                            />
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Status Ekosistem</label>
+                            <select
+                                v-model="ecosystemForm.status"
+                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                            >
+                                <option value="Aktif">Aktif</option>
+                                <option value="Non-Aktif">Non-Aktif</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Wilayah Operasional / Geografis <span class="text-red-500">*</span></label>
+                            <input
+                                v-model="ecosystemForm.region"
+                                type="text"
+                                placeholder="Contoh: Makassar, Sulawesi Selatan"
+                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                required
+                            />
+                            <p v-if="ecosystemForm.errors.region" class="mt-1 text-red-500 text-[11px]">{{ ecosystemForm.errors.region }}</p>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Lembaga / Kampus Pemrakarsa</label>
+                            <input
+                                v-model="ecosystemForm.lead_institution"
+                                type="text"
+                                placeholder="Contoh: Universitas Hasanuddin"
+                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-100 dark:border-gray-800">
+                        <p class="font-bold text-gray-800 dark:text-gray-200 mb-2">Kontak Koordinator / PIC Ekosistem</p>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">Nama PIC / Koordinator</label>
+                                <input
+                                    v-model="ecosystemForm.pic_name"
+                                    type="text"
+                                    placeholder="Contoh: Dr. Ir. Rahmat, M.Si"
+                                    class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                />
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">No. WhatsApp / HP</label>
+                                    <input
+                                        v-model="ecosystemForm.pic_phone"
+                                        type="text"
+                                        placeholder="0812xxxxxxxx"
+                                        class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">Email PIC</label>
+                                    <input
+                                        v-model="ecosystemForm.pic_email"
+                                        type="email"
+                                        placeholder="pic@unhas.ac.id"
+                                        class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Keterangan / Deskripsi Ekosistem</label>
+                        <textarea
+                            v-model="ecosystemForm.description"
+                            rows="2"
+                            placeholder="Catatan mengenai jejaring mitra, program sinergi, atau mandat ekosistem..."
+                            class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                        ></textarea>
+                    </div>
+
+                    <div class="pt-4 flex justify-end space-x-3 border-t border-gray-100 dark:border-gray-800">
+                        <button
+                            type="button"
+                            @click="isEcosystemModalOpen = false"
+                            class="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            :disabled="ecosystemForm.processing"
+                            class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition disabled:opacity-50"
+                        >
+                            {{ ecosystemForm.processing ? 'Menyimpan...' : (editingEcosystem ? 'Perbarui Ekosistem' : 'Simpan Ekosistem') }}
+                        </button>
                     </div>
                 </form>
             </div>
