@@ -191,6 +191,52 @@ const submitForm = () => {
         forceFormData: true,
     });
 };
+
+const tabs = computed(() => [
+    {
+        id: 'hero',
+        step: '01',
+        icon: '🖼️',
+        title: 'Hero & Identitas',
+        subtitle: 'Banner & logo',
+    },
+    {
+        id: 'profil',
+        step: '02',
+        icon: '📖',
+        title: 'Profil & Visi',
+        subtitle: 'Narasi & visi misi',
+    },
+    {
+        id: 'pillars',
+        step: '03',
+        icon: '🏛️',
+        title: '3 Pilar Bencana',
+        subtitle: 'Pra, darurat, pasca',
+    },
+    {
+        id: 'recruitment',
+        step: '04',
+        icon: '📜',
+        title: 'Keanggotaan',
+        subtitle: 'Status & syarat form',
+    },
+    {
+        id: 'contact',
+        step: '05',
+        icon: '📞',
+        title: 'Kontak & Sosmed',
+        subtitle: 'PIC & sekretariat',
+    },
+    {
+        id: 'news',
+        step: '06',
+        icon: '📰',
+        title: 'Berita & Artikel',
+        subtitle: `${props.partnerNews ? props.partnerNews.length : 0} publikasi`,
+        badge: props.partnerNews ? props.partnerNews.length : 0,
+    },
+]);
 </script>
 
 <template>
@@ -277,91 +323,93 @@ const submitForm = () => {
                 </div>
             </div>
 
-            <!-- TABS NAVIGATION -->
-            <div class="flex border-b border-gray-200 dark:border-gray-800 overflow-x-auto no-scrollbar space-x-2 sm:space-x-4">
-                <button
-                    type="button"
-                    @click="activeTab = 'hero'"
-                    :class="[
-                        'pb-3 pt-1 px-3 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition flex items-center space-x-2',
-                        activeTab === 'hero'
-                            ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                    ]"
-                >
-                    <span>🖼️</span>
-                    <span>1. Hero & Identitas</span>
-                </button>
+            <!-- MODERN SEGMENTED TABS NAVIGATION (NO HORIZONTAL SCROLL) -->
+            <div class="space-y-2">
+                <div class="bg-gray-100/90 dark:bg-gray-900/80 p-2 sm:p-2.5 rounded-3xl border border-gray-200/80 dark:border-gray-800 shadow-xs">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
+                        <button
+                            v-for="tab in tabs"
+                            :key="tab.id"
+                            type="button"
+                            @click="activeTab = tab.id"
+                            :class="[
+                                'group relative flex flex-col items-start p-3 sm:p-3.5 rounded-2xl transition-all duration-200 text-left select-none',
+                                activeTab === tab.id
+                                    ? 'bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25 ring-2 ring-orange-400/40 -translate-y-0.5'
+                                    : 'bg-white dark:bg-gray-950 text-gray-700 dark:text-gray-300 border border-gray-200/70 dark:border-gray-800 hover:border-orange-300 dark:hover:border-orange-500/40 hover:bg-orange-50/30 dark:hover:bg-gray-900 hover:shadow-xs active:scale-[0.98]'
+                            ]"
+                        >
+                            <!-- Top Row: Step Badge & News Count Badge -->
+                            <div class="w-full flex items-center justify-between mb-2">
+                                <span :class="[
+                                    'text-[10px] font-black px-1.5 py-0.5 rounded-md font-mono tracking-wider',
+                                    activeTab === tab.id
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 group-hover:text-orange-600 dark:group-hover:text-orange-400'
+                                ]">
+                                    {{ tab.step }}
+                                </span>
 
-                <button
-                    type="button"
-                    @click="activeTab = 'profil'"
-                    :class="[
-                        'pb-3 pt-1 px-3 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition flex items-center space-x-2',
-                        activeTab === 'profil'
-                            ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                    ]"
-                >
-                    <span>📖</span>
-                    <span>2. Profil, Visi & Misi</span>
-                </button>
+                                <span 
+                                    v-if="tab.badge !== undefined" 
+                                    :class="[
+                                        'text-[10px] font-black px-2 py-0.5 rounded-full font-mono shadow-xs',
+                                        activeTab === tab.id
+                                            ? 'bg-white text-orange-600'
+                                            : 'bg-orange-500/15 text-orange-600 dark:text-orange-400'
+                                    ]"
+                                >
+                                    {{ tab.badge }}
+                                </span>
+                            </div>
 
-                <button
-                    type="button"
-                    @click="activeTab = 'pillars'"
-                    :class="[
-                        'pb-3 pt-1 px-3 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition flex items-center space-x-2',
-                        activeTab === 'pillars'
-                            ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                    ]"
-                >
-                    <span>🏛️</span>
-                    <span>3. Peran di 3 Pilar Bencana</span>
-                </button>
+                            <!-- Icon & Title -->
+                            <div class="space-y-1 w-full min-w-0">
+                                <div class="flex items-center space-x-1.5">
+                                    <span class="text-lg sm:text-xl shrink-0 group-hover:scale-110 transition duration-150">
+                                        {{ tab.icon }}
+                                    </span>
+                                    <h4 :class="[
+                                        'text-xs sm:text-sm font-black truncate leading-tight',
+                                        activeTab === tab.id ? 'text-white' : 'text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400'
+                                    ]">
+                                        {{ tab.title }}
+                                    </h4>
+                                </div>
+                                <p :class="[
+                                    'text-[10px] sm:text-[11px] truncate leading-tight',
+                                    activeTab === tab.id ? 'text-orange-100/90' : 'text-gray-400 dark:text-gray-500'
+                                ]">
+                                    {{ tab.subtitle }}
+                                </p>
+                            </div>
 
-                <button
-                    type="button"
-                    @click="activeTab = 'recruitment'"
-                    :class="[
-                        'pb-3 pt-1 px-3 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition flex items-center space-x-2',
-                        activeTab === 'recruitment'
-                            ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                    ]"
-                >
-                    <span>📜</span>
-                    <span>4. Syarat Keanggotaan & Form</span>
-                </button>
+                            <!-- Active Indicator Dot (Subtle bottom marker) -->
+                            <div 
+                                v-if="activeTab === tab.id"
+                                class="absolute bottom-1 right-2 w-1.5 h-1.5 rounded-full bg-white animate-pulse"
+                            ></div>
+                        </button>
+                    </div>
+                </div>
 
-                <button
-                    type="button"
-                    @click="activeTab = 'contact'"
-                    :class="[
-                        'pb-3 pt-1 px-3 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition flex items-center space-x-2',
-                        activeTab === 'contact'
-                            ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                    ]"
-                >
-                    <span>📞</span>
-                    <span>5. Kontak & Media Sosial</span>
-                </button>
-
-                <button
-                    type="button"
-                    @click="activeTab = 'news'"
-                    :class="[
-                        'pb-3 pt-1 px-3 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition flex items-center space-x-2',
-                        activeTab === 'news'
-                            ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                    ]"
-                >
-                    <span>📰</span>
-                    <span>6. Berita & Artikel ({{ partnerNews.length }})</span>
-                </button>
+                <!-- Helper Bar Menunjukkan Tab Aktif -->
+                <div class="flex items-center justify-between px-3 py-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-orange-500 inline-block animate-ping"></span>
+                        <span>Bagian Aktif:</span>
+                        <strong class="text-gray-900 dark:text-white capitalize">
+                            {{ tabs.find(t => t.id === activeTab)?.title }}
+                        </strong>
+                        <span class="text-gray-300 dark:text-gray-700">•</span>
+                        <span class="hidden sm:inline text-gray-400 dark:text-gray-500">
+                            {{ tabs.find(t => t.id === activeTab)?.subtitle }}
+                        </span>
+                    </div>
+                    <span class="text-[10px] text-gray-400 dark:text-gray-500 hidden md:inline">
+                        Klik tab untuk berpindah bagian konfigurasi
+                    </span>
+                </div>
             </div>
 
             <!-- FORM CONTAINER -->
