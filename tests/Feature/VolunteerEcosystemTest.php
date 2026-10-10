@@ -191,4 +191,46 @@ class VolunteerEcosystemTest extends TestCase
             ->has('partners', 1)
         );
     }
+
+    public function test_ecosystem_creation_fails_with_duplicate_code(): void
+    {
+        $admin = $this->createAdminUser();
+
+        Ecosystem::create([
+            'name' => 'Ekosistem Pertama',
+            'code' => 'KODE-SAMA',
+            'region' => 'Makassar',
+            'status' => 'Aktif',
+        ]);
+
+        $response = $this->actingAs($admin)->post('/ecosystems', [
+            'name' => 'Ekosistem Kedua',
+            'code' => 'KODE-SAMA',
+            'region' => 'Gowa',
+            'status' => 'Aktif',
+        ]);
+
+        $response->assertSessionHasErrors('code');
+    }
+
+    public function test_ecosystem_creation_auto_generates_unique_code_when_code_empty(): void
+    {
+        $admin = $this->createAdminUser();
+
+        $response = $this->actingAs($admin)->post('/ecosystems', [
+            'name' => 'Ekosistem Tanpa Kode Manual',
+            'code' => '',
+            'region' => 'Maros',
+            'status' => 'Aktif',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('ecosystems', [
+            'name' => 'Ekosistem Tanpa Kode Manual',
+        ]);
+
+        $created = Ecosystem::where('name', 'Ekosistem Tanpa Kode Manual')->first();
+        $this->assertNotNull($created->code);
+        $this->assertStringStartsWith('EKO-', $created->code);
+    }
 }

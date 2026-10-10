@@ -173,7 +173,10 @@ const submitEcosystemForm = () => {
                 isEcosystemModalOpen.value = false;
                 showSuccessToast('Ekosistem Kemanusiaan berhasil diperbarui!');
             },
-            onError: () => showErrorToast('Gagal memperbarui data ekosistem.')
+            onError: (errors) => {
+                const firstErr = errors ? Object.values(errors)[0] : null;
+                showErrorToast(firstErr || 'Gagal memperbarui data ekosistem.');
+            }
         });
     } else {
         ecosystemForm.post(route('ecosystems.store'), {
@@ -183,7 +186,10 @@ const submitEcosystemForm = () => {
                 ecosystemForm.reset();
                 showSuccessToast('Ekosistem Kemanusiaan berhasil ditambahkan!');
             },
-            onError: () => showErrorToast('Gagal menambahkan ekosistem baru.')
+            onError: (errors) => {
+                const firstErr = errors ? Object.values(errors)[0] : null;
+                showErrorToast(firstErr || 'Gagal menambahkan ekosistem baru.');
+            }
         });
     }
 };
@@ -1292,6 +1298,15 @@ const getCategoryStyle = (category) => {
                     <button @click="isEcosystemModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl font-bold transition">&times;</button>
                 </div>
 
+                <!-- Error Summary Alert -->
+                <div v-if="Object.keys(ecosystemForm.errors).length > 0" class="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-2xl flex items-start space-x-2 text-xs text-red-700 dark:text-red-300">
+                    <span class="text-sm">⚠️</span>
+                    <div>
+                        <p class="font-bold">Gagal Menyimpan Data Ekosistem</p>
+                        <p class="text-[11px]">Silakan periksa kembali isian form yang ditandai merah di bawah ini.</p>
+                    </div>
+                </div>
+
                 <form @submit.prevent="submitEcosystemForm" class="space-y-4 text-xs">
                     <div>
                         <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Nama Ekosistem <span class="text-red-500">*</span></label>
@@ -1299,10 +1314,13 @@ const getCategoryStyle = (category) => {
                             v-model="ecosystemForm.name"
                             type="text"
                             placeholder="Contoh: Ekosistem Lembaga Kemanusiaan Unhas (U-Humanity)"
-                            class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                            :class="[
+                                'w-full bg-gray-50 dark:bg-gray-800 border rounded-xl px-3.5 py-2.5 focus:outline-none dark:text-white',
+                                ecosystemForm.errors.name ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500'
+                            ]"
                             required
                         />
-                        <p v-if="ecosystemForm.errors.name" class="mt-1 text-red-500 text-[11px]">{{ ecosystemForm.errors.name }}</p>
+                        <p v-if="ecosystemForm.errors.name" class="mt-1 text-red-500 text-[11px] font-semibold">{{ ecosystemForm.errors.name }}</p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1312,18 +1330,27 @@ const getCategoryStyle = (category) => {
                                 v-model="ecosystemForm.code"
                                 type="text"
                                 placeholder="Contoh: U-HUMANITY"
-                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none uppercase dark:text-white"
+                                :class="[
+                                    'w-full bg-gray-50 dark:bg-gray-800 border rounded-xl px-3.5 py-2.5 focus:outline-none uppercase dark:text-white',
+                                    ecosystemForm.errors.code ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500'
+                                ]"
                             />
+                            <p v-if="ecosystemForm.errors.code" class="mt-1 text-red-500 text-[11px] font-semibold">{{ ecosystemForm.errors.code }}</p>
+                            <p v-else class="mt-1 text-[11px] text-gray-400">Kosongkan untuk generate otomatis sistem.</p>
                         </div>
                         <div>
                             <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Status Ekosistem</label>
                             <select
                                 v-model="ecosystemForm.status"
-                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                :class="[
+                                    'w-full bg-gray-50 dark:bg-gray-800 border rounded-xl px-3.5 py-2.5 focus:outline-none dark:text-white',
+                                    ecosystemForm.errors.status ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500'
+                                ]"
                             >
                                 <option value="Aktif">Aktif</option>
                                 <option value="Non-Aktif">Non-Aktif</option>
                             </select>
+                            <p v-if="ecosystemForm.errors.status" class="mt-1 text-red-500 text-[11px] font-semibold">{{ ecosystemForm.errors.status }}</p>
                         </div>
                     </div>
 
@@ -1334,10 +1361,13 @@ const getCategoryStyle = (category) => {
                                 v-model="ecosystemForm.region"
                                 type="text"
                                 placeholder="Contoh: Makassar, Sulawesi Selatan"
-                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                :class="[
+                                    'w-full bg-gray-50 dark:bg-gray-800 border rounded-xl px-3.5 py-2.5 focus:outline-none dark:text-white',
+                                    ecosystemForm.errors.region ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500'
+                                ]"
                                 required
                             />
-                            <p v-if="ecosystemForm.errors.region" class="mt-1 text-red-500 text-[11px]">{{ ecosystemForm.errors.region }}</p>
+                            <p v-if="ecosystemForm.errors.region" class="mt-1 text-red-500 text-[11px] font-semibold">{{ ecosystemForm.errors.region }}</p>
                         </div>
                         <div>
                             <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Lembaga / Kampus Pemrakarsa</label>
@@ -1345,8 +1375,12 @@ const getCategoryStyle = (category) => {
                                 v-model="ecosystemForm.lead_institution"
                                 type="text"
                                 placeholder="Contoh: Universitas Hasanuddin"
-                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                :class="[
+                                    'w-full bg-gray-50 dark:bg-gray-800 border rounded-xl px-3.5 py-2.5 focus:outline-none dark:text-white',
+                                    ecosystemForm.errors.lead_institution ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500'
+                                ]"
                             />
+                            <p v-if="ecosystemForm.errors.lead_institution" class="mt-1 text-red-500 text-[11px] font-semibold">{{ ecosystemForm.errors.lead_institution }}</p>
                         </div>
                     </div>
 
@@ -1359,8 +1393,12 @@ const getCategoryStyle = (category) => {
                                     v-model="ecosystemForm.pic_name"
                                     type="text"
                                     placeholder="Contoh: Dr. Ir. Rahmat, M.Si"
-                                    class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                    :class="[
+                                        'w-full bg-gray-50 dark:bg-gray-800 border rounded-xl px-3.5 py-2.5 focus:outline-none dark:text-white',
+                                        ecosystemForm.errors.pic_name ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500'
+                                    ]"
                                 />
+                                <p v-if="ecosystemForm.errors.pic_name" class="mt-1 text-red-500 text-[11px] font-semibold">{{ ecosystemForm.errors.pic_name }}</p>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
@@ -1369,8 +1407,12 @@ const getCategoryStyle = (category) => {
                                         v-model="ecosystemForm.pic_phone"
                                         type="text"
                                         placeholder="0812xxxxxxxx"
-                                        class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                        :class="[
+                                            'w-full bg-gray-50 dark:bg-gray-800 border rounded-xl px-3.5 py-2.5 focus:outline-none dark:text-white',
+                                            ecosystemForm.errors.pic_phone ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500'
+                                        ]"
                                     />
+                                    <p v-if="ecosystemForm.errors.pic_phone" class="mt-1 text-red-500 text-[11px] font-semibold">{{ ecosystemForm.errors.pic_phone }}</p>
                                 </div>
                                 <div>
                                     <label class="block font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">Email PIC</label>
@@ -1378,8 +1420,12 @@ const getCategoryStyle = (category) => {
                                         v-model="ecosystemForm.pic_email"
                                         type="email"
                                         placeholder="pic@unhas.ac.id"
-                                        class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                                        :class="[
+                                            'w-full bg-gray-50 dark:bg-gray-800 border rounded-xl px-3.5 py-2.5 focus:outline-none dark:text-white',
+                                            ecosystemForm.errors.pic_email ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500'
+                                        ]"
                                     />
+                                    <p v-if="ecosystemForm.errors.pic_email" class="mt-1 text-red-500 text-[11px] font-semibold">{{ ecosystemForm.errors.pic_email }}</p>
                                 </div>
                             </div>
                         </div>
@@ -1391,8 +1437,12 @@ const getCategoryStyle = (category) => {
                             v-model="ecosystemForm.description"
                             rows="2"
                             placeholder="Catatan mengenai jejaring mitra, program sinergi, atau mandat ekosistem..."
-                            class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:border-indigo-500 focus:outline-none dark:text-white"
+                            :class="[
+                                'w-full bg-gray-50 dark:bg-gray-800 border rounded-xl px-3.5 py-2.5 focus:outline-none dark:text-white',
+                                ecosystemForm.errors.description ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500'
+                            ]"
                         ></textarea>
+                        <p v-if="ecosystemForm.errors.description" class="mt-1 text-red-500 text-[11px] font-semibold">{{ ecosystemForm.errors.description }}</p>
                     </div>
 
                     <div class="pt-4 flex justify-end space-x-3 border-t border-gray-100 dark:border-gray-800">

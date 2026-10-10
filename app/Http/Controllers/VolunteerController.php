@@ -125,6 +125,19 @@ class VolunteerController extends Controller
     {
         $this->checkMitraReadOnly();
 
+        $messages = [
+            'name.required' => 'Nama Ekosistem wajib diisi.',
+            'name.max' => 'Nama Ekosistem maksimal 255 karakter.',
+            'code.unique' => 'Kode atau singkatan ekosistem ":input" sudah terdaftar. Silakan gunakan kode lain atau kosongkan untuk otomatis.',
+            'code.max' => 'Kode ekosistem maksimal 50 karakter.',
+            'region.max' => 'Wilayah maksimal 255 karakter.',
+            'lead_institution.max' => 'Lembaga pemrakarsa maksimal 255 karakter.',
+            'pic_name.max' => 'Nama PIC maksimal 255 karakter.',
+            'pic_phone.max' => 'Nomor telepon PIC maksimal 50 karakter.',
+            'pic_email.email' => 'Format email PIC tidak valid.',
+            'status.required' => 'Status ekosistem wajib dipilih.',
+        ];
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50|unique:ecosystems,code',
@@ -135,11 +148,18 @@ class VolunteerController extends Controller
             'pic_email' => 'nullable|email|max:255',
             'description' => 'nullable|string',
             'status' => 'required|string|max:50',
-        ]);
+        ], $messages);
 
         if (empty($validated['code'])) {
-            $nextId = Ecosystem::count() + 1;
-            $validated['code'] = 'EKO-' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+            $maxId = (Ecosystem::max('id') ?? 0) + 1;
+            do {
+                $candidate = 'EKO-' . str_pad($maxId, 3, '0', STR_PAD_LEFT);
+                $exists = Ecosystem::where('code', $candidate)->exists();
+                $maxId++;
+            } while ($exists);
+            $validated['code'] = $candidate;
+        } else {
+            $validated['code'] = strtoupper(trim($validated['code']));
         }
 
         Ecosystem::create($validated);
@@ -151,6 +171,19 @@ class VolunteerController extends Controller
     {
         $this->checkMitraReadOnly();
 
+        $messages = [
+            'name.required' => 'Nama Ekosistem wajib diisi.',
+            'name.max' => 'Nama Ekosistem maksimal 255 karakter.',
+            'code.unique' => 'Kode atau singkatan ekosistem ":input" sudah terdaftar pada ekosistem lain.',
+            'code.max' => 'Kode ekosistem maksimal 50 karakter.',
+            'region.max' => 'Wilayah maksimal 255 karakter.',
+            'lead_institution.max' => 'Lembaga pemrakarsa maksimal 255 karakter.',
+            'pic_name.max' => 'Nama PIC maksimal 255 karakter.',
+            'pic_phone.max' => 'Nomor telepon PIC maksimal 50 karakter.',
+            'pic_email.email' => 'Format email PIC tidak valid.',
+            'status.required' => 'Status ekosistem wajib dipilih.',
+        ];
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50|unique:ecosystems,code,' . $ecosystem->id,
@@ -161,7 +194,11 @@ class VolunteerController extends Controller
             'pic_email' => 'nullable|email|max:255',
             'description' => 'nullable|string',
             'status' => 'required|string|max:50',
-        ]);
+        ], $messages);
+
+        if (!empty($validated['code'])) {
+            $validated['code'] = strtoupper(trim($validated['code']));
+        }
 
         $ecosystem->update($validated);
 
