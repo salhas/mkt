@@ -12,33 +12,36 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('partner_equipments')) {
-            Schema::create('partner_equipments', function (Blueprint $table) {
-                $table->id();
-                $table->unsignedBigInteger('partner_id')->index();
-                $table->string('item_code')->nullable(); // Misal: EQ-001, ALUT-SAR-01
-                $table->string('name'); // Misal: Perahu Karet LCR 4.2M, Genset 5KVA, dll.
-                $table->string('category'); // Water Rescue, Vertical Rescue, Medis & Evakuasi, Komunikasi & Navigasi, dll.
-                $table->integer('quantity')->default(1);
-                $table->string('unit')->default('Unit'); // Unit, Set, Pcs, Box, Roll, Paket
-                $table->string('condition')->default('Siap Pakai'); // Siap Pakai, Baik, Rusak Ringan, Rusak Berat, Dalam Perawatan
-                $table->string('storage_location')->nullable(); // Misal: Gudang Utama, Mobil Rescue, Posko SAR
-                $table->string('ownership_status')->default('Milik Sendiri'); // Milik Sendiri, Pinjam Pakai, Hibah / Bantuan, Sewa
-                $table->string('status')->default('Tersedia'); // Tersedia, Sedang Digunakan, Maintenance, Tidak Aktif
-                $table->text('notes')->nullable(); // Spesifikasi / Catatan teknis
-                $table->string('photo_path')->nullable(); // Foto alat/perlengkapan
-                $table->timestamps();
-            });
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('partner_equipments');
 
-            // Coba pasang foreign key jika didukung oleh engine database MySQL di hosting
-            try {
-                Schema::table('partner_equipments', function (Blueprint $table) {
-                    $table->foreign('partner_id')->references('id')->on('partners')->cascadeOnDelete();
-                });
-            } catch (\Throwable $e) {
-                // Abaikan jika MySQL hosting menggunakan MyISAM atau collation mismatch
-            }
+        Schema::create('partner_equipments', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('partner_id')->index();
+            $table->string('item_code')->nullable(); // Misal: EQ-001, ALUT-SAR-01
+            $table->string('name'); // Misal: Perahu Karet LCR 4.2M, Genset 5KVA, dll.
+            $table->string('category'); // Water Rescue, Vertical Rescue, Medis & Evakuasi, Komunikasi & Navigasi, dll.
+            $table->integer('quantity')->default(1);
+            $table->string('unit')->default('Unit'); // Unit, Set, Pcs, Box, Roll, Paket
+            $table->string('condition')->default('Siap Pakai'); // Siap Pakai, Baik, Rusak Ringan, Rusak Berat, Dalam Perawatan
+            $table->string('storage_location')->nullable(); // Misal: Gudang Utama, Mobil Rescue, Posko SAR
+            $table->string('ownership_status')->default('Milik Sendiri'); // Milik Sendiri, Pinjam Pakai, Hibah / Bantuan, Sewa
+            $table->string('status')->default('Tersedia'); // Tersedia, Sedang Digunakan, Maintenance, Tidak Aktif
+            $table->text('notes')->nullable(); // Spesifikasi / Catatan teknis
+            $table->string('photo_path')->nullable(); // Foto alat/perlengkapan
+            $table->timestamps();
+        });
+
+        // Coba pasang foreign key jika didukung oleh engine database MySQL di hosting
+        try {
+            Schema::table('partner_equipments', function (Blueprint $table) {
+                $table->foreign('partner_id')->references('id')->on('partners')->cascadeOnDelete();
+            });
+        } catch (\Throwable $e) {
+            // Abaikan jika MySQL hosting menggunakan MyISAM atau collation mismatch
         }
+
+        Schema::enableForeignKeyConstraints();
 
         // Seed data contoh peralatan untuk mitra yang ada jika belum ada data peralatan
         if (DB::table('partner_equipments')->doesntExist()) {
@@ -119,6 +122,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('partner_equipments');
+        Schema::enableForeignKeyConstraints();
     }
 };

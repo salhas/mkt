@@ -12,22 +12,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('ecosystems')) {
-            Schema::create('ecosystems', function (Blueprint $table) {
-                $table->id();
-                $table->string('name'); // Contoh: Ekosistem Lembaga Kemanusiaan Unhas (U-Humanity)
-                $table->string('code')->nullable()->unique(); // Contoh: U-HUMANITY
-                $table->string('region')->nullable(); // Contoh: Makassar, Sulawesi Selatan
-                $table->string('lead_institution')->nullable(); // Contoh: Universitas Hasanuddin
-                $table->string('pic_name')->nullable();
-                $table->string('pic_phone')->nullable();
-                $table->string('pic_email')->nullable();
-                $table->text('description')->nullable();
-                $table->string('status')->default('Aktif'); // Aktif, Non-Aktif
-                $table->timestamps();
-            });
-        }
+        // Pastikan tabel ecosystems bersih jika sempat terbentuk pada percobaan migrasi sebelumnya
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('ecosystems');
 
+        Schema::create('ecosystems', function (Blueprint $table) {
+            $table->id();
+            $table->string('name'); // Contoh: Ekosistem Lembaga Kemanusiaan Unhas (U-Humanity)
+            $table->string('code')->nullable()->unique(); // Contoh: U-HUMANITY
+            $table->string('region')->nullable(); // Contoh: Makassar, Sulawesi Selatan
+            $table->string('lead_institution')->nullable(); // Contoh: Universitas Hasanuddin
+            $table->string('pic_name')->nullable();
+            $table->string('pic_phone')->nullable();
+            $table->string('pic_email')->nullable();
+            $table->text('description')->nullable();
+            $table->string('status')->default('Aktif'); // Aktif, Non-Aktif
+            $table->timestamps();
+        });
+
+        // Tambahkan kolom ecosystem_id pada partners jika belum ada
         if (!Schema::hasColumn('partners', 'ecosystem_id')) {
             Schema::table('partners', function (Blueprint $table) {
                 $table->unsignedBigInteger('ecosystem_id')->nullable()->after('id')->index();
@@ -43,6 +46,8 @@ return new class extends Migration
             // Abaikan jika MySQL di hosting memiliki perbedaan storage engine (misal MyISAM) atau collation yang memicu errno 150.
             // Kolom ecosystem_id beserta index-nya sudah terbentuk dengan sempurna dan relasi Eloquent tetap berjalan 100%.
         }
+
+        Schema::enableForeignKeyConstraints();
 
         // Seed data contoh awal: Ekosistem Lembaga Kemanusiaan Unhas (U-Humanity)
         if (DB::table('ecosystems')->where('code', 'U-HUMANITY')->doesntExist()) {
@@ -75,6 +80,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
+
         Schema::table('partners', function (Blueprint $table) {
             try {
                 $table->dropForeign(['ecosystem_id']);
@@ -86,5 +93,7 @@ return new class extends Migration
         });
 
         Schema::dropIfExists('ecosystems');
+
+        Schema::enableForeignKeyConstraints();
     }
 };
