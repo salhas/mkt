@@ -65,6 +65,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/partner/landing-page', [\App\Http\Controllers\PartnerPanelController::class, 'landingPage'])->name('partner.landing-page');
     Route::post('/partner/landing-page', [\App\Http\Controllers\PartnerPanelController::class, 'updateLandingPage'])->name('partner.landing-page.update');
     Route::patch('/partner/landing-page', [\App\Http\Controllers\PartnerPanelController::class, 'updateLandingPage']);
+    Route::post('/partner/landing-page/news', [\App\Http\Controllers\PartnerPanelController::class, 'storeNews'])->name('partner.landing-page.news.store');
+    Route::post('/partner/landing-page/news/{news}', [\App\Http\Controllers\PartnerPanelController::class, 'updateNews'])->name('partner.landing-page.news.update');
+    Route::delete('/partner/landing-page/news/{news}', [\App\Http\Controllers\PartnerPanelController::class, 'destroyNews'])->name('partner.landing-page.news.destroy');
     Route::get('/partner/members', [\App\Http\Controllers\PartnerPanelController::class, 'members'])->name('partner.members');
     Route::post('/partner/members', [\App\Http\Controllers\PartnerPanelController::class, 'storeMember'])->name('partner.members.store');
     Route::patch('/partner/members/{volunteer}', [\App\Http\Controllers\PartnerPanelController::class, 'updateMember'])->name('partner.members.update');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\News;
 use App\Models\Partner;
 use App\Models\Volunteer;
 use Illuminate\Http\Request;
@@ -130,9 +131,13 @@ class PartnerPanelController extends Controller
         $allPartnerMembers = Volunteer::where('partner_id', $partner->id)->get();
         $totalVolunteers = $allPartnerMembers->count();
         $sarMissionsCount = count($partner->getSarParticipations());
+        $partnerNews = News::where('partner_id', $partner->id)
+            ->orderBy('id', 'desc')
+            ->get();
 
         return Inertia::render('Partner/LandingPageSettings', [
             'partner' => $partner,
+            'partnerNews' => $partnerNews,
             'stats' => [
                 'totalVolunteers' => $totalVolunteers,
                 'sarMissionsCount' => $sarMissionsCount,
@@ -233,6 +238,104 @@ class PartnerPanelController extends Controller
         }
 
         return redirect()->back()->with('success', 'Konten landing page berhasil diperbarui.');
+    }
+
+    /**
+     * Tambah Berita & Artikel Khusus Lembaga Mitra
+     */
+    public function storeNews(Request $request)
+    {
+        $user = $request->user();
+        $partner = $user->getPartner();
+
+        if (!$partner) {
+            return redirect()->back()->with('error', 'Lembaga mitra tidak valid.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'author' => 'nullable|string|max:100',
+            'content' => 'required|string',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image_url' => 'nullable|string',
+            'published_at' => 'nullable|string',
+        ]);
+
+        $validated['partner_id'] = $partner->id;
+        $validated['author'] = $validated['author'] ?: ($partner->name . ' (' . ($partner->pic_name ?: 'Humas') . ')');
+        $validated['published_at'] = $validated['published_at'] ?: date('Y-m-d');
+
+        if ($request->hasFile('image_file')) {
+            $path = $request->file('image_file')->store('news_images', 'public');
+            $validated['image_url'] = '/storage/' . $path;
+        }
+
+        unset($validated['image_file']);
+
+        News::create($validated);
+
+        return redirect()->back()->with('success', 'Berita / Artikel lembaga berhasil diterbitkan.');
+    }
+
+    /**
+     * Perbarui Berita & Artikel Lembaga Mitra
+     */
+    public function updateNews(Request $request, News $news)
+    {
+        $user = $request->user();
+        $partner = $user->getPartner();
+
+        if (!$partner || $news->partner_id !== $partner->id) {
+            abort(403, 'Anda tidak memiliki hak akses mengubah artikel lembaga lain.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'author' => 'nullable|string|max:100',
+            'content' => 'required|string',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image_url' => 'nullable|string',
+            'published_at' => 'nullable|string',
+        ]);
+
+        if ($request->hasFile('image_file')) {
+            if ($news->image_url && str_starts_with($news->image_url, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $news->image_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('image_file')->store('news_images', 'public');
+            $validated['image_url'] = '/storage/' . $path;
+        }
+
+        unset($validated['image_file']);
+
+        $news->update($validated);
+
+        return redirect()->back()->with('success', 'Berita / Artikel lembaga berhasil diperbarui.');
+    }
+
+    /**
+     * Hapus Berita & Artikel Lembaga Mitra
+     */
+    public function destroyNews(Request $request, News $news)
+    {
+        $user = $request->user();
+        $partner = $user->getPartner();
+
+        if (!$partner || $news->partner_id !== $partner->id) {
+            abort(403, 'Anda tidak memiliki hak akses menghapus artikel lembaga lain.');
+        }
+
+        if ($news->image_url && str_starts_with($news->image_url, '/storage/')) {
+            $oldPath = str_replace('/storage/', '', $news->image_url);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $news->delete();
+
+        return redirect()->back()->with('success', 'Berita / Artikel lembaga berhasil dihapus.');
     }
 
     /**

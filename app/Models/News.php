@@ -13,6 +13,7 @@ class News extends Model
     protected $table = 'news';
 
     protected $fillable = [
+        'partner_id',
         'title',
         'slug',
         'category',
@@ -21,6 +22,11 @@ class News extends Model
         'content',
         'published_at',
     ];
+
+    public function partner(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Partner::class);
+    }
 
     /**
      * Boot the model and auto-generate slug

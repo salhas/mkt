@@ -8,6 +8,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    partnerNews: {
+        type: Array,
+        default: () => [],
+    },
     stats: {
         type: Object,
         default: () => ({
@@ -21,8 +25,91 @@ const props = defineProps({
     },
 });
 
-const activeTab = ref('hero'); // 'hero', 'profil', 'pillars', 'recruitment', 'contact'
+const activeTab = ref('hero'); // 'hero', 'profil', 'pillars', 'recruitment', 'contact', 'news'
 const copied = ref(false);
+
+// News CRUD states & form
+const showNewsModal = ref(false);
+const editingNews = ref(null);
+const newsImagePreview = ref(null);
+
+const newsForm = useForm({
+    title: '',
+    category: 'Kegiatan',
+    author: '',
+    content: '',
+    image_file: null,
+    image_url: '',
+    published_at: new Date().toISOString().split('T')[0],
+});
+
+const openCreateNewsModal = () => {
+    editingNews.value = null;
+    newsForm.reset();
+    newsForm.clearErrors();
+    newsForm.category = 'Kegiatan';
+    newsForm.author = `${props.partner.name} (${props.partner.pic_name || 'Humas'})`;
+    newsForm.published_at = new Date().toISOString().split('T')[0];
+    newsImagePreview.value = null;
+    showNewsModal.value = true;
+};
+
+const openEditNewsModal = (item) => {
+    editingNews.value = item;
+    newsForm.clearErrors();
+    newsForm.title = item.title;
+    newsForm.category = item.category || 'Kegiatan';
+    newsForm.author = item.author || '';
+    newsForm.content = item.content || '';
+    newsForm.image_file = null;
+    newsForm.image_url = item.image_url || '';
+    newsForm.published_at = item.published_at || new Date().toISOString().split('T')[0];
+    newsImagePreview.value = item.image_url || null;
+    showNewsModal.value = true;
+};
+
+const handleNewsImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        newsForm.image_file = file;
+        newsImagePreview.value = URL.createObjectURL(file);
+    }
+};
+
+const closeNewsModal = () => {
+    showNewsModal.value = false;
+    editingNews.value = null;
+    newsForm.reset();
+    newsForm.clearErrors();
+};
+
+const submitNews = () => {
+    if (editingNews.value) {
+        newsForm.post(route('partner.landing-page.news.update', editingNews.value.id), {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                closeNewsModal();
+            },
+        });
+    } else {
+        newsForm.post(route('partner.landing-page.news.store'), {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                closeNewsModal();
+            },
+        });
+    }
+};
+
+const deleteNewsItem = (item) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus artikel "${item.title}"?`)) {
+        useForm({}).delete(route('partner.landing-page.news.destroy', item.id), {
+            preserveScroll: true,
+        });
+    }
+};
 
 const form = useForm({
     name: props.partner.name || '',
@@ -260,6 +347,20 @@ const submitForm = () => {
                 >
                     <span>📞</span>
                     <span>5. Kontak & Media Sosial</span>
+                </button>
+
+                <button
+                    type="button"
+                    @click="activeTab = 'news'"
+                    :class="[
+                        'pb-3 pt-1 px-3 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition flex items-center space-x-2',
+                        activeTab === 'news'
+                            ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                    ]"
+                >
+                    <span>📰</span>
+                    <span>6. Berita & Artikel ({{ partnerNews.length }})</span>
                 </button>
             </div>
 
@@ -738,8 +839,8 @@ const submitForm = () => {
                     </div>
                 </div>
 
-                <!-- SAVE BUTTON BAR -->
-                <div class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-md">
+                <!-- SAVE BUTTON BAR (FOR TABS 1-5) -->
+                <div v-show="activeTab !== 'news'" class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-md">
                     <div class="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
                         Perubahan akan langsung terupdate di halaman landing page publik.
                     </div>
@@ -762,6 +863,287 @@ const submitForm = () => {
                 </div>
 
             </form>
+
+            <!-- TAB 6: BERITA & ARTIKEL LEMBAGA (CRUD) -->
+            <div v-show="activeTab === 'news'" class="space-y-6">
+                <!-- Header Bar -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-gray-800">
+                    <div>
+                        <h3 class="text-lg font-black text-gray-900 dark:text-white flex items-center space-x-2">
+                            <span>📰</span>
+                            <span>Manajemen Berita & Artikel Publikasi Mitra</span>
+                        </h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Publikasikan rilis kegiatan, operasi SAR, pelatihan, dan artikel edukasi dari {{ partner.name }}. Artikel langsung tampil di section <em>#berita</em> landing page publik dan portal utama MKT.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        @click="openCreateNewsModal"
+                        class="px-5 py-2.5 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/20 active:scale-95 transition flex items-center space-x-2 shrink-0 self-start sm:self-auto"
+                    >
+                        <span>➕</span>
+                        <span>Tulis Berita Baru</span>
+                    </button>
+                </div>
+
+                <!-- Empty State -->
+                <div v-if="!partnerNews || partnerNews.length === 0" class="bg-white dark:bg-gray-900 rounded-3xl p-12 text-center border border-dashed border-gray-200 dark:border-gray-800 space-y-4">
+                    <div class="w-16 h-16 mx-auto rounded-3xl bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center text-3xl">
+                        📰
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="text-base font-bold text-gray-900 dark:text-white">
+                            Belum Ada Berita yang Diterbitkan
+                        </h4>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                            Tingkatkan eksposur lembaga dan kepercayaan publik dengan menerbitkan dokumentasi kegiatan dan kabar penugasan terbaru.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        @click="openCreateNewsModal"
+                        class="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-sm transition inline-flex items-center space-x-2"
+                    >
+                        <span>✍️</span>
+                        <span>Mulai Tulis Berita Pertama</span>
+                    </button>
+                </div>
+
+                <!-- News Cards Grid -->
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div 
+                        v-for="item in partnerNews" 
+                        :key="item.id"
+                        class="bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col hover:border-orange-500/40 transition group"
+                    >
+                        <!-- Image Cover -->
+                        <div class="h-48 w-full bg-slate-900 relative overflow-hidden">
+                            <img 
+                                v-if="item.image_url" 
+                                :src="item.image_url" 
+                                :alt="item.title"
+                                class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                            />
+                            <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-orange-950/60 text-slate-400 text-3xl">
+                                📰
+                            </div>
+                            <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500/90 text-white backdrop-blur-sm shadow-sm">
+                                    {{ item.category || 'Kegiatan' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                            <div class="space-y-2">
+                                <div class="flex items-center text-[11px] text-gray-400 space-x-2">
+                                    <span>📅 {{ item.published_at || 'Hari ini' }}</span>
+                                    <span>•</span>
+                                    <span class="truncate max-w-[130px]">✍️ {{ item.author || partner.name }}</span>
+                                </div>
+
+                                <h4 class="text-sm font-black text-gray-900 dark:text-white line-clamp-2 leading-snug group-hover:text-orange-600 dark:group-hover:text-orange-400 transition">
+                                    {{ item.title }}
+                                </h4>
+
+                                <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-3 leading-relaxed">
+                                    {{ item.content }}
+                                </p>
+                            </div>
+
+                            <!-- Card Actions -->
+                            <div class="pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                                <a 
+                                    :href="`${landingPageUrl}#berita`"
+                                    target="_blank"
+                                    class="text-[11px] font-bold text-gray-500 dark:text-gray-400 hover:text-orange-500 flex items-center space-x-1"
+                                >
+                                    <span>Lihat di Web</span>
+                                    <span>↗</span>
+                                </a>
+
+                                <div class="flex items-center space-x-1.5">
+                                    <button
+                                        type="button"
+                                        @click="openEditNewsModal(item)"
+                                        class="px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/40 dark:hover:bg-orange-900/40 text-orange-600 dark:text-orange-400 text-xs font-bold transition flex items-center space-x-1"
+                                    >
+                                        <span>✏️</span>
+                                        <span>Edit</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="deleteNewsItem(item)"
+                                        class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 text-xs font-bold transition"
+                                        title="Hapus Berita"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL CREATE & EDIT NEWS -->
+            <div 
+                v-if="showNewsModal" 
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-xs overflow-y-auto"
+            >
+                <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl border border-gray-100 dark:border-gray-800 space-y-6 my-8 max-h-[90vh] overflow-y-auto">
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+                        <div>
+                            <h3 class="text-lg font-black text-gray-900 dark:text-white flex items-center space-x-2">
+                                <span>{{ editingNews ? '✏️ Edit Berita / Publikasi' : '➕ Tulis Berita Baru' }}</span>
+                            </h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                {{ editingNews ? 'Perbarui informasi rilis artikel publikasi lembaga Anda.' : 'Buat dan publikasikan artikel kegiatan baru untuk lembaga Anda.' }}
+                            </p>
+                        </div>
+                        <button 
+                            type="button"
+                            @click="closeNewsModal"
+                            class="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-bold transition"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <!-- Modal Form -->
+                    <form @submit.prevent="submitNews" class="space-y-4">
+                        <!-- Judul Berita -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                Judul Berita / Rilis Artikel <span class="text-rose-500">*</span>
+                            </label>
+                            <input 
+                                v-model="newsForm.title"
+                                type="text"
+                                required
+                                placeholder="Contoh: Tim Rescuer SAR Unhas Gelar Simulasi Evakuasi Bencana Banjir"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-orange-500"
+                            />
+                            <span v-if="newsForm.errors.title" class="text-[11px] text-rose-500">{{ newsForm.errors.title }}</span>
+                        </div>
+
+                        <!-- Kategori & Tanggal Rilis -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                    Kategori Artikel <span class="text-rose-500">*</span>
+                                </label>
+                                <select 
+                                    v-model="newsForm.category"
+                                    required
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-orange-500"
+                                >
+                                    <option value="Kegiatan">Dokumentasi Kegiatan</option>
+                                    <option value="Operasi SAR">Operasi SAR & Kemanusiaan</option>
+                                    <option value="Pelatihan">Diksar & Pelatihan Anggota</option>
+                                    <option value="Mitigasi">Edukasi & Mitigasi Bencana</option>
+                                    <option value="Kerjasama">Kerjasama & Kemitraan</option>
+                                    <option value="Siaran Pers">Siaran Pers Resmi</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                    Tanggal Publikasi
+                                </label>
+                                <input 
+                                    v-model="newsForm.published_at"
+                                    type="date"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-orange-500"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Penulis / Redaksi -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                Penulis / Tim Redaksi
+                            </label>
+                            <input 
+                                v-model="newsForm.author"
+                                type="text"
+                                placeholder="Humas SAR Unhas"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-orange-500"
+                            />
+                        </div>
+
+                        <!-- Upload Foto Berita -->
+                        <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-950 border border-gray-200/80 dark:border-gray-800 space-y-3">
+                            <span class="text-xs font-bold text-gray-700 dark:text-gray-300 block">
+                                Foto Dokumentasi / Banner Berita
+                            </span>
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                                <div class="w-28 h-20 rounded-2xl bg-slate-900 border border-gray-200 dark:border-gray-700 overflow-hidden shrink-0 relative shadow-xs">
+                                    <img 
+                                        v-if="newsImagePreview" 
+                                        :src="newsImagePreview" 
+                                        alt="Preview" 
+                                        class="w-full h-full object-cover"
+                                    />
+                                    <div v-else class="w-full h-full flex items-center justify-center text-xs text-slate-400 font-bold">
+                                        Foto Cover
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5 flex-1 min-w-0">
+                                    <input 
+                                        type="file" 
+                                        accept="image/*"
+                                        @change="handleNewsImageChange"
+                                        class="block w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-orange-600 dark:file:bg-orange-950/40 dark:file:text-orange-400"
+                                    />
+                                    <p class="text-[11px] text-gray-400">
+                                        Format JPG, PNG, atau WebP. Maksimal ukuran berkas 5MB.
+                                    </p>
+                                </div>
+                            </div>
+                            <span v-if="newsForm.errors.image_file" class="text-[11px] text-rose-500 block">{{ newsForm.errors.image_file }}</span>
+                        </div>
+
+                        <!-- Isi Konten Artikel -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                Narasi Lengkap Berita / Artikel <span class="text-rose-500">*</span>
+                            </label>
+                            <textarea 
+                                v-model="newsForm.content"
+                                rows="7"
+                                required
+                                placeholder="Tuliskan isi berita, detail lokasi, kronologi kegiatan, dan kutipan koordinator..."
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white text-xs sm:text-sm leading-relaxed focus:ring-2 focus:ring-orange-500"
+                            ></textarea>
+                            <span v-if="newsForm.errors.content" class="text-[11px] text-rose-500">{{ newsForm.errors.content }}</span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                            <button 
+                                type="button"
+                                @click="closeNewsModal"
+                                class="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs transition"
+                            >
+                                Batal
+                            </button>
+                            <button 
+                                type="submit"
+                                :disabled="newsForm.processing"
+                                class="px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/20 transition disabled:opacity-50 flex items-center space-x-2"
+                            >
+                                <span v-if="newsForm.processing">Menyimpan...</span>
+                                <span v-else>{{ editingNews ? '💾 Perbarui Berita' : '🚀 Terbitkan Sekarang' }}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
         </div>
     </AuthenticatedLayout>

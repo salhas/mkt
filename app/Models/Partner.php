@@ -73,6 +73,11 @@ class Partner extends Model
         return $this->hasMany(Volunteer::class);
     }
 
+    public function news(): HasMany
+    {
+        return $this->hasMany(News::class);
+    }
+
     /**
      * Cari riwayat partisipasi operasi SAR berdasarkan nama organisasi atau afiliasi
      */

@@ -97,12 +97,26 @@ class PublicPageController extends Controller
         // Riwayat Operasi SAR / Misi Kemanusiaan
         $sarMissions = $partner->getSarParticipations();
 
-        // Berita & Artikel terkait mitra atau terbitan kebencanaan
-        $partnerNews = News::where(function ($q) use ($partner) {
-            $q->where('title', 'like', "%{$partner->name}%")
-              ->orWhere('content', 'like', "%{$partner->name}%")
-              ->orWhere('category', $partner->category);
-        })->orderBy('id', 'desc')->take(3)->get();
+        // Berita & Artikel terkait mitra (prioritas berita yang diterbitkan mitra ini)
+        $partnerNews = News::where('partner_id', $partner->id)
+            ->orderBy('id', 'desc')
+            ->take(6)
+            ->get();
+
+        if ($partnerNews->count() < 3) {
+            $needed = 3 - $partnerNews->count();
+            $fallbackNews = News::where(function ($q) use ($partner) {
+                $q->where('title', 'like', "%{$partner->name}%")
+                  ->orWhere('content', 'like', "%{$partner->name}%")
+                  ->orWhere('category', $partner->category);
+            })
+            ->whereNotIn('id', $partnerNews->pluck('id'))
+            ->orderBy('id', 'desc')
+            ->take($needed)
+            ->get();
+
+            $partnerNews = $partnerNews->concat($fallbackNews);
+        }
 
         if ($partnerNews->isEmpty()) {
             $partnerNews = News::orderBy('id', 'desc')->take(3)->get();
