@@ -210,8 +210,11 @@ class VolunteerController extends Controller
             return $this->publicRegisterPartner($request);
         }
 
+        $membershipType = $request->input('membership_type', 'relawan');
+
         $validated = $request->validate([
             'partner_id' => 'nullable|exists:partners,id',
+            'membership_type' => 'nullable|in:anggota,relawan',
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:50',
@@ -219,9 +222,22 @@ class VolunteerController extends Controller
             'blood_type' => 'nullable|string|max:10',
             'role' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
+            'terms_accepted' => 'nullable|boolean',
+        ], [
+            'terms_accepted.accepted' => 'Anda wajib menyetujui Syarat & Ketentuan Keanggotaan untuk mendaftar sebagai Anggota Lembaga.',
         ]);
 
-        $validated['role'] = $validated['role'] ?? 'Relawan Rescuer';
+        if ($membershipType === 'anggota' && !$request->boolean('terms_accepted')) {
+            return back()->withErrors([
+                'terms_accepted' => 'Anda wajib menyetujui Syarat & Ketentuan Keanggotaan untuk mendaftar sebagai Anggota Lembaga.',
+            ]);
+        }
+
+        $validated['membership_type'] = $membershipType;
+        unset($validated['terms_accepted']);
+
+        $defaultRole = ($membershipType === 'anggota') ? 'Anggota Personel Lembaga' : 'Relawan Rescuer';
+        $validated['role'] = $validated['role'] ?? $defaultRole;
         $validated['status'] = 'Aktif';
         $validated['registered_at'] = now()->toDateString();
 
@@ -240,6 +256,7 @@ class VolunteerController extends Controller
                 'email' => $volunteer->email,
                 'password' => \Illuminate\Support\Facades\Hash::make($passwordInput),
                 'role' => 'relawan',
+                'partner_id' => $volunteer->partner_id,
                 'email_verified_at' => now(),
             ]
         );
@@ -252,16 +269,20 @@ class VolunteerController extends Controller
             Log::error('Gagal mengirim email konfirmasi registrasi relawan: ' . $e->getMessage());
         }
 
+        $successMsg = ($membershipType === 'anggota')
+            ? 'Pendaftaran berhasil! Formulir pendaftaran Anggota Resmi Lembaga telah diterima.'
+            : 'Pendaftaran berhasil! Akun Relawan Kemanusiaan telah dibuat.';
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Pendaftaran berhasil! Akun relawan telah dibuat.',
+                'message' => $successMsg,
                 'volunteer' => $volunteer,
                 'email_sent' => $emailSent
             ]);
         }
 
-        return redirect()->back()->with('success', 'Pendaftaran berhasil! Akun relawan telah dibuat.');
+        return redirect()->back()->with('success', $successMsg);
     }
 
     public function publicRegisterPartner(Request $request)

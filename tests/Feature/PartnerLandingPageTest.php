@@ -124,11 +124,12 @@ class PartnerLandingPageTest extends TestCase
 
         $response = $this->post(route('volunteers.public-register'), [
             'partner_id' => $partner->id,
+            'membership_type' => 'relawan',
             'name' => 'Ahmad Rescuer',
             'email' => 'ahmad@gmail.com',
             'phone' => '081299998888',
             'blood_type' => 'O',
-            'role' => 'Relawan Rescuer',
+            'role' => 'Relawan Rescuer Lapangan',
             'password' => 'secret123',
             'notes' => 'Spesialisasi Water Rescue',
         ]);
@@ -137,14 +138,77 @@ class PartnerLandingPageTest extends TestCase
 
         $this->assertDatabaseHas('volunteers', [
             'partner_id' => $partner->id,
+            'membership_type' => 'relawan',
             'name' => 'Ahmad Rescuer',
             'email' => 'ahmad@gmail.com',
-            'role' => 'Relawan Rescuer',
+            'role' => 'Relawan Rescuer Lapangan',
         ]);
 
         $this->assertDatabaseHas('users', [
             'email' => 'ahmad@gmail.com',
             'role' => 'relawan',
+            'partner_id' => $partner->id,
+        ]);
+    }
+
+    public function test_public_can_register_as_member_with_terms_accepted(): void
+    {
+        $partner = Partner::create([
+            'name' => 'SAR Unhas',
+            'slug' => 'sar-unhas',
+            'category' => 'Tim Rescue',
+            'email' => 'sarunhas@gmail.com',
+            'status' => 'Aktif',
+        ]);
+
+        $response = $this->post(route('volunteers.public-register'), [
+            'partner_id' => $partner->id,
+            'membership_type' => 'anggota',
+            'terms_accepted' => true,
+            'name' => 'Budi Anggota',
+            'email' => 'budi@sarunhas.org',
+            'phone' => '081288887777',
+            'blood_type' => 'AB',
+            'role' => 'Anggota Operasional Lapangan',
+            'password' => 'secret123',
+            'notes' => 'Pernah mengikuti Diksar',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('volunteers', [
+            'partner_id' => $partner->id,
+            'membership_type' => 'anggota',
+            'name' => 'Budi Anggota',
+            'email' => 'budi@sarunhas.org',
+            'role' => 'Anggota Operasional Lapangan',
+        ]);
+    }
+
+    public function test_member_registration_fails_if_terms_not_accepted(): void
+    {
+        $partner = Partner::create([
+            'name' => 'SAR Unhas',
+            'slug' => 'sar-unhas',
+            'category' => 'Tim Rescue',
+            'email' => 'sarunhas@gmail.com',
+            'status' => 'Aktif',
+        ]);
+
+        $response = $this->post(route('volunteers.public-register'), [
+            'partner_id' => $partner->id,
+            'membership_type' => 'anggota',
+            'terms_accepted' => false,
+            'name' => 'Budi Gagal',
+            'email' => 'budi.gagal@sarunhas.org',
+            'phone' => '081288887777',
+            'blood_type' => 'AB',
+            'role' => 'Anggota Operasional Lapangan',
+        ]);
+
+        $response->assertSessionHasErrors('terms_accepted');
+        $this->assertDatabaseMissing('volunteers', [
+            'email' => 'budi.gagal@sarunhas.org',
         ]);
     }
 }

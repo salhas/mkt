@@ -38,22 +38,48 @@ const props = defineProps({
     },
 });
 
-// Modal Registrasi Khusus Mitra Ini
+// Modal Registrasi Khusus Mitra Ini (Anggota & Relawan)
 const showRegisterModal = ref(false);
 const registerSuccess = ref(false);
 
 const registerForm = useForm({
     partner_id: props.partner.id,
+    membership_type: 'anggota', // 'anggota' | 'relawan'
     name: '',
     email: '',
     phone: '',
     blood_type: 'O',
-    role: props.partner.category === 'PMI' ? 'Donor Darah' : (props.partner.category === 'Rumah Sakit' ? 'Tenaga Medis' : 'Relawan Rescuer'),
+    role: 'Anggota Personel Lembaga',
     password: '',
     notes: '',
+    terms_accepted: false,
 });
 
+const setMembershipType = (type) => {
+    registerForm.membership_type = type;
+    registerForm.clearErrors('terms_accepted');
+    if (type === 'anggota') {
+        registerForm.role = 'Anggota Personel Lembaga';
+        registerForm.terms_accepted = false;
+    } else {
+        registerForm.role = props.partner.category === 'PMI' 
+            ? 'Relawan Donor Darah' 
+            : (props.partner.category === 'Rumah Sakit' ? 'Relawan Medis / First Aid' : 'Relawan Rescuer Lapangan');
+        registerForm.terms_accepted = true;
+    }
+};
+
+const openRegisterModal = (type = 'anggota') => {
+    setMembershipType(type);
+    showRegisterModal.value = true;
+};
+
 const submitRegister = () => {
+    if (registerForm.membership_type === 'anggota' && !registerForm.terms_accepted) {
+        registerForm.setError('terms_accepted', 'Anda wajib menyetujui Syarat & Ketentuan Keanggotaan untuk mendaftar sebagai Anggota.');
+        return;
+    }
+
     registerForm.post(route('volunteers.public-register'), {
         preserveScroll: true,
         onSuccess: () => {
@@ -271,11 +297,19 @@ const formatDate = (dateStr) => {
                                 <!-- Hero Action Buttons -->
                                 <div class="pt-2 flex flex-wrap items-center gap-3.5">
                                     <button 
-                                        @click="showRegisterModal = true"
-                                        class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-orange-500/30 active:scale-95 transition flex items-center space-x-2 border border-orange-400/30"
+                                        @click="openRegisterModal('anggota')"
+                                        class="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-orange-500/30 active:scale-95 transition flex items-center space-x-2 border border-orange-400/30"
+                                    >
+                                        <span>🎖️</span>
+                                        <span>Daftar Anggota</span>
+                                    </button>
+
+                                    <button 
+                                        @click="openRegisterModal('relawan')"
+                                        class="px-5 py-3.5 rounded-2xl bg-slate-900/85 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-lg border border-white/20 active:scale-95 transition flex items-center space-x-2 backdrop-blur-md"
                                     >
                                         <span>🤝</span>
-                                        <span>Gabung Relawan / Anggota Mitra</span>
+                                        <span>Daftar Relawan</span>
                                     </button>
 
                                     <a 
@@ -446,12 +480,20 @@ const formatDate = (dateStr) => {
                                         Daftar personel aktif terpusat pada basis data Pusdalops.
                                     </div>
 
-                                    <div class="pt-2">
+                                    <div class="pt-2 grid grid-cols-2 gap-2">
                                         <button 
-                                            @click="showRegisterModal = true"
-                                            class="w-full py-3 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition"
+                                            @click="openRegisterModal('anggota')"
+                                            class="py-3 px-2 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition flex items-center justify-center space-x-1"
                                         >
-                                            + Bergabung Bersama Tim Ini
+                                            <span>🎖️</span>
+                                            <span>Gabung Anggota</span>
+                                        </button>
+                                        <button 
+                                            @click="openRegisterModal('relawan')"
+                                            class="py-3 px-2 rounded-2xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition flex items-center justify-center space-x-1"
+                                        >
+                                            <span>🤝</span>
+                                            <span>Jadi Relawan</span>
                                         </button>
                                     </div>
                                 </div>
@@ -681,10 +723,19 @@ const formatDate = (dateStr) => {
 
                                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
                                     <button 
-                                        @click="showRegisterModal = true"
-                                        class="px-6 py-4 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-black text-xs sm:text-sm shadow-xl active:scale-95 transition text-center"
+                                        @click="openRegisterModal('anggota')"
+                                        class="px-5 py-4 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-black text-xs sm:text-sm shadow-xl active:scale-95 transition text-center flex items-center justify-center space-x-2"
                                     >
-                                        🤝 Isi Formulir Pendaftaran Relawan
+                                        <span>🎖️</span>
+                                        <span>Daftar Anggota</span>
+                                    </button>
+
+                                    <button 
+                                        @click="openRegisterModal('relawan')"
+                                        class="px-5 py-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm shadow-xl active:scale-95 transition text-center flex items-center justify-center space-x-2 border border-slate-700"
+                                    >
+                                        <span>🤝</span>
+                                        <span>Daftar Relawan</span>
                                     </button>
 
                                     <a 
@@ -759,9 +810,9 @@ const formatDate = (dateStr) => {
                     </div>
                 </section>
 
-                <!-- MODAL REGISTRASI RELAWAN MITRA -->
-                <div v-if="showRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn">
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6 relative max-h-[90vh] overflow-y-auto">
+                <!-- MODAL REGISTRASI ANGGOTA & RELAWAN MITRA -->
+                <div v-if="showRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fadeIn">
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6 relative max-h-[92vh] overflow-y-auto">
                         
                         <button 
                             @click="showRegisterModal = false"
@@ -778,16 +829,139 @@ const formatDate = (dateStr) => {
                                 Bergabung bersama {{ partner.name }}
                             </h3>
                             <p class="text-xs text-slate-500 dark:text-slate-400">
-                                Pendaftaran Anda akan otomatis terafiliasi dengan lembaga mitra {{ partner.name }} dalam ekosistem Yayasan MKT.
+                                Silakan tentukan kategori bergabung: sebagai <strong>Anggota resmi lembaga</strong> (syarat & ketentuan berlaku) atau <strong>Relawan kemanusiaan</strong>.
                             </p>
                         </div>
 
                         <div v-if="registerSuccess" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm font-semibold space-y-1">
-                            <p class="font-bold">🎉 Pendaftaran Berhasil!</p>
-                            <p>Data Anda telah terdaftar sebagai relawan/personel {{ partner.name }}. Kami telah mengirimkan detail akses ke email Anda.</p>
+                            <p class="font-bold">🎉 Pendaftaran Berhasil Dikirim!</p>
+                            <p>Data Anda telah terdaftar sebagai {{ registerForm.membership_type === 'anggota' ? 'calon Anggota Lembaga' : 'Relawan Kemanusiaan' }} {{ partner.name }}. Kami telah mengirimkan detail konfirmasi dan akses ke email Anda.</p>
                         </div>
 
-                        <form v-else @submit.prevent="submitRegister" class="space-y-4 text-left">
+                        <form v-else @submit.prevent="submitRegister" class="space-y-5 text-left">
+                            
+                            <!-- PILIHAN KATEGORI BERGABUNG: ANGGOTA VS RELAWAN -->
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    Pilihan Bergabung <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    
+                                    <!-- Option 1: Anggota (Syarat & Ketentuan Berlaku) -->
+                                    <button 
+                                        type="button"
+                                        @click="setMembershipType('anggota')"
+                                        :class="[
+                                            'p-4 rounded-2xl border text-left transition flex flex-col justify-between space-y-2 relative focus:outline-hidden',
+                                            registerForm.membership_type === 'anggota'
+                                                ? 'border-orange-500 bg-orange-50/70 dark:bg-orange-950/30 ring-2 ring-orange-500/20'
+                                                : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 hover:border-slate-300 dark:hover:border-slate-700'
+                                        ]"
+                                    >
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-2xl">🎖️</span>
+                                            <span 
+                                                v-if="registerForm.membership_type === 'anggota'"
+                                                class="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-white text-[11px] font-black shadow-sm"
+                                            >✓</span>
+                                            <span v-else class="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600"></span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-black text-slate-900 dark:text-white">
+                                                Anggota
+                                            </h4>
+                                            <span class="text-[11px] font-bold text-orange-600 dark:text-orange-400 block mt-0.5">
+                                                (Syarat & Ketentuan Berlaku)
+                                            </span>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                                Kader/personel organik binaan {{ partner.name }}.
+                                            </p>
+                                        </div>
+                                    </button>
+
+                                    <!-- Option 2: Relawan -->
+                                    <button 
+                                        type="button"
+                                        @click="setMembershipType('relawan')"
+                                        :class="[
+                                            'p-4 rounded-2xl border text-left transition flex flex-col justify-between space-y-2 relative focus:outline-hidden',
+                                            registerForm.membership_type === 'relawan'
+                                                ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/30 ring-2 ring-blue-500/20'
+                                                : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 hover:border-slate-300 dark:hover:border-slate-700'
+                                        ]"
+                                    >
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-2xl">🤝</span>
+                                            <span 
+                                                v-if="registerForm.membership_type === 'relawan'"
+                                                class="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-[11px] font-black shadow-sm"
+                                            >✓</span>
+                                            <span v-else class="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600"></span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-black text-slate-900 dark:text-white">
+                                                Relawan
+                                            </h4>
+                                            <span class="text-[11px] font-bold text-blue-600 dark:text-blue-400 block mt-0.5">
+                                                (Terbuka untuk Umum)
+                                            </span>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                                Aksi sosial, tanggap bencana & donor darah.
+                                            </p>
+                                        </div>
+                                    </button>
+
+                                </div>
+                            </div>
+
+                            <!-- SYARAT & KETENTUAN BOX JIKA PILIH ANGGOTA -->
+                            <div 
+                                v-if="registerForm.membership_type === 'anggota'"
+                                class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-3"
+                            >
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-base">📜</span>
+                                    <h5 class="text-xs font-black text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                                        Syarat & Ketentuan Keanggotaan {{ partner.name }}
+                                    </h5>
+                                </div>
+                                <ul class="text-[11px] text-slate-700 dark:text-slate-300 space-y-1.5 list-disc list-inside leading-relaxed">
+                                    <li>Bersedia mengikuti proses orientasi, verifikasi berkas, atau Pendidikan Dasar (Diksar) internal lembaga.</li>
+                                    <li>Menjunjung tinggi Anggaran Dasar & Anggaran Rumah Tangga (AD/ART), kode etik, dan kehormatan lembaga mitra.</li>
+                                    <li>Memiliki komitmen aktif dalam piket posko, latihan rutin, dan kesiapsiagaan operasi SAR/kemanusiaan.</li>
+                                    <li>Siaga dimobilisasi di bawah komando koordinasi Pusdalops Yayasan MKT dan pimpinan mitra saat tanggap darurat.</li>
+                                </ul>
+
+                                <div class="pt-2 border-t border-amber-500/20">
+                                    <label class="flex items-start space-x-2.5 cursor-pointer">
+                                        <input 
+                                            v-model="registerForm.terms_accepted"
+                                            type="checkbox"
+                                            class="mt-0.5 rounded border-amber-400 text-orange-600 focus:ring-orange-500"
+                                        />
+                                        <span class="text-[11px] font-semibold text-slate-800 dark:text-slate-200 leading-snug">
+                                            Saya telah membaca, memahami, dan menyetujui seluruh <span class="text-orange-600 dark:text-orange-400 font-bold">Syarat & Ketentuan</span> di atas untuk bergabung sebagai Anggota {{ partner.name }}. <span class="text-rose-500">*</span>
+                                        </span>
+                                    </label>
+                                    <span v-if="registerForm.errors.terms_accepted" class="text-[11px] text-rose-500 block mt-1 font-bold">
+                                        {{ registerForm.errors.terms_accepted }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- INFO BOX JIKA PILIH RELAWAN -->
+                            <div 
+                                v-else
+                                class="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-start space-x-3"
+                            >
+                                <span class="text-lg shrink-0">💡</span>
+                                <div class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                                    <strong class="text-blue-600 dark:text-blue-400 font-bold block mb-0.5">Partisipasi Terbuka Relawan:</strong>
+                                    Sebagai relawan kemanusiaan, Anda tidak dibebankan kewajiban AD/ART struktural tetap. Anda akan dilibatkan dalam aksi tanggap darurat bencana, donor darah, dan bakti sosial sesuai kesediaan waktu Anda.
+                                </div>
+                            </div>
+
+                            <!-- INPUT DATA DIRI -->
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap *</label>
                                 <input 
@@ -840,17 +1014,38 @@ const formatDate = (dateStr) => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Keahlian / Peran</label>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        {{ registerForm.membership_type === 'anggota' ? 'Divisi / Penugasan Anggota' : 'Keahlian / Bidang Relawan' }}
+                                    </label>
+                                    
+                                    <!-- Role dropdown for Anggota -->
                                     <select 
+                                        v-if="registerForm.membership_type === 'anggota'"
                                         v-model="registerForm.role"
                                         class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-orange-500"
                                     >
-                                        <option value="Relawan Rescuer">Relawan Rescuer</option>
-                                        <option value="Tim Rescue">Tim Rescue Lapangan</option>
-                                        <option value="Tenaga Medis">Tenaga Medis / First Aid</option>
-                                        <option value="Donor Darah">Relawan Donor Darah</option>
-                                        <option value="Relawan Logistik">Logistik & Dapur Lapangan</option>
-                                        <option value="Anggota Personel">Anggota Personel Lembaga</option>
+                                        <option value="Anggota Personel Lembaga">Anggota Personel Lembaga (Reguler)</option>
+                                        <option value="Anggota Operasional Lapangan">Divisi Operasional Lapangan / Rescue</option>
+                                        <option value="Anggota Medis & Evakuasi">Divisi Medis, Kesehatan & Evakuasi</option>
+                                        <option value="Anggota Komunikasi & Pusdalops">Divisi Radio Komunikasi & Data</option>
+                                        <option value="Anggota Logistik & Sarana">Divisi Logistik & Sarana Lapangan</option>
+                                        <option value="Anggota Diksar / Kaderisasi">Calon Anggota (Peserta Diksar/Orientasi)</option>
+                                        <option value="Pengurus / Struktural Lembaga">Pengurus / Struktural Lembaga</option>
+                                    </select>
+
+                                    <!-- Role dropdown for Relawan -->
+                                    <select 
+                                        v-else
+                                        v-model="registerForm.role"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-orange-500"
+                                    >
+                                        <option value="Relawan Rescuer Lapangan">Relawan Rescuer Lapangan</option>
+                                        <option value="Relawan Medis / First Aid">Relawan Medis & Pertolongan Pertama</option>
+                                        <option value="Relawan Donor Darah">Relawan Donor Darah</option>
+                                        <option value="Relawan Logistik & Dapur Lapangan">Relawan Logistik & Dapur Lapangan</option>
+                                        <option value="Relawan Trauma Healing">Relawan Trauma Healing & Pendampingan</option>
+                                        <option value="Relawan Dokumentasi & Publikasi">Relawan Dokumentasi & Publikasi</option>
+                                        <option value="Relawan Dukungan Fleksibel">Relawan Dukungan Umum / Fleksibel</option>
                                     </select>
                                 </div>
                             </div>
@@ -866,11 +1061,13 @@ const formatDate = (dateStr) => {
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Catatan / Keterangan Keahlian</label>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    {{ registerForm.membership_type === 'anggota' ? 'Pengalaman Organisasi / Sertifikasi' : 'Catatan / Minat Khusus' }}
+                                </label>
                                 <textarea 
                                     v-model="registerForm.notes" 
                                     rows="2" 
-                                    placeholder="Contoh: Pengalaman Water Rescue, Sertifikasi Basarnas, dll."
+                                    :placeholder="registerForm.membership_type === 'anggota' ? 'Contoh: Pengalaman SAR / KSR / Pramuka, sertifikasi water rescue / first aid, dsb.' : 'Contoh: Bersedia pengerahan darurat akhir pekan, keahlian memasak/driver, dll.'"
                                     class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-orange-500"
                                 ></textarea>
                             </div>
@@ -889,7 +1086,9 @@ const formatDate = (dateStr) => {
                                     class="px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition disabled:opacity-50"
                                 >
                                     <span v-if="registerForm.processing">Memproses...</span>
-                                    <span v-else>Kirim Pendaftaran</span>
+                                    <span v-else>
+                                        {{ registerForm.membership_type === 'anggota' ? 'Kirim Pendaftaran Anggota' : 'Kirim Pendaftaran Relawan' }}
+                                    </span>
                                 </button>
                             </div>
                         </form>
