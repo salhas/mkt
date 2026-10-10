@@ -597,14 +597,11 @@ const formatDate = (dateStr) => {
                                     <!-- Image Thumbnail -->
                                     <div class="h-48 w-full bg-slate-800 relative overflow-hidden">
                                         <img 
-                                            v-if="news.image_path" 
-                                            :src="news.image_path" 
+                                            :src="news.image_url || news.image_path || heroRescueImg" 
                                             :alt="news.title" 
+                                            @error="(e) => e.target.src = heroRescueImg"
                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         />
-                                        <div v-else class="w-full h-full flex items-center justify-center bg-slate-800 text-slate-500">
-                                            📰 Dokumentasi MKT
-                                        </div>
                                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-600 text-white shadow-md">
                                             {{ news.category || 'Kemanusiaan' }}
                                         </span>
