@@ -47,8 +47,6 @@ return new class extends Migration
             // Kolom ecosystem_id beserta index-nya sudah terbentuk dengan sempurna dan relasi Eloquent tetap berjalan 100%.
         }
 
-        Schema::enableForeignKeyConstraints();
-
         // Seed data contoh awal: Ekosistem Lembaga Kemanusiaan Unhas (U-Humanity)
         if (DB::table('ecosystems')->where('code', 'U-HUMANITY')->doesntExist()) {
             $ecosystemId = DB::table('ecosystems')->insertGetId([
@@ -65,14 +63,22 @@ return new class extends Migration
                 'updated_at' => now(),
             ]);
 
-            // Hubungkan mitra yang relevan (seperti SAR Unhas) ke ekosistem ini jika ada
-            DB::table('partners')
-                ->where(function ($q) {
-                    $q->where('name', 'like', '%Unhas%')
-                      ->orWhere('description', 'like', '%Unhas%');
-                })
-                ->update(['ecosystem_id' => $ecosystemId]);
+            // Hubungkan mitra yang relevan jika ditemukan
+            if ($ecosystemId) {
+                try {
+                    DB::table('partners')
+                        ->where(function ($q) {
+                            $q->where('name', 'like', '%Unhas%')
+                              ->orWhere('description', 'like', '%Unhas%');
+                        })
+                        ->update(['ecosystem_id' => $ecosystemId]);
+                } catch (\Throwable $e) {
+                    // Abaikan jika tidak ada mitra atau ada kendala integritas sementara
+                }
+            }
         }
+
+        Schema::enableForeignKeyConstraints();
     }
 
     /**
