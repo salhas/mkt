@@ -247,7 +247,7 @@ const toggleFinance = () => {
                         Panel Lembaga Mitra
                     </span>
 
-                    <!-- Profil Lembaga -->
+                    <!-- 1. Profil Lembaga -->
                     <Link
                         :href="route('partner.profile')"
                         :class="[
@@ -263,23 +263,7 @@ const toggleFinance = () => {
                         <span v-if="isSidebarOpen" class="text-sm">Profil Lembaga</span>
                     </Link>
 
-                    <!-- Kelola Landing Page -->
-                    <Link
-                        :href="route('partner.landing-page')"
-                        :class="[
-                            route().current('partner.landing-page')
-                                ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 font-semibold'
-                                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
-                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
-                        ]"
-                    >
-                        <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                        </svg>
-                        <span v-if="isSidebarOpen" class="text-sm">Kelola Landing Page</span>
-                    </Link>
-
-                    <!-- Pengurus & Anggota Lembaga -->
+                    <!-- 2. Pengurus & Anggota Lembaga -->
                     <Link
                         :href="route('partner.members')"
                         :class="[
@@ -295,7 +279,7 @@ const toggleFinance = () => {
                         <span v-if="isSidebarOpen" class="text-sm">Pengurus & Anggota</span>
                     </Link>
 
-                    <!-- Peralatan & Perlengkapan Lembaga -->
+                    <!-- 3. Peralatan & Perlengkapan Lembaga -->
                     <Link
                         :href="route('partner.equipments')"
                         :class="[
@@ -309,6 +293,22 @@ const toggleFinance = () => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                         </svg>
                         <span v-if="isSidebarOpen" class="text-sm">Peralatan & Perlengkapan</span>
+                    </Link>
+
+                    <!-- 4. Kelola Landing Page -->
+                    <Link
+                        :href="route('partner.landing-page')"
+                        :class="[
+                            route().current('partner.landing-page')
+                                ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 font-semibold'
+                                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100',
+                            'flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-150 group'
+                        ]"
+                    >
+                        <svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        <span v-if="isSidebarOpen" class="text-sm">Kelola Landing Page</span>
                     </Link>
                 </div>
 
