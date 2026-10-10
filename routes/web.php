@@ -58,10 +58,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/weather', [DashboardController::class, 'getWeather'])->name('dashboard.weather');
     Route::get('/alerts/live-feed', [AlertApiController::class, 'getLiveAlerts'])->name('alerts.live');
 
-    // Panel Khusus Lembaga Mitra (Profil Lembaga, Pengurus & Anggota)
+    // Panel Khusus Lembaga Mitra (Profil Lembaga, Landing Page, Pengurus & Anggota)
     Route::get('/partner/profile', [\App\Http\Controllers\PartnerPanelController::class, 'profile'])->name('partner.profile');
     Route::post('/partner/profile', [\App\Http\Controllers\PartnerPanelController::class, 'updateProfile'])->name('partner.profile.update');
     Route::patch('/partner/profile', [\App\Http\Controllers\PartnerPanelController::class, 'updateProfile']);
+    Route::get('/partner/landing-page', [\App\Http\Controllers\PartnerPanelController::class, 'landingPage'])->name('partner.landing-page');
+    Route::post('/partner/landing-page', [\App\Http\Controllers\PartnerPanelController::class, 'updateLandingPage'])->name('partner.landing-page.update');
+    Route::patch('/partner/landing-page', [\App\Http\Controllers\PartnerPanelController::class, 'updateLandingPage']);
     Route::get('/partner/members', [\App\Http\Controllers\PartnerPanelController::class, 'members'])->name('partner.members');
     Route::post('/partner/members', [\App\Http\Controllers\PartnerPanelController::class, 'storeMember'])->name('partner.members.store');
     Route::patch('/partner/members/{volunteer}', [\App\Http\Controllers\PartnerPanelController::class, 'updateMember'])->name('partner.members.update');

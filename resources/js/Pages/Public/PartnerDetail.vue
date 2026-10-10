@@ -105,6 +105,23 @@ const copyCurrentUrl = () => {
     }
 };
 
+// Syarat & Ketentuan Keanggotaan Terkustomisasi dari Database
+const membershipTermsList = computed(() => {
+    if (props.partner.membership_terms && props.partner.membership_terms.trim()) {
+        return props.partner.membership_terms
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .map(line => line.replace(/^[-*•\d.]+\s*/, ''));
+    }
+    return [
+        'Bersedia mengikuti proses orientasi, verifikasi berkas, atau Pendidikan Dasar (Diksar) internal lembaga.',
+        'Menjunjung tinggi Anggaran Dasar & Anggaran Rumah Tangga (AD/ART), kode etik, dan kehormatan lembaga mitra.',
+        'Memiliki komitmen aktif dalam piket posko, latihan rutin, dan kesiapsiagaan operasi SAR/kemanusiaan.',
+        'Siaga dimobilisasi di bawah komando koordinasi Pusdalops Yayasan MKT dan pimpinan mitra saat tanggap darurat.',
+    ];
+});
+
 // Format WhatsApp URL
 const whatsappUrl = computed(() => {
     const rawPhone = props.partner.pic_phone || props.partner.phone || '';
@@ -291,7 +308,7 @@ const formatDate = (dateStr) => {
 
                                 <!-- Partner Motto / Tagline Description -->
                                 <p class="text-sm sm:text-base md:text-lg text-slate-200 max-w-3xl leading-relaxed drop-shadow-sm">
-                                    {{ partner.description || 'Unit potensi kemanusiaan dan penanggulangan bencana yang terintegrasi secara resmi dalam jaringan koordinasi tanggap darurat Yayasan MKT Indonesia.' }}
+                                    {{ partner.tagline || partner.description || 'Unit potensi kemanusiaan dan penanggulangan bencana yang terintegrasi secara resmi dalam jaringan koordinasi tanggap darurat Yayasan MKT Indonesia.' }}
                                 </p>
 
                                 <!-- Hero Action Buttons -->
@@ -368,7 +385,7 @@ const formatDate = (dateStr) => {
                                         </div>
                                         <div class="flex justify-between py-1 border-b border-white/10">
                                             <span class="text-slate-300">Kesiapsiagaan:</span>
-                                            <span class="font-bold text-emerald-400">Siaga Operasi 24/7</span>
+                                            <span class="font-bold text-emerald-400">{{ partner.readiness_status || 'Siaga Operasi 24/7' }}</span>
                                         </div>
                                         <div class="flex justify-between py-1">
                                             <span class="text-slate-300">Koordinator PIC:</span>
@@ -514,8 +531,8 @@ const formatDate = (dateStr) => {
                                         1. Pra-Bencana (Mitigasi)
                                     </span>
                                     <h4 class="font-bold text-base text-slate-900 dark:text-white">Kesiapsiagaan & Latihan</h4>
-                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        Penyegaran teknik water rescue, jungle rescue, pemetaan rute evakuasi, dan pemeliharaan alat pelampung serta perahu karet di markas posko.
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
+                                        {{ partner.pillar_pre || 'Penyegaran teknik water rescue, jungle rescue, pemetaan rute evakuasi, dan pemeliharaan alat pelampung serta perahu karet di markas posko.' }}
                                     </p>
                                 </div>
 
@@ -525,8 +542,8 @@ const formatDate = (dateStr) => {
                                         2. Saat Bencana (Darurat)
                                     </span>
                                     <h4 class="font-bold text-base text-slate-900 dark:text-white">Respon Cepat & Evakuasi</h4>
-                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        Mobilisasi tim rescue dan rescuer ke lokasi terdampak, pencarian korban musibah, dan pendirian posko darurat bersama tim gabungan SAR.
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
+                                        {{ partner.pillar_during || 'Mobilisasi tim rescue dan rescuer ke lokasi terdampak, pencarian korban musibah, dan pendirian posko darurat bersama tim gabungan SAR.' }}
                                     </p>
                                 </div>
 
@@ -536,8 +553,8 @@ const formatDate = (dateStr) => {
                                         3. Pasca-Bencana (Pemulihan)
                                     </span>
                                     <h4 class="font-bold text-base text-slate-900 dark:text-white">Rehabilitasi & Evaluasi</h4>
-                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        Distribusi bantuan penyintas, pemulihan sarana air bersih dan fasilitas ibadah, serta pelaporan evaluasi operasi kepada komando MKT.
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
+                                        {{ partner.pillar_post || 'Distribusi bantuan penyintas, pemulihan sarana air bersih dan fasilitas ibadah, serta pelaporan evaluasi operasi kepada komando MKT.' }}
                                     </p>
                                 </div>
                             </div>
@@ -840,6 +857,18 @@ const formatDate = (dateStr) => {
 
                         <form v-else @submit.prevent="submitRegister" class="space-y-5 text-left">
                             
+                            <!-- PERINGATAN JIKA REKRUTMEN DITUTUP -->
+                            <div 
+                                v-if="partner.recruitment_status === 'Tutup' || partner.recruitment_status === 'Ditutup'"
+                                class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-400 text-xs font-semibold flex items-start space-x-2.5 leading-relaxed"
+                            >
+                                <span class="text-base shrink-0">⚠️</span>
+                                <div>
+                                    <strong class="block mb-0.5 font-bold">Pemberitahuan Rekrutmen:</strong>
+                                    Pendaftaran personel saat ini sedang ditutup sementara oleh pengurus {{ partner.name }}. Data yang Anda kirimkan tetap akan tersimpan sebagai daftar tunggu (waiting list).
+                                </div>
+                            </div>
+
                             <!-- PILIHAN KATEGORI BERGABUNG: ANGGOTA VS RELAWAN -->
                             <div class="space-y-2">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -926,10 +955,9 @@ const formatDate = (dateStr) => {
                                     </h5>
                                 </div>
                                 <ul class="text-[11px] text-slate-700 dark:text-slate-300 space-y-1.5 list-disc list-inside leading-relaxed">
-                                    <li>Bersedia mengikuti proses orientasi, verifikasi berkas, atau Pendidikan Dasar (Diksar) internal lembaga.</li>
-                                    <li>Menjunjung tinggi Anggaran Dasar & Anggaran Rumah Tangga (AD/ART), kode etik, dan kehormatan lembaga mitra.</li>
-                                    <li>Memiliki komitmen aktif dalam piket posko, latihan rutin, dan kesiapsiagaan operasi SAR/kemanusiaan.</li>
-                                    <li>Siaga dimobilisasi di bawah komando koordinasi Pusdalops Yayasan MKT dan pimpinan mitra saat tanggap darurat.</li>
+                                    <li v-for="(term, idx) in membershipTermsList" :key="idx">
+                                        {{ term }}
+                                    </li>
                                 </ul>
 
                                 <div class="pt-2 border-t border-amber-500/20">

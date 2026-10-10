@@ -116,6 +116,126 @@ class PartnerPanelController extends Controller
     }
 
     /**
+     * Tampilkan Halaman Pengaturan & Editor Konten Landing Page Mitra
+     */
+    public function landingPage(Request $request)
+    {
+        $user = $request->user();
+        $partner = $user->getPartner();
+
+        if (!$partner) {
+            return redirect()->route('dashboard')->with('error', 'Data lembaga mitra belum terdaftar.');
+        }
+
+        $allPartnerMembers = Volunteer::where('partner_id', $partner->id)->get();
+        $totalVolunteers = $allPartnerMembers->count();
+        $sarMissionsCount = count($partner->getSarParticipations());
+
+        return Inertia::render('Partner/LandingPageSettings', [
+            'partner' => $partner,
+            'stats' => [
+                'totalVolunteers' => $totalVolunteers,
+                'sarMissionsCount' => $sarMissionsCount,
+            ],
+            'landingPageUrl' => url('/mitra/' . ($partner->slug ?: $partner->id)),
+        ]);
+    }
+
+    /**
+     * Perbarui Konten Elemen Landing Page Mitra
+     */
+    public function updateLandingPage(Request $request)
+    {
+        $user = $request->user();
+        $partner = $user->getPartner();
+
+        if (!$partner) {
+            return redirect()->route('dashboard')->with('error', 'Data lembaga mitra tidak ditemukan.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:partners,slug,' . $partner->id,
+            'category' => 'required|string|max:100',
+            'tagline' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'vision' => 'nullable|string',
+            'mission' => 'nullable|string',
+            'mou_number' => 'nullable|string|max:100',
+            'readiness_status' => 'nullable|string|max:100',
+            'recruitment_status' => 'nullable|string|max:50',
+            'personnel_count' => 'nullable|integer|min:0',
+            'membership_terms' => 'nullable|string',
+            'pillar_pre' => 'nullable|string',
+            'pillar_during' => 'nullable|string',
+            'pillar_post' => 'nullable|string',
+            'pic_name' => 'required|string|max:255',
+            'pic_phone' => 'required|string|max:50',
+            'pic_email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'email' => 'required|email|max:255',
+            'address' => 'nullable|string',
+            'website' => 'nullable|string|max:255',
+            'instagram' => 'nullable|string|max:255',
+            'facebook' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
+            'remove_logo' => 'nullable|boolean',
+            'banner' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'remove_banner' => 'nullable|boolean',
+        ]);
+
+        // Tangani opsi penghapusan logo
+        if ($request->boolean('remove_logo')) {
+            if ($partner->logo_path && str_starts_with($partner->logo_path, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $partner->logo_path);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $validated['logo_path'] = null;
+        }
+
+        // Tangani upload berkas logo baru
+        if ($request->hasFile('logo')) {
+            if ($partner->logo_path && str_starts_with($partner->logo_path, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $partner->logo_path);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('logo')->store('partners/logos', 'public');
+            $validated['logo_path'] = '/storage/' . $path;
+        }
+
+        // Tangani opsi penghapusan banner
+        if ($request->boolean('remove_banner')) {
+            if ($partner->banner_path && str_starts_with($partner->banner_path, '/storage/')) {
+                $oldBanner = str_replace('/storage/', '', $partner->banner_path);
+                Storage::disk('public')->delete($oldBanner);
+            }
+            $validated['banner_path'] = null;
+        }
+
+        // Tangani upload berkas banner baru
+        if ($request->hasFile('banner')) {
+            if ($partner->banner_path && str_starts_with($partner->banner_path, '/storage/')) {
+                $oldBanner = str_replace('/storage/', '', $partner->banner_path);
+                Storage::disk('public')->delete($oldBanner);
+            }
+            $path = $request->file('banner')->store('partners/banners', 'public');
+            $validated['banner_path'] = '/storage/' . $path;
+        }
+
+        unset($validated['logo'], $validated['remove_logo'], $validated['banner'], $validated['remove_banner']);
+
+        $partner->update($validated);
+
+        if (!empty($validated['pic_name'])) {
+            $user->update([
+                'name' => $partner->name . ' (' . $validated['pic_name'] . ')'
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Konten landing page berhasil diperbarui.');
+    }
+
+    /**
      * Tampilkan Halaman Manajemen Pengurus & Anggota Lembaga Mitra
      */
     public function members(Request $request)

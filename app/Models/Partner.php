@@ -13,6 +13,7 @@ class Partner extends Model
         'name',
         'slug',
         'category',
+        'tagline',
         'pic_name',
         'pic_phone',
         'pic_email',
@@ -26,10 +27,16 @@ class Partner extends Model
         'banner_path',
         'status',
         'mou_number',
+        'readiness_status',
+        'recruitment_status',
         'personnel_count',
         'description',
         'vision',
         'mission',
+        'membership_terms',
+        'pillar_pre',
+        'pillar_during',
+        'pillar_post',
     ];
 
     protected static function booted(): void
