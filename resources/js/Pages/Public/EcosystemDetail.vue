@@ -90,8 +90,9 @@ const copyShareLink = () => {
     <PublicLayout
         :title="`${ecosystem.name} - Ekosistem Kemanusiaan Resmi MKT`"
         :description="ecosystem.description || `Profil dan Jejaring Lembaga Kemanusiaan ${ecosystem.name} Terintegrasi Yayasan MKT Indonesia.`"
+        :ecosystem="ecosystem"
     >
-        <template #default="{ openCtaModal }">
+        <template #default="{ openCtaModal, openShareModal }">
 
             <!-- HERO BANNER SECTION -->
             <section class="relative bg-slate-950 text-white overflow-hidden border-b border-indigo-900/40 min-h-[520px] sm:min-h-[580px] flex items-center">
@@ -152,12 +153,14 @@ const copyShareLink = () => {
                                     <span>Gabungkan Lembaga ke Ekosistem Ini</span>
                                 </button>
                                 <button
-                                    @click="copyShareLink"
+                                    @click="openShareModal ? openShareModal() : copyShareLink()"
                                     class="px-5 py-3.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm border border-white/25 backdrop-blur-md transition flex items-center space-x-2"
-                                    title="Salin Tautan Halaman"
+                                    title="Bagikan Tautan Halaman Ekosistem Ini"
                                 >
-                                    <span>🔗</span>
-                                    <span>Bagikan Halaman</span>
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                                    </svg>
+                                    <span>Bagikan Link Ekosistem</span>
                                 </button>
                                 <a
                                     v-if="ecosystem.pic_phone"

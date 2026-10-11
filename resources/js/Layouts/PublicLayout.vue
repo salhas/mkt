@@ -17,6 +17,10 @@ const props = defineProps({
         type: Object,
         default: null
     },
+    ecosystem: {
+        type: Object,
+        default: null
+    },
     customNavigation: {
         type: Array,
         default: null
@@ -139,10 +143,45 @@ const copyShareLink = async () => {
     }
 };
 
-const shareData = {
-    title: 'Yayasan MKT Indonesia - Tanggap Kemanusiaan & Penanggulangan Bencana',
-    text: 'Mari dukung & bersinergi bersama Yayasan MKT Indonesia (Mitra Kemanusiaan Terpadu) dalam tanggap bencana, relawan donor darah siaga 24/7, dan donasi kemanusiaan:',
-};
+const shareData = computed(() => {
+    if (props.ecosystem) {
+        return {
+            title: `${props.ecosystem.name} - Ekosistem Kemanusiaan Resmi MKT`,
+            tagline: props.ecosystem.tagline || (props.ecosystem.lead_institution ? `Induk: ${props.ecosystem.lead_institution}` : 'Jejaring Kemanusiaan Terpadu'),
+            text: `Mari bersinergi bersama ${props.ecosystem.name}! Pelajari jejaring lembaga mitra, potensi relawan, armada & peralatan siaga kebencanaan di portal resmi:`,
+            badge: `🌐 Ekosistem ${props.ecosystem.code || 'MKT'}`,
+            image: props.ecosystem.banner_path || heroRescueImg,
+            buttonLabel: 'Bagikan Ekosistem',
+            buttonTitle: `Bagikan Ekosistem ${props.ecosystem.name}`,
+            modalTitle: `Bagikan Ekosistem: ${props.ecosystem.name}`,
+            modalSubtitle: `Pratinjau link & thumbnail resmi untuk mengundang lembaga bergabung ke ekosistem ini.`,
+        };
+    }
+    if (props.partner) {
+        return {
+            title: `${props.partner.name} - Mitra Resmi Yayasan MKT Indonesia`,
+            tagline: props.partner.tagline || `Mitra Kemanusiaan & Penanggulangan Bencana`,
+            text: `Kenali profil resmi, kiprah operasi, dan pendaftaran anggota relawan ${props.partner.name} di portal Yayasan MKT Indonesia:`,
+            badge: `🤝 Mitra Resmi: ${props.partner.category}`,
+            image: props.partner.banner_path || heroRescueImg,
+            buttonLabel: 'Bagikan Profil Mitra',
+            buttonTitle: `Bagikan Halaman Mitra ${props.partner.name}`,
+            modalTitle: `Bagikan Mitra: ${props.partner.name}`,
+            modalSubtitle: `Pratinjau link & thumbnail resmi portal kemitraan lembaga.`,
+        };
+    }
+    return {
+        title: props.title || 'Yayasan MKT Indonesia - Tanggap Kemanusiaan & Penanggulangan Bencana',
+        tagline: 'mkt.or.id • Siaga 24/7',
+        text: 'Mari dukung & bersinergi bersama Yayasan MKT Indonesia (Mitra Kemanusiaan Terpadu) dalam tanggap bencana, relawan donor darah siaga 24/7, dan donasi kemanusiaan:',
+        badge: '🛡️ Yayasan MKT Indonesia',
+        image: heroRescueImg,
+        buttonLabel: 'Bagikan Link',
+        buttonTitle: 'Bagikan Portal & Siaga Bencana MKT',
+        modalTitle: 'Bagikan Portal MKT',
+        modalSubtitle: 'Pratinjau Sharelink & Thumbnail Media Sosial',
+    };
+});
 
 const shareToWhatsApp = () => {
     const url = currentUrl.value || window.location.href;
@@ -488,19 +527,19 @@ const navigationLinks = computed(() => {
             <slot :openCtaModal="openCtaModal" :openShareModal="openShareModal" :currentLang="currentLang" />
         </main>
 
-        <!-- Global Floating Share Action Button -->
+        <!-- Global Floating Share Action Button (Menyesuaikan Halaman) -->
         <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end space-y-2">
             <button
                 @click="openShareModal"
                 class="group px-4 py-3 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs sm:text-sm rounded-full shadow-xl shadow-orange-500/30 flex items-center space-x-2 active:scale-95 transition-all duration-300 border border-white/20"
-                title="Bagikan Portal & Siaga Bencana MKT"
+                :title="shareData.buttonTitle"
             >
                 <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
                     </svg>
                 </div>
-                <span class="font-extrabold tracking-wide">Bagikan Link</span>
+                <span class="font-extrabold tracking-wide">{{ shareData.buttonLabel }}</span>
             </button>
         </div>
 
@@ -587,8 +626,8 @@ const navigationLinks = computed(() => {
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">Bagikan Portal MKT</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Pratinjau Sharelink & Thumbnail Media Sosial</p>
+                            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">{{ shareData.modalTitle }}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">{{ shareData.modalSubtitle }}</p>
                         </div>
                     </div>
                     <button 
@@ -605,19 +644,23 @@ const navigationLinks = computed(() => {
                 <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/60 overflow-hidden shadow-sm">
                     <div class="relative w-full h-44 sm:h-48 overflow-hidden bg-slate-900">
                         <img 
-                            :src="heroRescueImg" 
+                            :src="shareData.image || heroRescueImg" 
                             alt="MKT Thumbnail Preview" 
                             class="w-full h-full object-cover object-center" 
                         />
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
                         <div class="absolute top-3 left-3">
                             <span class="px-2.5 py-1 rounded-lg bg-orange-600/90 text-white font-black text-[10px] uppercase tracking-wider backdrop-blur-md shadow-sm">
-                                🛡️ Yayasan MKT Indonesia
+                                {{ shareData.badge }}
                             </span>
                         </div>
                         <div class="absolute bottom-3 left-3 right-3 text-white">
-                            <span class="text-[10px] font-semibold text-orange-300 block uppercase tracking-wider">mkt.or.id &bull; Siaga 24/7</span>
-                            <h4 class="text-xs sm:text-sm font-extrabold line-clamp-1 leading-snug">Tanggap Kemanusiaan & Penanggulangan Bencana</h4>
+                            <span class="text-[10px] font-semibold text-orange-300 block uppercase tracking-wider truncate">
+                                {{ shareData.tagline }}
+                            </span>
+                            <h4 class="text-xs sm:text-sm font-extrabold line-clamp-1 leading-snug">
+                                {{ shareData.title }}
+                            </h4>
                         </div>
                     </div>
 
