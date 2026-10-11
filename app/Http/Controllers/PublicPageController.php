@@ -6,6 +6,8 @@ use App\Models\News;
 use App\Models\MktProfile;
 use App\Models\SarOperation;
 use App\Models\Partner;
+use App\Models\Ecosystem;
+use App\Models\PartnerEquipment;
 use App\Models\Volunteer;
 use App\Models\Donor;
 use App\Models\Donation;
@@ -136,6 +138,121 @@ class PublicPageController extends Controller
             'sarMissions' => $sarMissions,
             'partnerNews' => $partnerNews,
             'otherPartners' => $otherPartners,
+            'mktProfile' => MktProfile::first(),
+        ]);
+    }
+
+    /**
+     * Direktori Ekosistem Kemanusiaan (Ecosystems Directory)
+     */
+    public function ecosystems(Request $request)
+    {
+        $query = Ecosystem::where('status', 'Aktif')
+            ->with(['partners' => function ($pq) {
+                $pq->where('status', 'Aktif')->select('id', 'ecosystem_id', 'name', 'slug', 'category', 'logo_path', 'pic_name');
+            }])
+            ->withCount('partners');
+
+        if ($request->filled('search')) {
+            $s = $request->input('search');
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('code', 'like', "%{$s}%")
+                  ->orWhere('region', 'like', "%{$s}%")
+                  ->orWhere('lead_institution', 'like', "%{$s}%");
+            });
+        }
+
+        $ecosystems = $query->orderBy('id', 'asc')->get();
+
+        return Inertia::render('Public/Ecosystems', [
+            'ecosystems' => $ecosystems,
+            'filters' => $request->only(['search']),
+            'mktProfile' => MktProfile::first(),
+        ]);
+    }
+
+    /**
+     * Landing Page Khusus Ekosistem Kemanusiaan (Single Ecosystem Public Landing Page)
+     */
+    public function ecosystemDetail($slug)
+    {
+        $ecosystem = Ecosystem::where('slug', $slug)
+            ->orWhere('code', $slug)
+            ->orWhere('id', $slug)
+            ->firstOrFail();
+
+        // Ambil semua mitra lembaga resmi yang bernaung dalam ekosistem ini
+        $partners = Partner::where('ecosystem_id', $ecosystem->id)
+            ->where('status', 'Aktif')
+            ->withCount('volunteers')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $partnerIds = $partners->pluck('id');
+
+        // Agregasi relawan terdaftar
+        $volunteers = Volunteer::whereIn('partner_id', $partnerIds)
+            ->where('status', 'Aktif')
+            ->orderBy('id', 'desc')
+            ->take(12)
+            ->get(['id', 'partner_id', 'name', 'role', 'blood_type', 'certifications']);
+
+        $totalVolunteersCount = Volunteer::whereIn('partner_id', $partnerIds)->count();
+        $totalPersonnelEstimated = max($totalVolunteersCount, (int) $partners->sum('personnel_count'));
+
+        // Agregasi peralatan dan perlengkapan gabungan ekosistem
+        $equipments = PartnerEquipment::whereIn('partner_id', $partnerIds)
+            ->where('status', '!=', 'Tidak Aktif')
+            ->with('partner:id,name,slug')
+            ->orderBy('id', 'desc')
+            ->take(8)
+            ->get();
+
+        $totalEquipmentsCount = PartnerEquipment::whereIn('partner_id', $partnerIds)->count();
+
+        // Berita & Publikasi terkait lembaga-lembaga dalam ekosistem
+        $ecosystemNews = News::whereIn('partner_id', $partnerIds)
+            ->orderBy('id', 'desc')
+            ->take(6)
+            ->get();
+
+        if ($ecosystemNews->count() < 3) {
+            $needed = 3 - $ecosystemNews->count();
+            $fallbackNews = News::where(function ($q) use ($ecosystem) {
+                $q->where('title', 'like', "%{$ecosystem->name}%")
+                  ->orWhere('content', 'like', "%{$ecosystem->name}%")
+                  ->orWhere('title', 'like', "%{$ecosystem->lead_institution}%");
+            })
+            ->whereNotIn('id', $ecosystemNews->pluck('id'))
+            ->orderBy('id', 'desc')
+            ->take($needed)
+            ->get();
+
+            $ecosystemNews = $ecosystemNews->concat($fallbackNews);
+        }
+
+        if ($ecosystemNews->isEmpty()) {
+            $ecosystemNews = News::orderBy('id', 'desc')->take(3)->get();
+        }
+
+        // Ekosistem lainnya untuk navigasi eksplorasi
+        $otherEcosystems = Ecosystem::where('id', '!=', $ecosystem->id)
+            ->where('status', 'Aktif')
+            ->withCount('partners')
+            ->take(3)
+            ->get(['id', 'name', 'code', 'slug', 'region', 'lead_institution', 'logo_path']);
+
+        return Inertia::render('Public/EcosystemDetail', [
+            'ecosystem' => $ecosystem,
+            'partners' => $partners,
+            'volunteers' => $volunteers,
+            'totalVolunteersCount' => $totalVolunteersCount,
+            'totalPersonnelEstimated' => $totalPersonnelEstimated,
+            'equipments' => $equipments,
+            'totalEquipmentsCount' => $totalEquipmentsCount,
+            'ecosystemNews' => $ecosystemNews,
+            'otherEcosystems' => $otherEcosystems,
             'mktProfile' => MktProfile::first(),
         ]);
     }

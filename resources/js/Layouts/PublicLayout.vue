@@ -263,7 +263,8 @@ const navigationLinks = computed(() => {
         { name: 'Profil', nameEn: 'Profile', href: route('public.profile'), active: route().current('public.profile') || route().current('public.about'), icon: '🏢' },
         { name: 'Layanan', nameEn: 'Services', href: route('public.services'), active: route().current('public.services'), icon: '⚡' },
         { name: 'Berita dan Artikel', nameEn: 'News & Articles', href: route('public.news'), active: route().current('public.news*'), icon: '📰' },
-        { name: 'Mitra', nameEn: 'Partners', href: route('public.partners'), active: route().current('public.partners') || route().current('public.pillars'), icon: '🤝' },
+        { name: 'Mitra', nameEn: 'Partners', href: route('public.partners'), active: route().current('public.partners') || route().current('public.pillars') || route().current('public.partner.show'), icon: '🤝' },
+        { name: 'Ekosistem', nameEn: 'Ecosystems', href: route('public.ecosystems'), active: route().current('public.ecosystems*'), icon: '🌐' },
         { name: 'Kontak', nameEn: 'Contact', href: route('public.contact'), active: route().current('public.contact'), icon: '📍' },
     ];
 });

@@ -143,12 +143,28 @@ class VolunteerController extends Controller
             'code' => 'nullable|string|max:50|unique:ecosystems,code',
             'region' => 'nullable|string|max:255',
             'lead_institution' => 'nullable|string|max:255',
+            'tagline' => 'nullable|string|max:255',
+            'address' => 'nullable|string',
+            'website' => 'nullable|string|max:255',
+            'instagram' => 'nullable|string|max:255',
             'pic_name' => 'nullable|string|max:255',
             'pic_phone' => 'nullable|string|max:50',
             'pic_email' => 'nullable|email|max:255',
             'description' => 'nullable|string',
+            'vision' => 'nullable|string',
+            'mission' => 'nullable|string',
             'status' => 'required|string|max:50',
+            'logo' => 'nullable|image|max:3072',
+            'banner' => 'nullable|image|max:4096',
         ], $messages);
+
+        if ($request->hasFile('logo')) {
+            $validated['logo_path'] = '/' . $request->file('logo')->store('ecosystems/logos', 'public');
+        }
+        if ($request->hasFile('banner')) {
+            $validated['banner_path'] = '/' . $request->file('banner')->store('ecosystems/banners', 'public');
+        }
+        unset($validated['logo'], $validated['banner']);
 
         if (empty($validated['code'])) {
             $maxId = (Ecosystem::max('id') ?? 0) + 1;
@@ -189,12 +205,28 @@ class VolunteerController extends Controller
             'code' => 'nullable|string|max:50|unique:ecosystems,code,' . $ecosystem->id,
             'region' => 'nullable|string|max:255',
             'lead_institution' => 'nullable|string|max:255',
+            'tagline' => 'nullable|string|max:255',
+            'address' => 'nullable|string',
+            'website' => 'nullable|string|max:255',
+            'instagram' => 'nullable|string|max:255',
             'pic_name' => 'nullable|string|max:255',
             'pic_phone' => 'nullable|string|max:50',
             'pic_email' => 'nullable|email|max:255',
             'description' => 'nullable|string',
+            'vision' => 'nullable|string',
+            'mission' => 'nullable|string',
             'status' => 'required|string|max:50',
+            'logo' => 'nullable|image|max:3072',
+            'banner' => 'nullable|image|max:4096',
         ], $messages);
+
+        if ($request->hasFile('logo')) {
+            $validated['logo_path'] = '/' . $request->file('logo')->store('ecosystems/logos', 'public');
+        }
+        if ($request->hasFile('banner')) {
+            $validated['banner_path'] = '/' . $request->file('banner')->store('ecosystems/banners', 'public');
+        }
+        unset($validated['logo'], $validated['banner']);
 
         if (!empty($validated['code'])) {
             $validated['code'] = strtoupper(trim($validated['code']));

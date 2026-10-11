@@ -132,12 +132,18 @@ const ecosystemForm = useForm({
     id: null,
     name: '',
     code: '',
+    tagline: '',
     region: '',
     lead_institution: '',
+    address: '',
+    website: '',
+    instagram: '',
     pic_name: '',
     pic_phone: '',
     pic_email: '',
     description: '',
+    vision: '',
+    mission: '',
     status: 'Aktif',
 });
 
@@ -155,12 +161,18 @@ const openEditEcosystemModal = (eco) => {
     ecosystemForm.id = eco.id;
     ecosystemForm.name = eco.name || '';
     ecosystemForm.code = eco.code || '';
+    ecosystemForm.tagline = eco.tagline || '';
     ecosystemForm.region = eco.region || '';
     ecosystemForm.lead_institution = eco.lead_institution || '';
+    ecosystemForm.address = eco.address || '';
+    ecosystemForm.website = eco.website || '';
+    ecosystemForm.instagram = eco.instagram || '';
     ecosystemForm.pic_name = eco.pic_name || '';
     ecosystemForm.pic_phone = eco.pic_phone || '';
     ecosystemForm.pic_email = eco.pic_email || '';
     ecosystemForm.description = eco.description || '';
+    ecosystemForm.vision = eco.vision || '';
+    ecosystemForm.mission = eco.mission || '';
     ecosystemForm.status = eco.status || 'Aktif';
     isEcosystemModalOpen.value = true;
 };
@@ -1092,16 +1104,28 @@ const getCategoryStyle = (category) => {
 
                         <!-- Card Footer Actions -->
                         <div class="pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                            <button
-                                type="button"
-                                @click="filterPartnersByEcosystem(eco.id)"
-                                class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center space-x-1"
-                            >
-                                <span>Lihat Mitra di Tab 1</span>
-                                <span>→</span>
-                            </button>
+                            <div class="flex items-center space-x-2">
+                                <a
+                                    :href="route('public.ecosystem.show', eco.slug || eco.code || eco.id)"
+                                    target="_blank"
+                                    class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-600 hover:text-white dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-bold text-xs transition flex items-center space-x-1.5"
+                                    title="Buka Landing Page Publik Ekosistem"
+                                >
+                                    <span>🌐 Landing Page</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                </a>
 
-                            <div v-if="!isMitra" class="flex items-center space-x-2">
+                                <button
+                                    type="button"
+                                    @click="filterPartnersByEcosystem(eco.id)"
+                                    class="text-xs font-semibold text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-300 flex items-center space-x-1 px-2 py-1"
+                                >
+                                    <span>Mitra (Tab 1)</span>
+                                    <span>→</span>
+                                </button>
+                            </div>
+
+                            <div v-if="!isMitra" class="flex items-center space-x-1">
                                 <button
                                     type="button"
                                     @click="openEditEcosystemModal(eco)"
@@ -1432,6 +1456,16 @@ const getCategoryStyle = (category) => {
                     </div>
 
                     <div>
+                        <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Tagline / Slogan Landing Page</label>
+                        <input
+                            v-model="ecosystemForm.tagline"
+                            type="text"
+                            placeholder="Contoh: Sinergi Kemanusiaan Terpadu Civitas Kampus & Potensi SAR"
+                            class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 focus:outline-none dark:text-white text-xs"
+                        />
+                    </div>
+
+                    <div>
                         <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Keterangan / Deskripsi Ekosistem</label>
                         <textarea
                             v-model="ecosystemForm.description"
@@ -1443,6 +1477,27 @@ const getCategoryStyle = (category) => {
                             ]"
                         ></textarea>
                         <p v-if="ecosystemForm.errors.description" class="mt-1 text-red-500 text-[11px] font-semibold">{{ ecosystemForm.errors.description }}</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Visi Ekosistem</label>
+                            <textarea
+                                v-model="ecosystemForm.vision"
+                                rows="2"
+                                placeholder="Visi kolaborasi ekosistem kemanusiaan..."
+                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-xs focus:outline-none dark:text-white"
+                            ></textarea>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Misi & Langkah Kerja</label>
+                            <textarea
+                                v-model="ecosystemForm.mission"
+                                rows="2"
+                                placeholder="Poin-poin misi ekosistem (1 baris per poin)..."
+                                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-xs focus:outline-none dark:text-white"
+                            ></textarea>
+                        </div>
                     </div>
 
                     <div class="pt-4 flex justify-end space-x-3 border-t border-gray-100 dark:border-gray-800">
