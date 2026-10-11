@@ -94,63 +94,66 @@ const copyShareLink = () => {
         <template #default="{ openCtaModal }">
 
             <!-- HERO BANNER SECTION -->
-            <section class="relative bg-slate-950 text-white overflow-hidden border-b border-indigo-900/40 min-h-[480px] flex items-center">
-                <!-- Banner Background Image with Cinematic Overlay -->
-                <div class="absolute inset-0 z-0">
+            <section class="relative bg-slate-950 text-white overflow-hidden border-b border-indigo-900/40 min-h-[520px] sm:min-h-[580px] flex items-center">
+                <!-- Hero Background Image (Sangat Jelas, Tajam & Sinematik) -->
+                <div class="absolute inset-0 z-0 overflow-hidden">
                     <img 
                         :src="ecosystem.banner_path || defaultHeroBg" 
                         :alt="ecosystem.name" 
-                        class="w-full h-full object-cover object-center transform scale-105 transition-transform duration-1000 opacity-40 dark:opacity-35"
+                        class="w-full h-full object-cover object-center filter brightness-95 contrast-105 scale-100 opacity-85 transition-opacity duration-700"
                     />
-                    <!-- Gradients for High Readability -->
-                    <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-900/70"></div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/40"></div>
+                    <!-- Soft Ambient Tint: Tipis dan elegan agar visual foto sangat nampak -->
+                    <div class="absolute inset-0 bg-slate-950/40"></div>
+                    <!-- Gradient halus di bagian bawah untuk transisi mulus ke stats bar -->
+                    <div class="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent"></div>
+                    <!-- Gradient lembut di bagian atas untuk kontras breadcrumb & navbar -->
+                    <div class="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-slate-950/80 to-transparent"></div>
                 </div>
 
-                <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-8 w-full">
+                <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-6 w-full">
                     <!-- Top Breadcrumb & Badges -->
                     <div class="flex flex-wrap items-center gap-2">
-                        <Link :href="route('public.ecosystems')" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 text-xs font-semibold backdrop-blur-md transition flex items-center space-x-1">
+                        <Link :href="route('public.ecosystems')" class="px-3 py-1.5 rounded-full bg-slate-950/70 hover:bg-slate-950 text-white text-xs font-semibold backdrop-blur-md transition border border-white/20 shadow-md flex items-center space-x-1">
                             <span>←</span>
                             <span>Semua Ekosistem</span>
                         </Link>
-                        <span class="px-3 py-1 rounded-xl bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 text-xs font-mono font-bold uppercase tracking-wider">
+                        <span class="px-3 py-1.5 rounded-full bg-indigo-600/80 text-white border border-indigo-400/40 text-xs font-mono font-bold uppercase tracking-wider backdrop-blur-md shadow-md">
                             {{ ecosystem.code || 'EKOSISTEM' }}
                         </span>
-                        <span class="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+                        <span class="px-3 py-1.5 rounded-full bg-emerald-600/80 text-white border border-emerald-400/40 text-xs font-bold backdrop-blur-md shadow-md">
                             ● {{ ecosystem.status || 'Aktif' }}
                         </span>
-                        <span v-if="ecosystem.region" class="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center space-x-1">
+                        <span v-if="ecosystem.region" class="px-3 py-1.5 rounded-full bg-amber-600/80 text-white border border-amber-400/40 text-xs font-bold flex items-center space-x-1 backdrop-blur-md shadow-md">
                             <span>📍</span>
                             <span>{{ ecosystem.region }}</span>
                         </span>
                     </div>
 
                     <!-- Main Ecosystem Title & Lead -->
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                        <div class="lg:col-span-8 space-y-4">
-                            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                        <div class="lg:col-span-8 space-y-5 bg-slate-950/65 backdrop-blur-md p-6 sm:p-9 rounded-3xl border border-white/20 shadow-2xl">
+                            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white drop-shadow-sm">
                                 {{ ecosystem.name }}
                             </h1>
-                            <p class="text-base sm:text-lg text-indigo-300 font-semibold">
+                            <p class="text-base sm:text-lg text-amber-300 font-bold">
                                 {{ ecosystem.tagline || (ecosystem.lead_institution ? 'Diprakarsai & Berinduk pada: ' + ecosystem.lead_institution : 'Klaster & Aliansi Penanggulangan Bencana Terpadu') }}
                             </p>
-                            <p class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-3xl">
+                            <p class="text-sm sm:text-base text-slate-100 leading-relaxed max-w-3xl font-medium">
                                 {{ ecosystem.description || 'Sinergi dan kolaborasi unit kemanusiaan, potensi SAR, relawan kebencanaan, tim medis darurat, dan jejaring filantropi di kawasan terkait.' }}
                             </p>
 
                             <!-- CTAs: Ajukan Bergabung & Bagikan -->
-                            <div class="pt-4 flex flex-wrap items-center gap-3">
+                            <div class="pt-3 flex flex-wrap items-center gap-3">
                                 <button
                                     @click="showJoinModal = true"
-                                    class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs sm:text-sm shadow-lg shadow-orange-500/25 active:scale-95 transition flex items-center space-x-2"
+                                    class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs sm:text-sm shadow-xl shadow-orange-500/30 active:scale-95 transition flex items-center space-x-2"
                                 >
                                     <span>🤝</span>
                                     <span>Gabungkan Lembaga ke Ekosistem Ini</span>
                                 </button>
                                 <button
                                     @click="copyShareLink"
-                                    class="px-5 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/20 transition flex items-center space-x-2"
+                                    class="px-5 py-3.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm border border-white/25 backdrop-blur-md transition flex items-center space-x-2"
                                     title="Salin Tautan Halaman"
                                 >
                                     <span>🔗</span>
@@ -160,7 +163,7 @@ const copyShareLink = () => {
                                     v-if="ecosystem.pic_phone"
                                     :href="`https://wa.me/${ecosystem.pic_phone.replace(/[^0-9]/g, '')}?text=Halo%20PIC%20${encodeURIComponent(ecosystem.name)},%20kami%20ingin%20berkolaborasi%20dan%20bergabung.`"
                                     target="_blank"
-                                    class="px-5 py-3.5 rounded-2xl bg-emerald-600/90 hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm transition flex items-center space-x-2"
+                                    class="px-5 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition flex items-center space-x-2 shadow-lg shadow-emerald-600/30"
                                 >
                                     <span>💬</span>
                                     <span>Kontak PIC WA</span>
