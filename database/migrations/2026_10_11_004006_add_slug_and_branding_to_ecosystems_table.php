@@ -41,7 +41,14 @@ return new class extends Migration
             }
         });
 
-        // Generate slug untuk ekosistem yang sudah ada jika belum memiliki slug
+        // Perbaiki typo nama dan generate slug untuk ekosistem yang sudah ada
+        DB::table('ecosystems')
+            ->where('name', 'like', '%Kemnausiaan%')
+            ->update([
+                'name' => 'Ekosistem Lembaga Kemanusiaan Unhas (U-Humanity)',
+                'slug' => 'ekosistem-lembaga-kemanusiaan-unhas-u-humanity',
+            ]);
+
         $ecosystems = DB::table('ecosystems')->get();
         foreach ($ecosystems as $eco) {
             $base = \Illuminate\Support\Str::slug($eco->name) ?: 'ekosistem-' . $eco->id;
@@ -52,7 +59,7 @@ return new class extends Migration
                 $c++;
             }
             DB::table('ecosystems')->where('id', $eco->id)->update([
-                'slug' => $slug,
+                'slug' => $eco->slug ?: $slug,
                 'tagline' => $eco->tagline ?? 'Kolaborasi & Sinergi Kemanusiaan Terpadu',
                 'vision' => $eco->vision ?? 'Menjadi jejaring ekosistem kemanusiaan yang solid, responsif, dan adaptif dalam menghadapi setiap bencana serta krisis kemanusiaan.',
                 'mission' => $eco->mission ?? "1. Membangun koordinasi cepat antar lembaga dalam satu kawasan.\n2. Mengoptimalkan mobilisasi relawan dan peralatan evakuasi.\n3. Memperkuat kapasitas edukasi dan kesiapsiagaan masyarakat.",

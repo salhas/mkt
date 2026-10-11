@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import defaultHeroBg from '../../../images/hero_rescue.jpg';
 
 const props = defineProps({
     ecosystem: {
@@ -93,20 +94,20 @@ const copyShareLink = () => {
         <template #default="{ openCtaModal }">
 
             <!-- HERO BANNER SECTION -->
-            <section class="relative bg-slate-950 text-white overflow-hidden border-b border-indigo-900/40">
-                <!-- Banner Background Image or Gradient -->
+            <section class="relative bg-slate-950 text-white overflow-hidden border-b border-indigo-900/40 min-h-[480px] flex items-center">
+                <!-- Banner Background Image with Cinematic Overlay -->
                 <div class="absolute inset-0 z-0">
                     <img 
-                        v-if="ecosystem.banner_path" 
-                        :src="ecosystem.banner_path" 
+                        :src="ecosystem.banner_path || defaultHeroBg" 
                         :alt="ecosystem.name" 
-                        class="w-full h-full object-cover opacity-25"
+                        class="w-full h-full object-cover object-center transform scale-105 transition-transform duration-1000 opacity-40 dark:opacity-35"
                     />
-                    <div v-else class="w-full h-full bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 opacity-90"></div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent"></div>
+                    <!-- Gradients for High Readability -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-900/70"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/40"></div>
                 </div>
 
-                <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-8">
+                <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-8 w-full">
                     <!-- Top Breadcrumb & Badges -->
                     <div class="flex flex-wrap items-center gap-2">
                         <Link :href="route('public.ecosystems')" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 text-xs font-semibold backdrop-blur-md transition flex items-center space-x-1">
@@ -220,8 +221,8 @@ const copyShareLink = () => {
                             <span class="text-xs font-bold text-indigo-200 uppercase tracking-wider">Peralatan & Perlengkapan</span>
                         </div>
                         <div class="space-y-1">
-                            <span class="text-3xl sm:text-4xl font-black text-white block">1 Komando</span>
-                            <span class="text-xs font-bold text-indigo-200 uppercase tracking-wider">Tanggap Darurat Terpadu</span>
+                            <span class="text-3xl sm:text-4xl font-black text-white block">Sinergi Terpadu</span>
+                            <span class="text-xs font-bold text-indigo-200 uppercase tracking-wider">Aksi Cepat Tanggap Kemanusiaan</span>
                         </div>
                     </div>
                 </div>
