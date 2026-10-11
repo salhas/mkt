@@ -84,6 +84,16 @@ const copyShareLink = () => {
         alert('Tautan halaman ekosistem berhasil disalin ke clipboard! Bagikan tautan ini ke rekan atau jejaring Anda.');
     });
 };
+
+const getNewsImage = (item) => {
+    if (!item) return defaultHeroBg;
+    const path = item.image_url || item.image_path;
+    if (!path) return defaultHeroBg;
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+        return path;
+    }
+    return path.startsWith('/') ? path : '/' + path;
+};
 </script>
 
 <template>
@@ -464,14 +474,11 @@ const copyShareLink = () => {
                             <div class="space-y-4">
                                 <div class="h-48 w-full bg-slate-200 dark:bg-slate-800 overflow-hidden relative">
                                     <img 
-                                        v-if="item.image_path" 
-                                        :src="item.image_path" 
+                                        :src="getNewsImage(item)" 
                                         :alt="item.title" 
+                                        @error="(e) => e.target.src = defaultHeroBg"
                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                                     />
-                                    <div v-else class="w-full h-full flex items-center justify-center text-4xl text-slate-400">
-                                        📰
-                                    </div>
                                     <span class="absolute top-3 left-3 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-slate-900/80 text-white backdrop-blur-md">
                                         {{ item.category || 'Kemanusiaan' }}
                                     </span>
