@@ -38,8 +38,8 @@ const totalPartnersInAllEcosystems = computed(() => {
 
 <template>
     <PublicLayout
-        title="Jejaring Ekosistem Kemanusiaan - Yayasan MKT Indonesia"
-        description="Direktori Klaster dan Ekosistem Kemanusiaan Resmi Terintegrasi dalam Sistem Tanggap Bencana MKT Indonesia."
+        title="Jejaring Ekosistem Kemanusiaan - Kolaborasi Mitra Peduli"
+        description="Direktori Klaster dan Ekosistem Kemanusiaan Resmi Terintegrasi dalam Sistem Tanggap Bencana Kolaborasi Mitra Peduli."
     >
         <template #default="{ openCtaModal }">
             
@@ -250,7 +250,7 @@ const totalPartnersInAllEcosystems = computed(() => {
                         Wujudkan Ekosistem Kemanusiaan di Kawasan atau Kampus Anda
                     </h2>
                     <p class="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-                        Jika lembaga Anda ingin bergabung ke dalam salah satu ekosistem yang ada atau mengusulkan pembentukan ekosistem baru di wilayah Anda, tim kemitraan Yayasan MKT Indonesia siap memfasilitasi MoU dan integrasi sistem.
+                        Jika lembaga Anda ingin bergabung ke dalam salah satu ekosistem yang ada atau mengusulkan pembentukan ekosistem baru di wilayah Anda, tim kemitraan Kolaborasi Mitra Peduli siap memfasilitasi MoU dan integrasi sistem.
                     </p>
                     <div class="pt-2 flex flex-wrap items-center justify-center gap-4">
                         <button

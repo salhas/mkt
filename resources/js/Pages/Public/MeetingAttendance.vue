@@ -95,7 +95,7 @@ const clearSignature = () => {
 
 // Preset instansi
 const commonInstitutions = [
-    'Yayasan MKT Indonesia (Internal)',
+    'Kolaborasi Mitra Peduli (Internal)',
     'BASARNAS',
     'BPBD Prov / Kota / Kab',
     'Palang Merah Indonesia (PMI)',
@@ -180,8 +180,8 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head :title="`Presensi: ${meeting.title} - MKT Indonesia`">
-        <meta name="description" content="Formulir absensi kehadiran digital kegiatan Yayasan MKT Indonesia." />
+    <Head :title="`Presensi: ${meeting.title} - Mitra Peduli`">
+        <meta name="description" content="Formulir absensi kehadiran digital kegiatan Kolaborasi Mitra Peduli." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
     </Head>
 
@@ -190,11 +190,11 @@ onMounted(() => {
         <header class="max-w-xl mx-auto w-full flex items-center justify-between py-3 border-b border-white/10 mb-4 sm:mb-6">
             <a href="/" class="flex items-center gap-3 group">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-600 to-amber-500 p-0.5 shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform flex items-center justify-center">
-                    <img src="/storage/logo/mkt.png" alt="MKT Logo" class="w-full h-full object-contain rounded-lg p-1 bg-white" onerror="this.src='/favicon.ico'; this.classList.remove('bg-white')" />
+                    <img src="/images/logo_MitraPeduli.png" alt="Mitra Peduli Logo" class="w-full h-full object-contain rounded-lg p-0.5 bg-white" onerror="this.src='/favicon.ico'; this.classList.remove('bg-white')" />
                 </div>
                 <div>
                     <h1 class="text-sm sm:text-base font-black tracking-tight text-white group-hover:text-orange-400 transition-colors">
-                        YAYASAN MKT INDONESIA
+                        KOLABORASI MITRA PEDULI
                     </h1>
                     <p class="text-[10px] text-orange-300/80 font-medium tracking-wide">
                         E-PRESENSI KEGIATAN & AGENDA RESMI
@@ -518,7 +518,7 @@ onMounted(() => {
         <!-- Footer -->
         <footer class="max-w-xl mx-auto w-full text-center py-4 border-t border-white/10 mt-6 space-y-1">
             <p class="text-[11px] text-slate-400">
-                Sistem E-Presensi & Arsip Terpadu © {{ new Date().getFullYear() }} <span class="text-orange-400 font-semibold">Yayasan MKT Indonesia</span>
+                Sistem E-Presensi & Arsip Terpadu © {{ new Date().getFullYear() }} <span class="text-orange-400 font-semibold">Kolaborasi Mitra Peduli</span>
             </p>
             <p class="text-[10px] text-slate-500">
                 Akses aman untuk peserta, mitra Basarnas, BPBD, PMI, dan tamu undangan.

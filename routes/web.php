@@ -34,7 +34,9 @@ Route::get('/berita', [PublicPageController::class, 'news'])->name('public.news'
 Route::get('/berita/{slug}', [PublicPageController::class, 'newsDetail'])->name('public.news.show');
 Route::get('/mitra', [PublicPageController::class, 'partners'])->name('public.partners');
 Route::get('/mitra/{slug}', [PublicPageController::class, 'partnerDetail'])->name('public.partner.show');
-Route::get('/ekosistem', [PublicPageController::class, 'ecosystems'])->name('public.ecosystems');
+Route::get('/ekosistem', function() {
+    return redirect()->route('public.partners', ['tab' => 'ekosistem']);
+})->name('public.ecosystems');
 Route::get('/ekosistem/{slug}', [PublicPageController::class, 'ecosystemDetail'])->name('public.ecosystem.show');
 Route::get('/pilar-kebencanaan', function() {
     return redirect()->route('public.partners');

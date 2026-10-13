@@ -52,7 +52,7 @@ const formatDate = (dateStr) => {
 
 <template>
     <PublicLayout 
-        :title="article.title + ' - Yayasan MKT Indonesia'"
+        :title="article.title + ' - Kolaborasi Mitra Peduli'"
         :description="article.content.substring(0, 150) + '...'"
     >
         <template #default="{ openCtaModal }">

@@ -3,11 +3,12 @@ import { ref, onMounted, computed } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import MktLogo from '@/Components/MktLogo.vue';
 import heroRescueImg from '../../images/hero_rescue.jpg';
+import logoMitraPeduliImg from '../../images/logo_MitraPeduli.png';
 
 const props = defineProps({
     title: {
         type: String,
-        default: 'Yayasan MKT Indonesia - Tanggap Kemanusiaan & Penanggulangan Bencana'
+        default: 'Kolaborasi Mitra Peduli - Sinergi Kemanusiaan & Penanggulangan Bencana'
     },
     description: {
         type: String,
@@ -159,9 +160,9 @@ const shareData = computed(() => {
     }
     if (props.partner) {
         return {
-            title: `${props.partner.name} - Mitra Resmi Yayasan MKT Indonesia`,
+            title: `${props.partner.name} - Mitra Resmi Kolaborasi Mitra Peduli`,
             tagline: props.partner.tagline || `Mitra Kemanusiaan & Penanggulangan Bencana`,
-            text: `Kenali profil resmi, kiprah operasi, dan pendaftaran anggota relawan ${props.partner.name} di portal Yayasan MKT Indonesia:`,
+            text: `Kenali profil resmi, kiprah operasi, dan pendaftaran anggota relawan ${props.partner.name} di portal Kolaborasi Mitra Peduli:`,
             badge: `🤝 Mitra Resmi: ${props.partner.category}`,
             image: props.partner.banner_path || heroRescueImg,
             buttonLabel: 'Bagikan Profil Mitra',
@@ -171,14 +172,14 @@ const shareData = computed(() => {
         };
     }
     return {
-        title: props.title || 'Yayasan MKT Indonesia - Tanggap Kemanusiaan & Penanggulangan Bencana',
-        tagline: 'mkt.or.id • Siaga 24/7',
-        text: 'Mari dukung & bersinergi bersama Yayasan MKT Indonesia (Mitra Kemanusiaan Terpadu) dalam tanggap bencana, relawan donor darah siaga 24/7, dan donasi kemanusiaan:',
-        badge: '🛡️ Yayasan MKT Indonesia',
+        title: props.title || 'Kolaborasi Mitra Peduli - Sinergi Kemanusiaan & Penanggulangan Bencana',
+        tagline: 'mitrapeduli.or.id • Siaga 24/7',
+        text: 'Mari dukung & bersinergi bersama Kolaborasi Mitra Peduli dalam tanggap bencana, relawan donor darah siaga 24/7, dan donasi kemanusiaan:',
+        badge: '🛡️ Kolaborasi Mitra Peduli',
         image: heroRescueImg,
         buttonLabel: 'Bagikan Link',
-        buttonTitle: 'Bagikan Portal & Siaga Bencana MKT',
-        modalTitle: 'Bagikan Portal MKT',
+        buttonTitle: 'Bagikan Portal & Siaga Bencana Mitra Peduli',
+        modalTitle: 'Bagikan Portal Mitra Peduli',
         modalSubtitle: 'Pratinjau Sharelink & Thumbnail Media Sosial',
     };
 });
@@ -302,8 +303,7 @@ const navigationLinks = computed(() => {
         { name: 'Profil', nameEn: 'Profile', href: route('public.profile'), active: route().current('public.profile') || route().current('public.about'), icon: '🏢' },
         { name: 'Layanan', nameEn: 'Services', href: route('public.services'), active: route().current('public.services'), icon: '⚡' },
         { name: 'Berita dan Artikel', nameEn: 'News & Articles', href: route('public.news'), active: route().current('public.news*'), icon: '📰' },
-        { name: 'Mitra', nameEn: 'Partners', href: route('public.partners'), active: route().current('public.partners') || route().current('public.pillars') || route().current('public.partner.show'), icon: '🤝' },
-        { name: 'Ekosistem', nameEn: 'Ecosystems', href: route('public.ecosystems'), active: route().current('public.ecosystems*'), icon: '🌐' },
+        { name: 'Mitra & Ekosistem', nameEn: 'Partners & Ecosystems', href: route('public.partners'), active: route().current('public.partners') || route().current('public.pillars') || route().current('public.partner.show') || route().current('public.ecosystems') || route().current('public.ecosystem.show'), icon: '🤝' },
         { name: 'Kontak', nameEn: 'Contact', href: route('public.contact'), active: route().current('public.contact'), icon: '📍' },
     ];
 });
@@ -325,8 +325,8 @@ const navigationLinks = computed(() => {
                         <span>SIAGA 24/7</span>
                     </span>
                     <p class="truncate text-slate-300 font-medium">
-                        <span v-if="partner">Kemitraan Resmi &bull; {{ partner.name }} &bull; Yayasan MKT Indonesia</span>
-                        <span v-else>Pusat Komando Bencana & Relawan Donor Darah &bull; Yayasan MKT Indonesia</span>
+                        <span v-if="partner">Kemitraan Resmi &bull; {{ partner.name }} &bull; Kolaborasi Mitra Peduli</span>
+                        <span v-else>Pusat Kolaborasi Kemanusiaan & Bencana &bull; Kolaborasi Mitra Peduli</span>
                     </p>
                 </div>
                 <div class="flex items-center space-x-3 shrink-0 text-slate-300">
@@ -344,7 +344,7 @@ const navigationLinks = computed(() => {
             <div class="max-w-7xl mx-auto backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800/90 shadow-xl shadow-slate-200/40 dark:shadow-slate-950/60 px-3 sm:px-5 py-2.5 sm:py-3 transition-all duration-300">
                 <div class="flex items-center justify-between">
                     
-                    <!-- Brand Logo: Mitra vs Yayasan MKT -->
+                    <!-- Brand Logo: Mitra vs Kolaborasi Mitra Peduli -->
                     <template v-if="partner">
                         <a href="#home" class="flex items-center space-x-2.5 shrink-0 min-w-0 pr-2 group">
                             <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-white dark:bg-slate-800 p-1 shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
@@ -363,14 +363,22 @@ const navigationLinks = computed(() => {
                                     {{ partner.name }}
                                 </span>
                                 <span class="text-[9px] sm:text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider truncate">
-                                    Mitra Resmi Yayasan MKT
+                                    Mitra Resmi Kolaborasi Mitra Peduli
                                 </span>
                             </div>
                         </a>
                     </template>
                     <template v-else>
                         <Link :href="route('home')" class="flex items-center shrink-0 min-w-0 pr-2">
-                            <MktLogo variant="full" icon-size="w-9 h-9 sm:w-11 sm:h-11" text-size="text-sm sm:text-lg lg:text-xl" :show-subtitle="true" />
+                            <MktLogo 
+                                variant="full" 
+                                icon-size="w-9 h-9 sm:w-11 sm:h-11" 
+                                text-size="text-sm sm:text-lg lg:text-xl" 
+                                title="MITRA PEDULI" 
+                                subtitle="Kolaborasi Lembaga Kemanusiaan" 
+                                :custom-logo="logoMitraPeduliImg"
+                                :show-subtitle="true" 
+                            />
                         </Link>
                     </template>
 
@@ -396,9 +404,9 @@ const navigationLinks = computed(() => {
                             v-if="partner"
                             :href="route('home')"
                             class="px-2.5 py-1.5 rounded-xl text-xs text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 font-bold border border-dashed border-slate-300 dark:border-slate-700 hover:border-orange-500 transition ml-1"
-                            title="Kembali ke Portal Pusat Yayasan MKT"
+                            title="Kembali ke Portal Kolaborasi Mitra Peduli"
                         >
-                            <span>🌐 Portal MKT</span>
+                            <span>🌐 Portal Mitra Peduli</span>
                         </Link>
                     </nav>
 
@@ -550,12 +558,18 @@ const navigationLinks = computed(() => {
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
                     <!-- Brand & Mission -->
                     <div class="lg:col-span-2 space-y-4">
-                        <MktLogo variant="full" icon-size="w-10 h-10" text-size="text-lg" :show-subtitle="true" />
+                        <MktLogo 
+                            variant="full" 
+                            icon-size="w-10 h-10" 
+                            text-size="text-lg" 
+                            :custom-logo="logoMitraPeduliImg"
+                            :show-subtitle="true" 
+                        />
                         <p class="text-xs text-slate-400 leading-relaxed max-w-sm">
-                            Yayasan Mitra Kemanusiaan Terpadu (MKT) Indonesia mengintegrasikan respons cepat evakuasi SAR, database relawan donor darah darurat 24/7, posko medis, logistik, dan akuntabilitas pelaporan donasi publik terpercaya.
+                            Kolaborasi Mitra Peduli (Kolaborasi Lembaga Kemanusiaan) mengintegrasikan koordinasi penanggulangan bencana, respons evakuasi SAR gabungan, jejaring donor darah darurat 24/7, klaster logistik, serta transparansi filantropi akuntabel.
                         </p>
                         <div class="flex items-center space-x-3 pt-2">
-                            <span class="text-xs font-bold text-orange-400">Siaga Komando:</span>
+                            <span class="text-xs font-bold text-orange-400">Siaga Komando Kolaborasi:</span>
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                                 🟢 AKTIF 24 JAM
                             </span>
@@ -584,7 +598,7 @@ const navigationLinks = computed(() => {
                             </li>
                             <li>
                                 <button @click="openCtaModal('relawan')" class="text-orange-400 hover:underline font-bold">
-                                    + Daftar Relawan SAR
+                                    + Daftar Relawan Kolaborasi
                                 </button>
                             </li>
                         </ul>
@@ -592,19 +606,19 @@ const navigationLinks = computed(() => {
 
                     <!-- Contact Headquarters -->
                     <div class="space-y-3">
-                        <h4 class="text-xs font-black uppercase tracking-wider text-white">Kantor Pusat Posko</h4>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-white">Sekretariat Kolaborasi</h4>
                         <p class="text-xs text-slate-400 leading-relaxed">
                             📍 Perumahan Insignia Oasis Blok B1-11 No 7<br />
-                            📞 Hotline: 0812-3456-7890<br />
-                            ✉️ Email: info@mkt.or.id
+                            📞 Hotline Siaga: 0812-3456-7890<br />
+                            ✉️ Email: sekretariat@mitrapeduli.or.id
                         </p>
                     </div>
                 </div>
 
                 <!-- Footer Copyright & Meta -->
                 <div class="pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-                    <p>&copy; 2026 Yayasan MKT Indonesia (Mitra Kemanusiaan Terpadu). Hak Cipta Dilindungi.</p>
-                    <p class="text-[11px] text-slate-400">Sistem Informasi Penanggulangan Bencana & Akuntansi Filantropi</p>
+                    <p>&copy; 2026 Kolaborasi Mitra Peduli (Lembaga Kemanusiaan). Hak Cipta Dilindungi.</p>
+                    <p class="text-[11px] text-slate-400">Sistem Kolaborasi Siaga Bencana & Integrasi Data Kemanusiaan</p>
                 </div>
             </div>
         </footer>
@@ -755,7 +769,7 @@ const navigationLinks = computed(() => {
                             {{ ctaModalType === 'mitra' ? 'Registrasi Kemitraan & Kolaborasi MKT' : (ctaModalType === 'donatur' ? 'Form Donatur Filantropi' : 'Daftar Relawan & Donor Darah') }}
                         </h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            {{ ctaModalType === 'mitra' ? 'Menghubungkan potensi, memperkuat kolaborasi, dan menghasilkan dampak kemanusiaan yang lebih besar.' : 'Bergabung dalam tim tanggap darurat kemanusiaan Yayasan MKT Indonesia.' }}
+                            {{ ctaModalType === 'mitra' ? 'Menghubungkan potensi, memperkuat kolaborasi, dan menghasilkan dampak kemanusiaan yang lebih besar.' : 'Bergabung dalam tim tanggap darurat kemanusiaan Kolaborasi Mitra Peduli.' }}
                         </p>
                     </div>
                     <button @click="showCtaModal = false" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">

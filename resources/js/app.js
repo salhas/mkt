@@ -5,9 +5,9 @@ import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
-import defaultMktLogo from '../images/mkt_logo.png';
+import defaultMktLogo from '../images/logo_MitraPeduli.png';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Yayasan MKT Indonesia';
+const appName = import.meta.env.VITE_APP_NAME || 'Kolaborasi Mitra Peduli';
 
 const updateFavicon = (logoUrl) => {
     if (typeof document === 'undefined') return;

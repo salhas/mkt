@@ -135,8 +135,8 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>Yayasan MKT Indonesia</h1>
-            <p>Mitra Kemanusiaan Terpadu</p>
+            <h1>Kolaborasi Mitra Peduli</h1>
+            <p>Kolaborasi Lembaga Kemanusiaan & Kebencanaan</p>
         </div>
 
         <!-- Content -->
@@ -145,7 +145,7 @@
                 Halo, {{ $volunteer->name }}! 👋
             </div>
             <p>
-                Selamat datang dan terima kasih telah mendaftarkan diri sebagai bagian dari <strong>Ekosistem Kemanusiaan Yayasan MKT Indonesia</strong>. Registrasi Anda telah berhasil tercatat dalam sistem database operasional kami.
+                Selamat datang dan terima kasih telah mendaftarkan diri sebagai bagian dari <strong>Ekosistem Kemanusiaan Kolaborasi Mitra Peduli</strong>. Registrasi Anda telah berhasil tercatat dalam sistem database operasional kami.
             </p>
 
             <!-- Volunteer Details Box -->
@@ -209,10 +209,10 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p style="margin: 0 0 5px 0;"><strong>Yayasan Mitra Kemanusiaan Terpadu (MKT) Indonesia</strong></p>
+            <p style="margin: 0 0 5px 0;"><strong>Kolaborasi Mitra Peduli</strong></p>
             <p style="margin: 0;">Perumahan Insignia Oasis Blok B1-11 No 7 | Hotline 24/7: +62 812-3456-7890</p>
             <p style="margin: 10px 0 0 0; opacity: 0.7; font-size: 11px;">
-                &copy; {{ date('Y') }} MKT Indonesia. All rights reserved.
+                &copy; {{ date('Y') }} Kolaborasi Mitra Peduli. All rights reserved.
             </p>
         </div>
     </div>

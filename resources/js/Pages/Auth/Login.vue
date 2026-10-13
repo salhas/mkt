@@ -86,12 +86,12 @@ const translations = {
         loginButton: 'Masuk Ke Dashboard',
         loggingIn: 'Memproses Login...',
         backToLanding: 'Kembali ke Halaman Utama',
-        foundationTag: 'Yayasan Mitra Kemanusiaan Terpadu',
-        bannerHeader: 'Ekosistem Kebencanaan Tangguh & Terintegrasi',
-        bannerSub: 'Sistem operasional penanganan prabencana, tanggap darurat rescue, donor darah, hingga akuntansi laporan keuangan filantropi.'
+        foundationTag: 'Kolaborasi Mitra Peduli',
+        bannerHeader: 'Kolaborasi Kebencanaan Tangguh & Terintegrasi',
+        bannerSub: 'Sistem operasional penanganan prabencana, tanggap darurat rescue bersama, donor darah, hingga akuntabilitas tata kelola kemanusiaan.'
     },
     en: {
-        title: 'MKT System Login',
+        title: 'Mitra Peduli System Login',
         welcome: 'Welcome Back',
         subtitle: 'Enter your account credentials to access the panel system.',
         emailLabel: 'Email Address',
@@ -101,9 +101,9 @@ const translations = {
         loginButton: 'Sign In To Dashboard',
         loggingIn: 'Processing Login...',
         backToLanding: 'Back to Main Landing Page',
-        foundationTag: 'Integrated Humanitarian Partner Foundation',
-        bannerHeader: 'Resilient & Integrated Disaster Management Ecosystem',
-        bannerSub: 'Operational system covering pre-disaster mitigation, emergency rescue, blood donation, and transparent financial accounting.'
+        foundationTag: 'Mitra Peduli Humanitarian Collaboration',
+        bannerHeader: 'Resilient & Integrated Disaster Collaboration Ecosystem',
+        bannerSub: 'Operational system covering pre-disaster mitigation, joint emergency rescue, blood donation, and transparent collaboration governance.'
     }
 };
 </script>
@@ -142,7 +142,7 @@ const translations = {
 
                 <!-- Bottom Footer Meta -->
                 <div class="relative z-10 text-xs text-slate-400 border-t border-slate-800/80 pt-6 flex justify-between items-center">
-                    <span>&copy; 2026 Yayasan MKT Indonesia</span>
+                    <span>&copy; 2026 Kolaborasi Mitra Peduli</span>
                     <span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/50 text-slate-300 font-semibold">v2.5 Operational Hub</span>
                 </div>
             </div>

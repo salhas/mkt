@@ -29,8 +29,8 @@ const handleContactSubmit = async () => {
 
 <template>
     <PublicLayout 
-        title="Kontak & Lokasi Posko - Yayasan MKT Indonesia"
-        description="Hubungi Yayasan MKT Indonesia (Mitra Kemanusiaan Terpadu). Alamat kantor posko di Insignia Oasis, hotline siaga 24/7, dan formulir bantuan."
+        title="Kontak & Lokasi Posko - Kolaborasi Mitra Peduli"
+        description="Hubungi Sekretariat Kolaborasi Mitra Peduli. Alamat kantor posko di Insignia Oasis, hotline siaga 24/7, dan formulir bantuan kemanusiaan."
     >
         <template #default>
             
@@ -58,13 +58,13 @@ const handleContactSubmit = async () => {
                         <div class="lg:col-span-5 space-y-6">
                             <div class="space-y-2">
                                 <span class="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
-                                    INFORMASI KANTOR PUSAT
+                                    INFORMASI SEKRETARIAT PUSAT
                                 </span>
                                 <h2 class="text-2xl font-black text-slate-900 dark:text-white">
-                                    Yayasan MKT Indonesia
+                                    Kolaborasi Mitra Peduli
                                 </h2>
                                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                                    Mitra Kemanusiaan Terpadu &bull; SK Kemenkumham RI
+                                    Kolaborasi Mitra Lembaga Peduli Kemanusiaan & Kebencanaan
                                 </p>
                             </div>
 

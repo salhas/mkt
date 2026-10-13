@@ -43,7 +43,7 @@ const scrollToSection = (id) => {
 </script>
 
 <template>
-    <Head title="Syarat & Ketentuan Kemitraan dan Kolaborasi - Yayasan MKT Indonesia" />
+    <Head title="Syarat & Ketentuan Kemitraan dan Kolaborasi - Kolaborasi Mitra Peduli" />
 
     <PublicLayout>
         <div class="min-h-screen bg-slate-50/60 dark:bg-slate-950/80 py-8 sm:py-12">
@@ -169,7 +169,7 @@ const scrollToSection = (id) => {
                             <span class="text-3xl">📄</span>
                             <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Berkas PDF Asli</h4>
                             <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                                Dokumen PDF dilengkapi stempel verifikasi dan kop resmi Yayasan MKT Indonesia (format cetak A4).
+                                Dokumen PDF dilengkapi stempel verifikasi dan kop resmi Kolaborasi Mitra Peduli (format cetak A4).
                             </p>
                             <a 
                                 :href="downloadUrl" 
@@ -185,13 +185,13 @@ const scrollToSection = (id) => {
                     <main class="lg:col-span-8 space-y-6">
                         <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-10 border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-8">
                             
-                            <!-- Header Kop Surat Yayasan MKT Berbasis Database -->
+                            <!-- Header Kop Surat Kolaborasi Mitra Peduli Berbasis Database -->
                             <div class="pb-6 border-b-2 border-blue-900 dark:border-blue-600 relative">
                                 <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
-                                    <img :src="mktProfile?.logo || '/images/mkt_logo.png'" alt="Logo Yayasan MKT" class="w-20 h-20 object-contain shrink-0" />
+                                    <img :src="mktProfile?.logo || '/images/logo_MitraPeduli.png'" alt="Logo Mitra Peduli" class="w-20 h-20 object-contain shrink-0" />
                                     <div class="space-y-1">
                                         <h2 class="text-base sm:text-lg font-black text-slate-950 dark:text-white uppercase tracking-wide">
-                                            {{ mktProfile?.name || 'Yayasan MKT Indonesia (Mitra Kemanusiaan Terpadu)' }}
+                                            {{ mktProfile?.name || 'Kolaborasi Mitra Peduli' }}
                                         </h2>
                                         <div class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                                             Lembaga Kemanusiaan, Kebencanaan & Filantropi Terpadu
@@ -506,7 +506,7 @@ const scrollToSection = (id) => {
                                         Ditetapkan di: Makassar, Indonesia
                                     </div>
                                     <div class="text-xs font-black text-slate-900 dark:text-white uppercase">
-                                        {{ mktProfile?.name ? 'PENGURUS ' + mktProfile.name : 'PENGURUS YAYASAN MKT INDONESIA' }}
+                                        {{ mktProfile?.name ? 'PENGURUS ' + mktProfile.name : 'PENGURUS KOLABORASI MITRA PEDULI' }}
                                     </div>
                                     <div class="py-2">
                                         <span class="inline-block px-3 py-1 rounded-full border border-dashed border-blue-600 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-wider bg-blue-50 dark:bg-blue-950/40">

@@ -38,8 +38,8 @@ const formatDate = (dateStr) => {
 
 <template>
     <PublicLayout 
-        title="Berita & Artikel Kebencanaan - Yayasan MKT Indonesia"
-        description="Pusat rilis pers, liputan aksi rescue lapangan, edukasi mitigasi pra-bencana, dan kabar kemanusiaan Yayasan MKT Indonesia."
+        title="Berita & Artikel Kebencanaan - Kolaborasi Mitra Peduli"
+        description="Pusat rilis pers, liputan aksi rescue lapangan, edukasi mitigasi pra-bencana, dan kabar kemanusiaan Kolaborasi Mitra Peduli."
     >
         <template #default>
             
@@ -50,7 +50,7 @@ const formatDate = (dateStr) => {
                         📰 PUBLIKASI & KABAR LAPANGAN
                     </span>
                     <h1 class="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-                        Berita, Liputan & Artikel MKT
+                        Berita, Liputan & Artikel Mitra Peduli
                     </h1>
                     <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
                         Dokumentasi aksi evakuasi SAR, penyaluran logistik, aksi donor darah, dan panduan mitigasi bencana untuk keselamatan bersama.

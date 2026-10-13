@@ -51,8 +51,8 @@ const services = [
 
 <template>
     <PublicLayout 
-        title="Layanan Kemanusiaan - Yayasan MKT Indonesia"
-        description="6 Layanan Terpadu Yayasan MKT Indonesia: Tim SAR Rescue, Jaringan Donor Darah, Medis, Logistik, Sinergi Basarnas BPBD, dan Akuntabilitas."
+        title="Layanan Kemanusiaan - Kolaborasi Mitra Peduli"
+        description="6 Layanan Terpadu Kolaborasi Mitra Peduli: Tim SAR Rescue, Jaringan Donor Darah, Medis, Logistik, Sinergi Basarnas BPBD, dan Akuntabilitas."
     >
         <template #default="{ openCtaModal }">
             
@@ -63,7 +63,7 @@ const services = [
                         ⚡ EKOSISTEM LAYANAN TERPADU
                     </span>
                     <h1 class="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-                        Layanan Kemanusiaan Yayasan MKT
+                        Layanan Kemanusiaan Kolaborasi Mitra Peduli
                     </h1>
                     <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
                         Solusi terintegrasi dalam manajemen darurat bencana, penyelamatan jiwa, hingga pertanggungjawaban dana filantropi.

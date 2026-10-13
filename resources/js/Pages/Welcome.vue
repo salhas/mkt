@@ -27,8 +27,8 @@ const shareCopied = ref(false);
 const currentUrl = ref('');
 
 const shareData = {
-    title: 'Yayasan MKT Indonesia - Tanggap Kemanusiaan & Penanggulangan Bencana',
-    text: 'Mari dukung & bersinergi bersama Yayasan MKT Indonesia dalam tanggap bencana, relawan donor darah siaga 24/7, dan donasi kemanusiaan:',
+    title: 'Kolaborasi Mitra Peduli - Tanggap Kemanusiaan & Penanggulangan Bencana',
+    text: 'Mari dukung & bersinergi bersama Kolaborasi Mitra Peduli dalam tanggap bencana, relawan donor darah siaga 24/7, dan donasi kemanusiaan:',
 };
 
 const openShareModal = () => {
@@ -189,7 +189,7 @@ const t = {
         heroTag: '📢 Ekosistem Penanggulangan Bencana Terpadu',
         heroTitle1: 'Membangun Ketangguhan,',
         heroTitle2: 'Menyalurkan Harapan Kemanusiaan',
-        heroDesc: 'Yayasan Mitra Kemanusiaan Terpadu (MKT) Indonesia hadir mengintegrasikan tim rescue, relawan donor darah, tenaga medis, dan mitra filantropi untuk kesiapsiagaan prabencana, tanggap darurat, hingga pascabencana.',
+        heroDesc: 'Kolaborasi Mitra Peduli hadir mengintegrasikan tim rescue, relawan donor darah, tenaga medis, dan mitra filantropi untuk kesiapsiagaan prabencana, tanggap darurat, hingga pascabencana.',
         heroBtnDonate: 'Donasi Kemanusiaan',
         heroBtnVolunteer: 'Gabung Relawan Rescue',
         statVolunteers: 'Relawan & Rescue',
@@ -200,7 +200,7 @@ const t = {
         // Profil MKT
         profileTag: 'TENTANG MKT INDONESIA',
         profileTitle: 'Mitra Kemanusiaan Terpadu',
-        profileDesc1: 'MKT Indonesia adalah yayasan nirlaba kemanusiaan yang berdedikasi membangun sinergi komprehensif dalam menghadapi ancaman dan dampak bencana alam maupun kemanusiaan di Indonesia.',
+        profileDesc1: 'Kolaborasi Mitra Peduli adalah forum kemanusiaan yang berdedikasi membangun sinergi komprehensif dalam menghadapi ancaman dan dampak bencana alam maupun kemanusiaan di Indonesia.',
         profileDesc2: 'Melalui integrasi teknologi dan jaringan relawan yang tersebar, kami mempercepat penanganan tanggap darurat dan menjamin transparansi penyaluran bantuan publik.',
         visionTitle: 'Visi Kami',
         visionDesc: 'Menjadi lembaga kemanusiaan terdepan dalam membangun ekosistem kebencanaan yang tanggap, tangguh, dan inklusif di Indonesia.',
@@ -260,8 +260,8 @@ const t = {
         formSubject: 'Topik',
         formMessage: 'Pesan / Detail Permohonan',
         formSubmit: 'Kirim Pesan Kemanusiaan',
-        formSuccess: 'Terima kasih! Pesan Anda telah diterima oleh tim MKT Indonesia.',
-        mapTitle: 'Peta Lokasi Google Maps Kantor MKT',
+        formSuccess: 'Terima kasih! Pesan Anda telah diterima oleh tim Kolaborasi Mitra Peduli.',
+        mapTitle: 'Peta Lokasi Google Maps Kantor Mitra Peduli',
 
         // Section CTA Bergabung
         ctaTag: 'GABUNG & BERAKSI KEMANUSIAAN',
@@ -292,11 +292,11 @@ const t = {
         ctaVolBtn: 'Daftar Relawan & Donor Darah',
 
         // System Panel Login Banner
-        quickRoleBannerTitle: 'Akses Panel Operasional & Sistem MKT',
+        quickRoleBannerTitle: 'Akses Panel Operasional & Sistem Mitra Peduli',
         quickRoleBannerDesc: 'Masuk ke panel sistem untuk pengurus yayasan, mitra penanggulangan bencana, relawan SAR, dan donatur.',
         quickRoleBtn: 'Masuk ke Panel Sistem',
 
-        footerRights: 'Yayasan MKT Indonesia (Mitra Kemanusiaan Terpadu). Hak Cipta Dilindungi.',
+        footerRights: 'Kolaborasi Mitra Peduli (Lembaga Kemanusiaan). Hak Cipta Dilindungi.',
         footerTagline: 'Sistem Informasi Penanggulangan Bencana & Manajemen Donasi Filantropi'
     },
     en: {
@@ -413,7 +413,7 @@ const t = {
         quickRoleBannerDesc: 'Sign in to access modules for foundation management, disaster response partners, SAR volunteers, and donors.',
         quickRoleBtn: 'Sign In to System Panel',
 
-        footerRights: 'Yayasan MKT Indonesia (Mitra Kemanusiaan Terpadu). All Rights Reserved.',
+        footerRights: 'Kolaborasi Mitra Peduli (Humanitarian Organization). All Rights Reserved.',
         footerTagline: 'Disaster Management & Philanthropic Donation Accounting System'
     }
 };
@@ -429,7 +429,7 @@ const partners = [
 </script>
 
 <template>
-    <Head title="Yayasan MKT Indonesia - Tanggap Kemanusiaan & Penanggulangan Bencana" />
+    <Head title="Kolaborasi Mitra Peduli - Tanggap Kemanusiaan & Penanggulangan Bencana" />
 
     <div class="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 font-sans selection:bg-orange-500 selection:text-white">
         
@@ -1825,7 +1825,7 @@ const partners = [
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
                         <div class="absolute top-3 left-3">
                             <span class="px-2.5 py-1 rounded-lg bg-orange-600/90 text-white font-black text-[10px] uppercase tracking-wider backdrop-blur-md shadow-sm">
-                                🛡️ Yayasan MKT Indonesia
+                                🛡️ Kolaborasi Mitra Peduli
                             </span>
                         </div>
                         <div class="absolute bottom-3 left-3 right-3 text-white">

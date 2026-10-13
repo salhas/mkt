@@ -58,7 +58,7 @@ const pillars = [
 
 <template>
     <PublicLayout 
-        title="3 Pilar Siklus Kebencanaan - Yayasan MKT Indonesia"
+        title="3 Pilar Siklus Kebencanaan - Kolaborasi Mitra Peduli"
         description="Pelajari 3 Tahap Penanggulangan Risiko Bencana Terpadu: Pra-Bencana, Tanggap Darurat Bencana, dan Pasca-Bencana."
     >
         <template #default="{ openCtaModal }">
@@ -73,7 +73,7 @@ const pillars = [
                         3 Pilar Penanggulangan Bencana Terpadu
                     </h1>
                     <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-                        Pendekatan holistik Yayasan MKT Indonesia dalam mengawal seluruh siklus kebencanaan dari pencegahan hingga pemulihan mandiri.
+                        Pendekatan holistik Kolaborasi Mitra Peduli dalam mengawal seluruh siklus kebencanaan dari pencegahan hingga pemulihan mandiri.
                     </p>
                 </div>
             </section>

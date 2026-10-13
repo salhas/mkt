@@ -118,7 +118,7 @@ const membershipTermsList = computed(() => {
         'Bersedia mengikuti proses orientasi, verifikasi berkas, atau Pendidikan Dasar (Diksar) internal lembaga.',
         'Menjunjung tinggi Anggaran Dasar & Anggaran Rumah Tangga (AD/ART), kode etik, dan kehormatan lembaga mitra.',
         'Memiliki komitmen aktif dalam piket posko, latihan rutin, dan kesiapsiagaan operasi SAR/kemanusiaan.',
-        'Siaga dimobilisasi di bawah komando koordinasi Pusdalops Yayasan MKT dan pimpinan mitra saat tanggap darurat.',
+        'Siaga dimobilisasi di bawah komando koordinasi Pusdalops Kolaborasi Mitra Peduli dan pimpinan mitra saat tanggap darurat.',
     ];
 });
 
@@ -130,7 +130,7 @@ const whatsappUrl = computed(() => {
     if (clean.startsWith('0')) {
         clean = '62' + clean.slice(1);
     }
-    const message = encodeURIComponent(`Halo ${props.partner.name}, saya mendapatkan informasi melalui Portal Resmi Yayasan MKT Indonesia dan ingin berkoordinasi.`);
+    const message = encodeURIComponent(`Halo ${props.partner.name}, saya mendapatkan informasi melalui Portal Resmi Kolaborasi Mitra Peduli dan ingin berkoordinasi.`);
     return `https://wa.me/${clean}?text=${message}`;
 });
 
@@ -226,8 +226,8 @@ const formatDate = (dateStr) => {
 
 <template>
     <PublicLayout 
-        :title="`${partner.name} - Mitra Resmi Yayasan MKT Indonesia`"
-        :description="partner.description || `Profil resmi kemitraan dan kolaborasi ${partner.name} bersama Yayasan MKT Indonesia.`"
+        :title="`${partner.name} - Mitra Resmi Kolaborasi Mitra Peduli`"
+        :description="partner.description || `Profil resmi kemitraan dan kolaborasi ${partner.name} bersama Kolaborasi Mitra Peduli.`"
         :partner="partner"
     >
         <template #default="{ openCtaModal }">
@@ -265,7 +265,7 @@ const formatDate = (dateStr) => {
                             </Link>
 
                             <span class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-600/80 text-white border border-orange-400/40 backdrop-blur-md shadow-md">
-                                <span>🤝 MITRA RESMI YAYASAN MKT</span>
+                                <span>🤝 MITRA RESMI KOLABORASI MITRA PEDULI</span>
                             </span>
 
                             <span 
@@ -308,7 +308,7 @@ const formatDate = (dateStr) => {
 
                                 <!-- Partner Motto / Tagline Description -->
                                 <p class="text-sm sm:text-base md:text-lg text-slate-200 max-w-3xl leading-relaxed drop-shadow-sm">
-                                    {{ partner.tagline || partner.description || 'Unit potensi kemanusiaan dan penanggulangan bencana yang terintegrasi secara resmi dalam jaringan koordinasi tanggap darurat Yayasan MKT Indonesia.' }}
+                                    {{ partner.tagline || partner.description || 'Unit potensi kemanusiaan dan penanggulangan bencana yang terintegrasi secara resmi dalam jaringan koordinasi tanggap darurat Kolaborasi Mitra Peduli.' }}
                                 </p>
 
                                 <!-- Hero Action Buttons -->
@@ -431,7 +431,7 @@ const formatDate = (dateStr) => {
                                         <span>Latar Belakang & Peran Strategis</span>
                                     </h3>
                                     <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-                                        {{ partner.description || 'Lembaga ini merupakan bagian integral dari potensi Search and Rescue serta aksi kemanusiaan yang terkoordinasi bersama Yayasan MKT Indonesia, Basarnas, dan BPBD.' }}
+                                        {{ partner.description || 'Lembaga ini merupakan bagian integral dari potensi Search and Rescue serta aksi kemanusiaan yang terkoordinasi bersama Kolaborasi Mitra Peduli, Basarnas, dan BPBD.' }}
                                     </p>
                                 </div>
 
@@ -764,7 +764,7 @@ const formatDate = (dateStr) => {
                                 </div>
 
                                 <div class="pt-4 border-t border-slate-800 text-[11px] text-slate-400">
-                                    Terdaftar secara resmi dalam Sistem Manajemen Yayasan MKT Indonesia (Nomor Kode: <strong class="text-white">{{ partner.code }}</strong>).
+                                    Terdaftar secara resmi dalam Sistem Manajemen Kolaborasi Mitra Peduli (Nomor Kode: <strong class="text-white">{{ partner.code }}</strong>).
                                 </div>
                             </div>
 
@@ -784,7 +784,7 @@ const formatDate = (dateStr) => {
                                     Jelajahi Mitra Resmi Lainnya
                                 </h3>
                                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                                    Potensi kemanusiaan terpadu di bawah naungan Yayasan MKT.
+                                    Potensi kemanusiaan terpadu di bawah naungan Kolaborasi Mitra Peduli.
                                 </p>
                             </div>
                             <Link :href="route('public.partners')" class="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline">
@@ -812,7 +812,7 @@ const formatDate = (dateStr) => {
                                         {{ op.name }}
                                     </h4>
                                     <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                                        {{ op.description || 'Mitra resmi Yayasan MKT Indonesia.' }}
+                                        {{ op.description || 'Mitra resmi Kolaborasi Mitra Peduli.' }}
                                     </p>
                                 </div>
                                 <div class="pt-2 text-xs font-bold text-orange-600 dark:text-orange-400 flex items-center space-x-1">

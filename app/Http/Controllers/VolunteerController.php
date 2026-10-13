@@ -438,9 +438,67 @@ class VolunteerController extends Controller
 
     public function publicRegisterPartner(Request $request)
     {
+        $partnerId = $request->input('partner_id');
+        $ecosystemId = $request->input('ecosystem_id');
+
+        // Skenario A: Mitra sudah terdaftar dalam sistem dan ingin bergabung / memperbarui ekosistem
+        if (!empty($partnerId)) {
+            $partner = Partner::findOrFail($partnerId);
+
+            $validated = $request->validate([
+                'partner_id' => 'required|exists:partners,id',
+                'ecosystem_id' => 'nullable|exists:ecosystems,id',
+                'category' => 'nullable|string|max:100',
+                'pic_name' => 'nullable|string|max:255',
+                'pic_phone' => 'nullable|string|max:50',
+                'pic_email' => 'nullable|email|max:255',
+                'phone' => 'nullable|string|max:50',
+                'email' => 'nullable|email|max:255',
+                'address' => 'nullable|string',
+                'personnel_count' => 'nullable|integer|min:0',
+                'description' => 'nullable|string',
+                'terms_accepted' => 'required|accepted',
+            ], [
+                'terms_accepted.required' => 'Anda wajib menyetujui Syarat & Ketentuan Kemitraan dan Kolaborasi Mitra Peduli.',
+                'terms_accepted.accepted' => 'Anda wajib menyetujui Syarat & Ketentuan Kemitraan dan Kolaborasi Mitra Peduli.',
+            ]);
+
+            // Perbarui data kemitraan termasuk menghubungkan ke ekosistem yang dituju
+            $updateData = [];
+            if ($ecosystemId) {
+                $updateData['ecosystem_id'] = $ecosystemId;
+            }
+            if ($request->filled('category')) $updateData['category'] = $validated['category'];
+            if ($request->filled('pic_name')) $updateData['pic_name'] = $validated['pic_name'];
+            if ($request->filled('pic_phone')) $updateData['pic_phone'] = $validated['pic_phone'];
+            if ($request->filled('pic_email')) $updateData['pic_email'] = $validated['pic_email'];
+            if ($request->filled('phone')) $updateData['phone'] = $validated['phone'];
+            if ($request->filled('address')) $updateData['address'] = $validated['address'];
+            if ($request->filled('personnel_count')) $updateData['personnel_count'] = (int) $validated['personnel_count'];
+            if ($request->filled('description')) $updateData['description'] = $validated['description'];
+
+            if (!empty($updateData)) {
+                $partner->update($updateData);
+            }
+
+            $successMsg = 'Lembaga ' . $partner->name . ' berhasil didaftarkan dan terhubung ke dalam ekosistem kemanusiaan!';
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $successMsg,
+                    'partner' => $partner,
+                ]);
+            }
+
+            return redirect()->back()->with('success', $successMsg);
+        }
+
+        // Skenario B: Lembaga Baru (Belum Terdaftar)
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:100',
+            'ecosystem_id' => 'nullable|exists:ecosystems,id',
             'pic_name' => 'required|string|max:255',
             'pic_phone' => 'required|string|max:50',
             'pic_email' => 'nullable|email|max:255',
@@ -453,8 +511,8 @@ class VolunteerController extends Controller
             'password' => 'nullable|string|min:6',
             'terms_accepted' => 'required|accepted',
         ], [
-            'terms_accepted.required' => 'Anda wajib menyetujui Syarat & Ketentuan Kemitraan dan Kolaborasi MKT Indonesia.',
-            'terms_accepted.accepted' => 'Anda wajib menyetujui Syarat & Ketentuan Kemitraan dan Kolaborasi MKT Indonesia.',
+            'terms_accepted.required' => 'Anda wajib menyetujui Syarat & Ketentuan Kemitraan dan Kolaborasi Mitra Peduli.',
+            'terms_accepted.accepted' => 'Anda wajib menyetujui Syarat & Ketentuan Kemitraan dan Kolaborasi Mitra Peduli.',
         ]);
 
         $prefix = match ($validated['category']) {
@@ -473,11 +531,21 @@ class VolunteerController extends Controller
         $passwordInput = $validated['password'] ?? 'password123';
         unset($validated['password'], $validated['terms_accepted']);
 
-        $partner = Partner::create(array_merge($validated, [
-            'code' => $code,
-            'status' => 'Aktif',
-            'personnel_count' => (int) ($validated['personnel_count'] ?? 0),
-        ]));
+        // Jika email lembaga sudah pernah ada sebelumnya, perbarui ekosistemnya dan profilnya
+        $existingPartner = Partner::where('email', $validated['email'])->first();
+        if ($existingPartner) {
+            $existingPartner->update(array_merge($validated, [
+                'status' => 'Aktif',
+                'personnel_count' => (int) ($validated['personnel_count'] ?? $existingPartner->personnel_count),
+            ]));
+            $partner = $existingPartner;
+        } else {
+            $partner = Partner::create(array_merge($validated, [
+                'code' => $code,
+                'status' => 'Aktif',
+                'personnel_count' => (int) ($validated['personnel_count'] ?? 0),
+            ]));
+        }
 
         \App\Models\User::updateOrCreate(
             ['email' => $partner->email],
@@ -491,15 +559,17 @@ class VolunteerController extends Controller
             ]
         );
 
+        $successMsg = 'Registrasi Kemitraan & Kolaborasi Mitra Peduli berhasil! Profil mitra dan akun sistem telah dibuat.';
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Registrasi Kemitraan & Kolaborasi MKT berhasil! Profil mitra dan akun sistem telah dibuat.',
+                'message' => $successMsg,
                 'partner' => $partner,
             ]);
         }
 
-        return redirect()->back()->with('success', 'Registrasi Kemitraan & Kolaborasi MKT berhasil!');
+        return redirect()->back()->with('success', $successMsg);
     }
 
     public function update(Request $request, Volunteer $volunteer)

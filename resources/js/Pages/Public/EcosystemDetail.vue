@@ -37,6 +37,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    allPartners: {
+        type: Array,
+        default: () => [],
+    },
     otherEcosystems: {
         type: Array,
         default: () => [],
@@ -51,7 +55,12 @@ const props = defineProps({
 const showJoinModal = ref(false);
 const joinSubmitted = ref(false);
 
+// Mode: 'existing' (mitra sudah terdaftar) vs 'new' (lembaga baru)
+const registrationMode = ref('existing');
+const selectedPartnerId = ref('');
+
 const joinForm = useForm({
+    partner_id: '',
     name: '',
     category: 'Tim Rescue',
     pic_name: '',
@@ -68,12 +77,82 @@ const joinForm = useForm({
     ecosystem_id: props.ecosystem.id,
 });
 
+// Mitra yang belum bergabung ke ekosistem saat ini
+const availableExistingPartners = computed(() => {
+    return (props.allPartners || []).filter(p => p.ecosystem_id !== props.ecosystem.id);
+});
+
+// Saat memilih mitra yang sudah terdaftar, otomatis isi field yang bersangkutan
+const onSelectPartner = () => {
+    if (!selectedPartnerId.value) {
+        joinForm.partner_id = '';
+        joinForm.name = '';
+        joinForm.category = 'Tim Rescue';
+        joinForm.pic_name = '';
+        joinForm.pic_phone = '';
+        joinForm.pic_email = '';
+        joinForm.email = '';
+        joinForm.phone = '';
+        joinForm.address = '';
+        joinForm.personnel_count = 5;
+        joinForm.description = '';
+        return;
+    }
+
+    const partner = props.allPartners.find(p => p.id === parseInt(selectedPartnerId.value));
+    if (partner) {
+        joinForm.partner_id = partner.id;
+        joinForm.name = partner.name;
+        joinForm.category = partner.category || 'Tim Rescue';
+        joinForm.pic_name = partner.pic_name || '';
+        joinForm.pic_phone = partner.pic_phone || '';
+        joinForm.pic_email = partner.pic_email || '';
+        joinForm.email = partner.email || '';
+        joinForm.phone = partner.phone || '';
+        joinForm.address = partner.address || '';
+        joinForm.personnel_count = partner.personnel_count || 5;
+        joinForm.description = partner.description || '';
+    }
+};
+
+const switchMode = (mode) => {
+    registrationMode.value = mode;
+    if (mode === 'new') {
+        selectedPartnerId.value = '';
+        joinForm.partner_id = '';
+        joinForm.name = '';
+        joinForm.category = 'Tim Rescue';
+        joinForm.pic_name = '';
+        joinForm.pic_phone = '';
+        joinForm.pic_email = '';
+        joinForm.email = '';
+        joinForm.phone = '';
+        joinForm.address = '';
+        joinForm.personnel_count = 5;
+        joinForm.description = '';
+        joinForm.password = '';
+    } else {
+        if (availableExistingPartners.value.length > 0) {
+            selectedPartnerId.value = String(availableExistingPartners.value[0].id);
+            onSelectPartner();
+        }
+    }
+};
+
 const submitJoinForm = () => {
+    joinForm.ecosystem_id = props.ecosystem.id;
+    if (registrationMode.value === 'existing') {
+        joinForm.partner_id = selectedPartnerId.value;
+    } else {
+        joinForm.partner_id = '';
+    }
+
     joinForm.post(route('partners.public-register'), {
         preserveScroll: true,
         onSuccess: () => {
             joinSubmitted.value = true;
             joinForm.reset();
+            selectedPartnerId.value = '';
         },
     });
 };
@@ -98,8 +177,8 @@ const getNewsImage = (item) => {
 
 <template>
     <PublicLayout
-        :title="`${ecosystem.name} - Ekosistem Kemanusiaan Resmi MKT`"
-        :description="ecosystem.description || `Profil dan Jejaring Lembaga Kemanusiaan ${ecosystem.name} Terintegrasi Yayasan MKT Indonesia.`"
+        :title="`${ecosystem.name} - Ekosistem Kemanusiaan Resmi Kolaborasi Mitra Peduli`"
+        :description="ecosystem.description || `Profil dan Jejaring Lembaga Kemanusiaan ${ecosystem.name} Terintegrasi Kolaborasi Mitra Peduli.`"
         :ecosystem="ecosystem"
     >
         <template #default="{ openCtaModal, openShareModal }">
@@ -124,9 +203,9 @@ const getNewsImage = (item) => {
                 <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-6 w-full">
                     <!-- Top Breadcrumb & Badges -->
                     <div class="flex flex-wrap items-center gap-2">
-                        <Link :href="route('public.ecosystems')" class="px-3 py-1.5 rounded-full bg-slate-950/70 hover:bg-slate-950 text-white text-xs font-semibold backdrop-blur-md transition border border-white/20 shadow-md flex items-center space-x-1">
+                        <Link :href="route('public.partners', { tab: 'ekosistem' })" class="px-3 py-1.5 rounded-full bg-slate-950/70 hover:bg-slate-950 text-white text-xs font-semibold backdrop-blur-md transition border border-white/20 shadow-md flex items-center space-x-1">
                             <span>←</span>
-                            <span>Semua Ekosistem</span>
+                            <span>Direktori Mitra & Ekosistem</span>
                         </Link>
                         <span class="px-3 py-1.5 rounded-full bg-indigo-600/80 text-white border border-indigo-400/40 text-xs font-mono font-bold uppercase tracking-wider backdrop-blur-md shadow-md">
                             {{ ecosystem.code || 'EKOSISTEM' }}
@@ -519,7 +598,7 @@ const getNewsImage = (item) => {
                             <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">EKSPLORASI WILAYAH</span>
                             <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Ekosistem Kemanusiaan Lainnya</h3>
                         </div>
-                        <Link :href="route('public.ecosystems')" class="text-xs font-bold text-indigo-600 hover:underline">
+                        <Link :href="route('public.partners', { tab: 'ekosistem' })" class="text-xs font-bold text-indigo-600 hover:underline">
                             Lihat Semua →
                         </Link>
                     </div>
@@ -557,7 +636,7 @@ const getNewsImage = (item) => {
                         Tingkatkan Kapasitas Penyelamatan & Kemanusiaan Lembaga Anda
                     </h2>
                     <p class="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-                        Dengan bergabung ke dalam ekosistem {{ ecosystem.name }}, lembaga Anda akan terhubung langsung ke jejaring logistik, komando operasi SAR, dan pelatihan kesiapsiagaan terpadu Yayasan MKT Indonesia.
+                        Dengan bergabung ke dalam ekosistem {{ ecosystem.name }}, lembaga Anda akan terhubung langsung ke jejaring logistik, komando operasi SAR, dan pelatihan kesiapsiagaan terpadu Kolaborasi Mitra Peduli.
                     </p>
                     <div class="pt-2 flex flex-wrap items-center justify-center gap-4">
                         <button
@@ -619,23 +698,111 @@ const getNewsImage = (item) => {
 
                     <!-- Form Body -->
                     <form v-else @submit.prevent="submitJoinForm" class="space-y-4 text-xs">
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-700 dark:text-slate-300">Nama Resmi Lembaga / Organisasi *</label>
-                            <input
-                                v-model="joinForm.name"
-                                type="text"
-                                required
-                                placeholder="Contoh: KSR PMI Unit Kampus, Mapala Rescue, dll."
-                                class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500"
-                            />
-                            <p v-if="joinForm.errors.name" class="text-rose-500 text-[11px]">{{ joinForm.errors.name }}</p>
+                        
+                        <!-- Status Kepesertaan / Mode Switcher -->
+                        <div class="space-y-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                            <label class="font-bold text-slate-800 dark:text-slate-200 block">Status Kemitraan Lembaga Anda:</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    @click="switchMode('existing')"
+                                    :class="[
+                                        registrationMode === 'existing'
+                                            ? 'bg-indigo-600 text-white shadow-sm font-bold border-indigo-600'
+                                            : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100',
+                                        'p-2.5 rounded-xl border text-left transition flex items-center space-x-2'
+                                    ]"
+                                >
+                                    <span class="text-base">🏢</span>
+                                    <div>
+                                        <div class="font-bold text-xs">Sudah Terdaftar Sebagai Mitra</div>
+                                        <div class="text-[10px] opacity-80">Pilih dari database mitra resmi</div>
+                                    </div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    @click="switchMode('new')"
+                                    :class="[
+                                        registrationMode === 'new'
+                                            ? 'bg-indigo-600 text-white shadow-sm font-bold border-indigo-600'
+                                            : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100',
+                                        'p-2.5 rounded-xl border text-left transition flex items-center space-x-2'
+                                    ]"
+                                >
+                                    <span class="text-base">✨</span>
+                                    <div>
+                                        <div class="font-bold text-xs">Lembaga Baru (Belum Terdaftar)</div>
+                                        <div class="text-[10px] opacity-80">Daftarkan profil mitra baru</div>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
 
+                        <!-- FIELD: Nama Resmi Lembaga / Organisasi -->
+                        <div class="space-y-1.5">
+                            <label class="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                                <span>Nama Resmi Lembaga / Organisasi <span class="text-rose-500">*</span></span>
+                                <span v-if="registrationMode === 'existing'" class="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">
+                                    Pilih Mitra Terdaftar di Bawah
+                                </span>
+                                <span v-else class="text-[10px] text-slate-400">
+                                    Ketik Nama Lembaga Baru
+                                </span>
+                            </label>
+
+                            <!-- Pilihan A: Jika Mitra Sudah Terdaftar (Select Dropdown) -->
+                            <div v-if="registrationMode === 'existing'" class="space-y-2">
+                                <div v-if="availableExistingPartners.length > 0">
+                                    <select
+                                        v-model="selectedPartnerId"
+                                        @change="onSelectPartner"
+                                        required
+                                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-indigo-500 font-medium"
+                                    >
+                                        <option value="" disabled>-- Pilih Lembaga Mitra Terdaftar --</option>
+                                        <option 
+                                            v-for="p in availableExistingPartners" 
+                                            :key="p.id" 
+                                            :value="p.id"
+                                        >
+                                            {{ p.name }} ({{ p.category || 'Mitra' }} - {{ p.code || 'ID:' + p.id }})
+                                        </option>
+                                    </select>
+                                    <p class="text-[11px] text-slate-500 mt-1">
+                                        Data profil & kontak PIC akan dimuat secara otomatis dari sistem.
+                                    </p>
+                                </div>
+                                <div v-else class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-xl text-amber-800 dark:text-amber-300 text-xs">
+                                    Semua mitra resmi yang terdaftar sudah tergabung dalam ekosistem ini. Anda dapat mendaftarkan lembaga baru menggunakan tombol opsi <strong>"Lembaga Baru"</strong> di atas.
+                                </div>
+                            </div>
+
+                            <!-- Pilihan B: Jika Belum Terdaftar (Input Text Biasa) -->
+                            <div v-else>
+                                <input
+                                    v-model="joinForm.name"
+                                    type="text"
+                                    required
+                                    placeholder="Contoh: KSR PMI Unit Kampus, Mapala Rescue, SAR Unhas, dll."
+                                    class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <p class="text-[11px] text-slate-500 mt-1">
+                                    Masukkan nama lengkap organisasi/instansi yang akan didaftarkan ke ekosistem ini.
+                                </p>
+                            </div>
+
+                            <p v-if="joinForm.errors.name" class="text-rose-500 text-[11px]">{{ joinForm.errors.name }}</p>
+                            <p v-if="joinForm.errors.partner_id" class="text-rose-500 text-[11px]">{{ joinForm.errors.partner_id }}</p>
+                        </div>
+
+                        <!-- Detail Fields (Auto-filled atau Diisi Manual) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="space-y-1">
-                                <label class="font-bold text-slate-700 dark:text-slate-300">Kategori Lembaga *</label>
+                                <label class="font-bold text-slate-700 dark:text-slate-300">Kategori Lembaga <span class="text-rose-500">*</span></label>
                                 <select
                                     v-model="joinForm.category"
+                                    required
                                     class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs"
                                 >
                                     <option value="Tim Rescue">Tim Rescue / Potensi SAR</option>
@@ -644,6 +811,8 @@ const getNewsImage = (item) => {
                                     <option value="Basarnas">Basarnas / Siaga SAR</option>
                                     <option value="Rumah Sakit">Rumah Sakit / Medis</option>
                                     <option value="Filantropi">Lembaga Filantropi / CSR</option>
+                                    <option value="CSR Swasta">CSR Swasta / Korporasi</option>
+                                    <option value="Komunitas Kemanusiaan">Komunitas Kemanusiaan</option>
                                 </select>
                             </div>
 
@@ -660,7 +829,7 @@ const getNewsImage = (item) => {
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="space-y-1">
-                                <label class="font-bold text-slate-700 dark:text-slate-300">Nama Narahubung / PIC *</label>
+                                <label class="font-bold text-slate-700 dark:text-slate-300">Nama Narahubung / PIC <span class="text-rose-500">*</span></label>
                                 <input
                                     v-model="joinForm.pic_name"
                                     type="text"
@@ -670,7 +839,7 @@ const getNewsImage = (item) => {
                                 />
                             </div>
                             <div class="space-y-1">
-                                <label class="font-bold text-slate-700 dark:text-slate-300">Nomor WhatsApp PIC *</label>
+                                <label class="font-bold text-slate-700 dark:text-slate-300">Nomor WhatsApp PIC <span class="text-rose-500">*</span></label>
                                 <input
                                     v-model="joinForm.pic_phone"
                                     type="text"
@@ -683,7 +852,7 @@ const getNewsImage = (item) => {
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="space-y-1">
-                                <label class="font-bold text-slate-700 dark:text-slate-300">Email Resmi Lembaga *</label>
+                                <label class="font-bold text-slate-700 dark:text-slate-300">Email Resmi Lembaga <span class="text-rose-500">*</span></label>
                                 <input
                                     v-model="joinForm.email"
                                     type="email"
@@ -693,11 +862,21 @@ const getNewsImage = (item) => {
                                 />
                             </div>
                             <div class="space-y-1">
-                                <label class="font-bold text-slate-700 dark:text-slate-300">Password Akun Portal Lembaga</label>
+                                <label class="font-bold text-slate-700 dark:text-slate-300">
+                                    {{ registrationMode === 'existing' ? 'Nomor Telepon Kantor / Sekretariat' : 'Password Akun Portal Lembaga' }}
+                                </label>
                                 <input
+                                    v-if="registrationMode === 'new'"
                                     v-model="joinForm.password"
                                     type="password"
                                     placeholder="Minimal 6 karakter"
+                                    class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs"
+                                />
+                                <input
+                                    v-else
+                                    v-model="joinForm.phone"
+                                    type="text"
+                                    placeholder="0411-xxxxxx / HP Sekretariat"
                                     class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs"
                                 />
                             </div>
@@ -714,7 +893,7 @@ const getNewsImage = (item) => {
                         </div>
 
                         <div class="space-y-1">
-                            <label class="font-bold text-slate-700 dark:text-slate-300">Profil Singkat & Spesialisasi</label>
+                            <label class="font-bold text-slate-700 dark:text-slate-300">Profil Singkat & Spesialisasi Operasi</label>
                             <textarea
                                 v-model="joinForm.description"
                                 rows="2"
@@ -733,7 +912,7 @@ const getNewsImage = (item) => {
                                 class="rounded border-slate-300 text-indigo-600 mt-0.5 focus:ring-indigo-500"
                             />
                             <label for="terms" class="text-[11px] text-slate-600 dark:text-slate-400 leading-normal">
-                                Lembaga kami menyetujui prinsip sinergi kemanusiaan non-profit dan siap berkoordinasi dalam ekosistem {{ ecosystem.name }} di bawah tata kelola Yayasan MKT Indonesia.
+                                Lembaga kami menyetujui prinsip sinergi kemanusiaan non-profit dan siap berkoordinasi dalam ekosistem {{ ecosystem.name }} di bawah tata kelola Kolaborasi Mitra Peduli.
                             </label>
                         </div>
 
@@ -748,10 +927,10 @@ const getNewsImage = (item) => {
                             </button>
                             <button
                                 type="submit"
-                                :disabled="joinForm.processing || !joinForm.terms_accepted"
+                                :disabled="joinForm.processing || !joinForm.terms_accepted || (registrationMode === 'existing' && !selectedPartnerId)"
                                 class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold shadow-md disabled:opacity-50"
                             >
-                                {{ joinForm.processing ? 'Memproses...' : 'Kirim Pendaftaran' }}
+                                {{ joinForm.processing ? 'Memproses...' : (registrationMode === 'existing' ? 'Gabungkan Mitra ke Ekosistem' : 'Kirim Pendaftaran Mitra Baru') }}
                             </button>
                         </div>
                     </form>

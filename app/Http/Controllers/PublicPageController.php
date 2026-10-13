@@ -22,13 +22,25 @@ class PublicPageController extends Controller
     public function home()
     {
         $latestNews = News::orderBy('id', 'desc')->take(3)->get();
-        $activeOperations = SarOperation::whereIn('status', ['Siaga', 'Operasi SAR', 'Evaluasi'])->count();
+        $activeOperations = SarOperation::whereIn('status', ['Siaga', 'Operasi SAR', 'Evaluasi', 'Operasi Aktif', 'Siaga SAR'])->count();
         $totalVolunteers = Volunteer::count() + 1250;
         $totalDonors = Donor::count() + 850;
 
+        $partners = Partner::withCount(['volunteers', 'equipments'])
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $ecosystems = Ecosystem::withCount('partners')
+            ->orderBy('id', 'asc')
+            ->get();
+
         return Inertia::render('Public/Home', [
             'latestNews' => $latestNews,
+            'partners' => $partners,
+            'ecosystems' => $ecosystems,
             'stats' => [
+                'partners' => Partner::count(),
+                'ecosystems' => Ecosystem::count(),
                 'volunteers' => $totalVolunteers,
                 'donors' => $totalDonors,
                 'operations' => $activeOperations + 42,
@@ -42,8 +54,13 @@ class PublicPageController extends Controller
      */
     public function about()
     {
+        $partners = Partner::withCount(['volunteers', 'equipments'])->orderBy('id', 'asc')->get();
+        $ecosystems = Ecosystem::withCount('partners')->orderBy('id', 'asc')->get();
+
         return Inertia::render('Public/About', [
-            'mktProfile' => MktProfile::first()
+            'mktProfile' => MktProfile::first(),
+            'partners' => $partners,
+            'ecosystems' => $ecosystems,
         ]);
     }
 
@@ -64,13 +81,25 @@ class PublicPageController extends Controller
     }
 
     /**
-     * Mitra & Kolaborasi (Partners)
+     * Mitra & Ekosistem Kolaborasi (Partners & Ecosystems Directory)
      */
-    public function partners()
+    public function partners(Request $request)
     {
-        $partners = Partner::withCount('volunteers')->orderBy('id', 'asc')->get();
+        $partners = Partner::withCount(['volunteers', 'equipments'])->orderBy('id', 'asc')->get();
+
+        $ecosystems = Ecosystem::where('status', 'Aktif')
+            ->with(['partners' => function ($pq) {
+                $pq->where('status', 'Aktif')->select('id', 'ecosystem_id', 'name', 'slug', 'category', 'logo_path', 'pic_name');
+            }])
+            ->withCount('partners')
+            ->orderBy('id', 'asc')
+            ->get();
+
         return Inertia::render('Public/Partners', [
-            'partners' => $partners
+            'partners' => $partners,
+            'ecosystems' => $ecosystems,
+            'mktProfile' => MktProfile::first(),
+            'defaultTab' => $request->query('tab', 'semua'),
         ]);
     }
 
@@ -243,9 +272,16 @@ class PublicPageController extends Controller
             ->take(3)
             ->get(['id', 'name', 'code', 'slug', 'region', 'lead_institution', 'logo_path']);
 
+        // Semua mitra aktif untuk opsi pilih mitra yang sudah terdaftar
+        $allPartners = Partner::where('status', 'Aktif')
+            ->select('id', 'name', 'code', 'category', 'ecosystem_id', 'pic_name', 'pic_phone', 'pic_email', 'phone', 'email', 'address', 'personnel_count', 'description')
+            ->orderBy('name', 'asc')
+            ->get();
+
         return Inertia::render('Public/EcosystemDetail', [
             'ecosystem' => $ecosystem,
             'partners' => $partners,
+            'allPartners' => $allPartners,
             'volunteers' => $volunteers,
             'totalVolunteersCount' => $totalVolunteersCount,
             'totalPersonnelEstimated' => $totalPersonnelEstimated,

@@ -6,13 +6,13 @@
 
         <meta name="theme-color" content="#EA580C">
 
-        <title inertia>{{ config('app.name', 'Yayasan MKT Indonesia') }}</title>
+        <title inertia>{{ config('app.name', 'Kolaborasi Mitra Peduli') }}</title>
 
         <!-- Primary SEO Meta Tags -->
-        <meta name="title" content="Yayasan MKT Indonesia - Tanggap Kemanusiaan & Penanggulangan Bencana Terpadu">
+        <meta name="title" content="Kolaborasi Mitra Peduli - Kolaborasi Lembaga Peduli Kemanusiaan & Kebencanaan">
         <meta name="description" content="Ekosistem penanggulangan bencana terpadu, relawan donor darah siaga 24/7, tim rescue SAR lapangan, dan penghimpunan donasi kemanusiaan yang transparan.">
-        <meta name="keywords" content="Yayasan MKT, Mitra Kemanusiaan Terpadu, Tanggap Bencana, Relawan Donor Darah, Tim Rescue SAR, Basarnas BPBD, Donasi Kemanusiaan, Filantropi">
-        <meta name="author" content="Yayasan Mitra Kemanusiaan Terpadu (MKT) Indonesia">
+        <meta name="keywords" content="Mitra Peduli, Kolaborasi Mitra Peduli, Tanggap Bencana, Relawan Donor Darah, Tim Rescue SAR, Basarnas BPBD, Donasi Kemanusiaan, Filantropi">
+        <meta name="author" content="Kolaborasi Mitra Peduli (Lembaga Kemanusiaan)">
 
         <!-- Dynamic Favicon & Share Thumbnail -->
         @php
@@ -24,7 +24,7 @@
                     ? $mktProfile->logo
                     : asset(ltrim($mktProfile->logo, '/'));
             } else {
-                $faviconUrl = asset('images/mkt_logo.png');
+                $faviconUrl = asset('images/logo_MitraPeduli.png');
             }
             
             // Dynamic host base URL resolution (fallback from request root if APP_URL is localhost)
@@ -37,7 +37,7 @@
             }
 
             // Default OG metadata
-            $ogTitle = "Yayasan MKT Indonesia - Tanggap Kemanusiaan & Penanggulangan Bencana";
+            $ogTitle = "Kolaborasi Mitra Peduli - Kolaborasi Lembaga Peduli Kemanusiaan & Bencana";
             $ogDesc = "Ekosistem penanggulangan bencana terpadu, relawan donor darah siaga 24/7, tim rescue SAR lapangan, dan transparansi donasi kemanusiaan.";
             $ogImage = asset('images/og_thumbnail.jpg');
             $ogType = "website";
@@ -49,7 +49,7 @@
             if ($slugOrId) {
                 $newsItem = \App\Models\News::where('slug', $slugOrId)->orWhere('id', $slugOrId)->first();
                 if ($newsItem) {
-                    $ogTitle = $newsItem->title . ' - Yayasan MKT Indonesia';
+                    $ogTitle = $newsItem->title . ' - Kolaborasi Mitra Peduli';
                     $ogDesc = \Illuminate\Support\Str::limit(strip_tags($newsItem->content), 160);
                     $ogType = "article";
                     if (!empty($newsItem->image_url)) {
@@ -100,7 +100,7 @@
         <!-- Open Graph / Facebook / WhatsApp / Telegram Sharelink -->
         <meta property="og:type" content="{{ $ogType }}">
         <meta property="og:url" content="{{ $currentUrl }}">
-        <meta property="og:site_name" content="Yayasan MKT Indonesia">
+        <meta property="og:site_name" content="Kolaborasi Mitra Peduli">
         <meta property="og:title" content="{{ $ogTitle }}">
         <meta property="og:description" content="{{ $ogDesc }}">
         <meta property="og:image" content="{{ $ogImage }}">
